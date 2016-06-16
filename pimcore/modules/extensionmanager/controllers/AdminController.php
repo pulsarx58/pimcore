@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 use Pimcore\ExtensionManager;
@@ -15,7 +17,6 @@ use Pimcore\File;
 
 class Extensionmanager_AdminController extends \Pimcore\Controller\Action\Admin
 {
-
     public function init()
     {
         parent::init();
@@ -25,7 +26,7 @@ class Extensionmanager_AdminController extends \Pimcore\Controller\Action\Admin
 
     public function getExtensionsAction()
     {
-        $configurations = array();
+        $configurations = [];
 
         // plugins
         $pluginConfigs = ExtensionManager::getPluginConfigs();
@@ -37,23 +38,23 @@ class Extensionmanager_AdminController extends \Pimcore\Controller\Action\Admin
             if (is_file($revisionFile)) {
                 $updateable = true;
             }
-            
+
             if (!empty($className)) {
                 $isEnabled = ExtensionManager::isEnabled("plugin", $config["plugin"]["pluginName"]);
 
-                $plugin = array(
+                $plugin = [
                     "id" => $config["plugin"]["pluginName"],
                     "type" => "plugin",
-                    "name" => $config["plugin"]["pluginNiceName"],
-                    "description" => $config["plugin"]["pluginDescription"],
+                    "name" => isset($config["plugin"]["pluginNiceName"]) ? $config["plugin"]["pluginNiceName"] : '',
+                    "description" => isset($config["plugin"]["pluginDescription"]) ? $config["plugin"]["pluginDescription"] : '',
                     "installed" => $isEnabled ? $className::isInstalled() : null,
                     "active" => $isEnabled,
-                    "configuration" => $config["plugin"]["pluginIframeSrc"],
+                    "configuration" => isset($config["plugin"]["pluginIframeSrc"]) ? $config["plugin"]["pluginIframeSrc"] : null,
                     "updateable" => $updateable,
-                    "version" => $config["plugin"]["pluginVersion"]  // NEU http://www.pimcore.org/issues/browse/PIMCORE-1947
-                );
+                    "version" => isset($config["plugin"]["pluginVersion"]) ? $config["plugin"]["pluginVersion"] : null
+                ];
 
-                if ($config["plugin"]["pluginXmlEditorFile"] && is_readable(PIMCORE_DOCUMENT_ROOT . $config["plugin"]["pluginXmlEditorFile"])) {
+                if (isset($config["plugin"]["pluginXmlEditorFile"]) && is_readable(PIMCORE_DOCUMENT_ROOT . $config["plugin"]["pluginXmlEditorFile"])) {
                     $plugin['xmlEditorFile'] = $config["plugin"]["pluginXmlEditorFile"];
                 }
 
@@ -66,14 +67,14 @@ class Extensionmanager_AdminController extends \Pimcore\Controller\Action\Admin
         // get repo state of bricks
         foreach ($brickConfigs as $id => $config) {
             $updateable = false;
-            
+
             $revisionFile = PIMCORE_WEBSITE_VAR . "/areas/" . $id . "/.pimcore_extension_revision";
             if (is_file($revisionFile)) {
                 $updateable = true;
             }
 
             $isEnabled = ExtensionManager::isEnabled("brick", $id);
-            $brick = array(
+            $brick = [
                 "id" => $id,
                 "type" => "brick",
                 "name" => $config->name,
@@ -82,11 +83,11 @@ class Extensionmanager_AdminController extends \Pimcore\Controller\Action\Admin
                 "active" => $isEnabled,
                 "updateable" => $updateable,
                 "version" => $config->version
-            );
+            ];
             $configurations[] = $brick;
         }
 
-        $this->_helper->json(array("extensions" => $configurations));
+        $this->_helper->json(["extensions" => $configurations]);
     }
 
     public function toggleExtensionStateAction()
@@ -105,7 +106,7 @@ class Extensionmanager_AdminController extends \Pimcore\Controller\Action\Admin
             $reload = false;
         }
 
-        $this->_helper->json(array("success" => true, "reload" => $reload));
+        $this->_helper->json(["success" => true, "reload" => $reload]);
     }
 
 
@@ -121,21 +122,21 @@ class Extensionmanager_AdminController extends \Pimcore\Controller\Action\Admin
 
                 $message = $className::install();
 
-                $this->_helper->json(array(
+                $this->_helper->json([
                     "message" => $message,
                     "reload" => $className::needsReloadAfterInstall(),
-                    "status" => array(
+                    "status" => [
                         "installed" => $className::isInstalled()
-                    ),
+                    ],
                     "success" => true
-                ));
+                ]);
             } catch (\Exception $e) {
                 \Logger::error($e);
 
-                $this->_helper->json(array(
+                $this->_helper->json([
                     "message" => $e->getMessage(),
                     "success" => false
-                ));
+                ]);
             }
         }
     }
@@ -152,20 +153,20 @@ class Extensionmanager_AdminController extends \Pimcore\Controller\Action\Admin
 
                 $message = $className::uninstall();
 
-                $this->_helper->json(array(
+                $this->_helper->json([
                     "message" => $message,
                     "reload" => $className::needsReloadAfterInstall(),
                     "pluginJsClassName" => $className::getJsClassName(),
-                    "status" => array(
+                    "status" => [
                         "installed" => $className::isInstalled()
-                    ),
+                    ],
                     "success" => true
-                ));
+                ]);
             } catch (\Exception $e) {
-                $this->_helper->json(array(
+                $this->_helper->json([
                     "message" => $e->getMessage(),
                     "success" => false
-                ));
+                ]);
             }
         }
     }
@@ -177,9 +178,9 @@ class Extensionmanager_AdminController extends \Pimcore\Controller\Action\Admin
 
         ExtensionManager::delete($id, $type);
 
-        $this->_helper->json(array(
+        $this->_helper->json([
             "success" => true
-        ));
+        ]);
     }
 
     public function createAction()
@@ -201,12 +202,10 @@ class Extensionmanager_AdminController extends \Pimcore\Controller\Action\Admin
                 $content = file_get_contents($pluginExampleFile);
 
                 // do some modifications in the content of the file
-                $content = str_replace("/Example/", "/".$name."/", $content);
-                $content = str_replace(">Example<", ">".$name."<", $content);
+                $content = str_replace("Example", $name, $content);
                 $content = str_replace(".example", ".".strtolower($name), $content);
                 $content = str_replace("examplePlugin", strtolower($name)."Plugin", $content);
                 $content = str_replace("Example Plugin", $name . " Plugin", $content);
-                $content = str_replace("Example", $name, $content);
 
                 if (!file_exists(dirname($newPath))) {
                     File::mkdir(dirname($newPath));
@@ -217,9 +216,9 @@ class Extensionmanager_AdminController extends \Pimcore\Controller\Action\Admin
             $success = true;
         }
 
-        $this->_helper->json(array(
+        $this->_helper->json([
             "success" => $success
-        ));
+        ]);
     }
 
     public function uploadAction()
@@ -276,9 +275,9 @@ class Extensionmanager_AdminController extends \Pimcore\Controller\Action\Admin
             Logger::err("No plugin.xml or plugin name found for uploaded plugin");
         }
 
-        $this->_helper->json(array(
+        $this->_helper->json([
             "success" => $success
-        ), false);
+        ], false);
 
         // set content-type to text/html, otherwise (when application/json is sent) chrome will complain in
         // Ext.form.Action.Submit and mark the submission as failed

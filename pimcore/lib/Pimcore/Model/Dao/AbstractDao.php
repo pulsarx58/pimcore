@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Dao;
@@ -17,7 +19,6 @@ use Pimcore\Db;
 
 abstract class AbstractDao implements DaoInterface
 {
-
     use DaoTrait;
 
     const CACHEKEY = "system_resource_columns_";
@@ -25,7 +26,7 @@ abstract class AbstractDao implements DaoInterface
     /**
      * @var \Zend_Db_Adapter_Abstract
      */
-    protected $db;
+    public $db;
 
     /**
      *
@@ -67,34 +68,34 @@ abstract class AbstractDao implements DaoInterface
     public function getValidTableColumns($table, $cache = true)
     {
         $cacheKey = self::CACHEKEY . $table;
-        
+
         if (\Zend_Registry::isRegistered($cacheKey)) {
             $columns = \Zend_Registry::get($cacheKey);
         } else {
             $columns = Cache::load($cacheKey);
-            
+
             if (!$columns || !$cache) {
-                $columns = array();
+                $columns = [];
                 $data = $this->db->fetchAll("SHOW COLUMNS FROM " . $table);
                 foreach ($data as $d) {
                     $columns[] = $d["Field"];
                 }
-                Cache::save($columns, $cacheKey, array("system", "resource"), null, 997);
+                Cache::save($columns, $cacheKey, ["system", "resource"], null, 997);
             }
-            
+
             \Zend_Registry::set($cacheKey, $columns);
         }
-        
+
         return $columns;
     }
 
     /** Clears the column information for the given table.
      * @param $table
      */
-    protected function resetValidTableColumnsCache($table)
+    public function resetValidTableColumnsCache($table)
     {
         $cacheKey = self::CACHEKEY . $table;
         \Zend_Registry::getInstance()->offsetUnset($cacheKey);
-        Cache::clearTags(array("system", "resource"));
+        Cache::clearTags(["system", "resource"]);
     }
 }

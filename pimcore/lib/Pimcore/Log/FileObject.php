@@ -2,19 +2,22 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Log;
 
+use Pimcore\File;
+
 class FileObject
 {
-
     protected $filename;
     protected $data;
 
@@ -25,7 +28,7 @@ class FileObject
     public function __construct($data, $filename=null)
     {
         if (!is_dir(PIMCORE_LOG_FILEOBJECT_DIRECTORY)) {
-            mkdir(PIMCORE_LOG_FILEOBJECT_DIRECTORY, 0755, true);
+            File::mkdir(PIMCORE_LOG_FILEOBJECT_DIRECTORY);
         }
 
         $this->data = $data;
@@ -40,7 +43,7 @@ class FileObject
             $this->filename = $folderpath."/".uniqid("fileobject_", true);
         }
 
-        file_put_contents($this->filename, $this->data);
+        File::put($this->filename, $this->data);
     }
 
     /**

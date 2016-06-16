@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Webservice
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Webservice\Data;
@@ -28,7 +30,7 @@ abstract class Mapper
      */
     public static function findWebserviceClass($object, $type)
     {
-        $mappingClasses = array(
+        $mappingClasses = [
             "Asset\\File",
             "Asset\\Folder",
             "Document\\Folder",
@@ -39,7 +41,7 @@ abstract class Mapper
             "Document\\Email",
             "Object\\Folder",
             "Object\\Concrete"
-        );
+        ];
 
         $retVal = null;
         if ($object instanceof Model\Property) {
@@ -64,6 +66,7 @@ abstract class Mapper
         } else {
             $retVal = "Array";
         }
+
         return $retVal;
     }
 
@@ -90,7 +93,7 @@ abstract class Mapper
                 throw new \Exception("Webservice\\Data\\Mapper: Cannot map [ $apiclass ] - class does not exist");
             }
         } elseif (is_array($object)) {
-            $tmpArray = array();
+            $tmpArray = [];
             foreach ($object as $v) {
                 $className = self::findWebserviceClass($v, $type);
                 $tmpArray[] = self::map($v, $className, $type);

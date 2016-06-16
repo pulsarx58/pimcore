@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    User
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\User\UserRole;
@@ -27,7 +29,7 @@ class Dao extends Model\User\AbstractUser\Dao
     {
         parent::getById($id);
 
-        if (in_array($this->model->getType(), array("user", "role"))) {
+        if (in_array($this->model->getType(), ["user", "role"])) {
             $this->loadWorkspaces();
         }
     }
@@ -40,7 +42,7 @@ class Dao extends Model\User\AbstractUser\Dao
     {
         parent::getByName($name);
 
-        if (in_array($this->model->getType(), array("user", "role"))) {
+        if (in_array($this->model->getType(), ["user", "role"])) {
             $this->loadWorkspaces();
         }
     }
@@ -50,10 +52,10 @@ class Dao extends Model\User\AbstractUser\Dao
      */
     public function loadWorkspaces()
     {
-        $types = array("asset","document","object");
+        $types = ["asset", "document", "object"];
 
         foreach ($types as $type) {
-            $workspaces = array();
+            $workspaces = [];
             $className = "\\Pimcore\\Model\\User\\Workspace\\" . ucfirst($type);
             $result = $this->db->fetchAll("SELECT * FROM users_workspaces_" . $type . " WHERE userId = ?", $this->model->getId());
             foreach ($result as $row) {

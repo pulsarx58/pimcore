@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Placeholder;
@@ -50,7 +52,7 @@ abstract class AbstractPlaceholder
      *
      * @var array
      */
-    protected $params = array();
+    protected $params = [];
 
     /**
      * The Content as string
@@ -71,6 +73,7 @@ abstract class AbstractPlaceholder
     public function setPlaceholderString($string)
     {
         $this->placeholderString = $string;
+
         return $this;
     }
 
@@ -89,6 +92,7 @@ abstract class AbstractPlaceholder
     public function setPlaceholderKey($key)
     {
         $this->placeholderKey = $key;
+
         return $this;
     }
 
@@ -109,6 +113,7 @@ abstract class AbstractPlaceholder
     public function setPlaceholderConfig(\Zend_Config_Json $config)
     {
         $this->placeholderConfig = $config;
+
         return $this;
     }
 
@@ -131,6 +136,7 @@ abstract class AbstractPlaceholder
         if (is_array($params)) {
             $this->params = $params;
         }
+
         return $this;
     }
 
@@ -155,6 +161,7 @@ abstract class AbstractPlaceholder
         if (array_key_exists($key, $this->params)) {
             return $this->params[$key];
         }
+
         return null;
     }
 
@@ -167,6 +174,7 @@ abstract class AbstractPlaceholder
         if (is_string($contentString)) {
             $this->contentString = $contentString;
         }
+
         return $this;
     }
 
@@ -199,6 +207,7 @@ abstract class AbstractPlaceholder
         if ($document instanceof Document) {
             $this->document = $document;
         }
+
         return $this;
     }
 
@@ -222,6 +231,7 @@ abstract class AbstractPlaceholder
         if (is_null($this->locale)) {
             $this->setLocale();
         }
+
         return $this->locale;
     }
 
@@ -254,6 +264,7 @@ abstract class AbstractPlaceholder
                 }
             }
         }
+
         return $this;
     }
 

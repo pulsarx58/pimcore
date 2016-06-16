@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.asset.listfolder");
@@ -88,7 +90,7 @@ pimcore.asset.listfolder = Class.create({
             {header: t("size"), sortable: false, dataIndex: 'size', editable: false, filter: 'string'}
         );
 
-        var itemsPerPage = 20;
+        var itemsPerPage = pimcore.helpers.grid.getDefaultPageSize(-1);
         this.store = new Ext.data.Store({
             proxy: proxy,
             remoteSort: true,
@@ -96,44 +98,7 @@ pimcore.asset.listfolder = Class.create({
             fields: readerFields
         });
 
-        this.pagingtoolbar = new Ext.PagingToolbar({
-            pageSize: itemsPerPage,
-            store: this.store,
-            displayInfo: true,
-            displayMsg: '{0} - {1} / {2}',
-            emptyMsg: t("no_assets_found")
-        });
-
-        // add per-page selection
-        this.pagingtoolbar.add("-");
-
-        this.pagingtoolbar.add(new Ext.Toolbar.TextItem({
-            text: t("items_per_page")
-        }));
-        this.pagingtoolbar.add(new Ext.form.ComboBox({
-            store: [
-                [10, "10"],
-                [20, "20"],
-                [40, "40"],
-                [60, "60"],
-                [80, "80"],
-                [100, "100"]
-            ],
-            mode: "local",
-            width: 80,
-            value: 20,
-            triggerAction: "all",
-            editable: false,
-            listeners: {
-                select: function (box, rec, index) {
-                    this.store.setPageSize(intval(rec.data.field1));
-                    this.store.getProxy().extraParams.limit = rec.data.field1;
-                    this.pagingtoolbar.pageSize = intval(rec.data.field1);
-                    this.pagingtoolbar.moveFirst();
-
-                }.bind(this)
-            }
-        }));
+        this.pagingtoolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.store, {pageSize: itemsPerPage});
 
         this.checkboxOnlyDirectChildren = new Ext.form.Checkbox({
             name: "onlyDirectChildren",
@@ -209,31 +174,42 @@ pimcore.asset.listfolder = Class.create({
                     pimcore.helpers.openAsset(data.data.id, data.data.type);
                 }.bind(this, data)
             }));
-            menu.add(new Ext.menu.Item({
-                text: t('show_in_tree'),
-                iconCls: "pimcore_icon_show_in_tree",
-                handler: function () {
-                    try {
-                        try {
-                            pimcore.treenodelocator.showInTree(record.id, "asset", this);
-                        } catch (e) {
-                            console.log(e);
-                        }
 
-                    } catch (e2) { console.log(e2); }
-                }
-            }));
+            if (pimcore.elementservice.showLocateInTreeButton("asset")) {
+                menu.add(new Ext.menu.Item({
+                    text: t('show_in_tree'),
+                    iconCls: "pimcore_icon_show_in_tree",
+                    handler: function () {
+                        try {
+                            try {
+                                pimcore.treenodelocator.showInTree(record.id, "asset", this);
+                            } catch (e) {
+                                console.log(e);
+                            }
+
+                        } catch (e2) {
+                            console.log(e2);
+                        }
+                    }
+                }));
+            }
+            
             menu.add(new Ext.menu.Item({
                 text: t('delete'),
                 iconCls: "pimcore_icon_delete",
                 handler: function (data) {
                     var store = this.getStore();
-                    pimcore.helpers.deleteAsset(data.data.id, function() {
-                        this.getStore().reload();
-                        var tree = pimcore.globalmanager.get("layout_asset_tree");
-                        var treePanel = tree.tree;
-                        tree.refresh(treePanel.getRootNode());
-                    }.bind(this));
+
+                    var options = {
+                        "elementType" : "asset",
+                        "id": data.data.id,
+                        "success": function() {
+                            this.getStore().reload();
+                        }.bind(this)
+                    };
+
+                    pimcore.elementservice.deleteElement(options);
+
                 }.bind(grid, data)
             }));
         } else {
@@ -260,15 +236,16 @@ pimcore.asset.listfolder = Class.create({
                     }
                     ids = ids.join(',');
 
-                    pimcore.helpers.deleteAsset(ids, function() {
-                        this.getStore().reload();
+                    var options = {
+                        "elementType" : "asset",
+                        "id": ids,
+                        "success": function() {
+                            this.store.reload();
+                        }.bind(this)
+                    };
 
-                        var tree = pimcore.globalmanager.get("layout_asset_tree").tree;
-                        tree.getStore().load({
-                            node: tree.getRootNode()
-                        });
-                    }.bind(this)
-                    );
+                    pimcore.elementservice.deleteElement(options);
+
                 }.bind(grid, data)
             }));
         }

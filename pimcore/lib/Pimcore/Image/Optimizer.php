@@ -2,19 +2,20 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Image;
 
 use Pimcore\File;
 use Pimcore\Tool\Console;
-use Pimcore\Config;
 
 class Optimizer
 {
@@ -22,7 +23,7 @@ class Optimizer
     /**
      * @var array
      */
-    protected static $optimizerBinaries = array();
+    protected static $optimizerBinaries = [];
 
     /**
      * @param $path
@@ -37,17 +38,15 @@ class Optimizer
             if ($format == "png") {
                 $optimizer = self::getPngOptimizerCli();
                 if ($optimizer) {
-                    /*if($optimizer["type"] == "pngquant") {
-                        Console::exec($optimizer["path"] . " --ext xxxoptimized.png " . $path, null, 60);
-                        $newFile = preg_replace("/\.png$/", "", $path);
-                        $newFile .= "xxxoptimized.png";
-
-                        if(file_exists($newFile)) {
+                    if ($optimizer["type"] == "pngcrush") {
+                        $newFile = $path . ".xxxoptimized";
+                        Console::exec($optimizer["path"] . " " . $path . " " . $newFile, null, 60);
+                        if (file_exists($newFile)) {
                             unlink($path);
                             rename($newFile, $path);
+                            @chmod($path, File::getDefaultMode());
                         }
-                    } else */
-                    if ($optimizer["type"] == "pngcrush") {
+                    } elseif ($optimizer["type"] == "zopflipng") {
                         $newFile = $path . ".xxxoptimized";
                         Console::exec($optimizer["path"] . " " . $path . " " . $newFile, null, 60);
                         if (file_exists($newFile)) {
@@ -92,36 +91,14 @@ class Optimizer
             return self::$optimizerBinaries["pngOptimizer"];
         }
 
-        // check the system-config for a path
-        $configPath = Config::getSystemConfig()->assets->pngcrush;
-        if ($configPath) {
-            if (@is_executable($configPath)) {
-                self::$optimizerBinaries["pngOptimizer"] = array(
-                    "path" => $configPath,
-                    "type" => "pngcrush"
-                );
-
-                return $configPath;
-            } else {
-                \Logger::critical("Binary: " . $configPath . " is not executable");
-            }
-        }
-
-        $paths = array(
-            /*"/usr/local/bin/pngquant",
-            "/usr/bin/pngquant",
-            "/bin/pngquant",*/
-            "/usr/local/bin/pngcrush",
-            "/usr/bin/pngcrush",
-            "/bin/pngcrush",
-        );
-
-        foreach ($paths as $path) {
-            if (@is_executable($path)) {
-                self::$optimizerBinaries["pngOptimizer"] = array(
+        foreach (["zopflipng", "pngcrush"] as $app) {
+            $path = \Pimcore\Tool\Console::getExecutable($app);
+            if ($path) {
+                self::$optimizerBinaries["pngOptimizer"] = [
                     "path" => $path,
-                    "type" => basename($path)
-                );
+                    "type" => $app
+                ];
+
                 return self::$optimizerBinaries["pngOptimizer"];
             }
         }
@@ -142,38 +119,14 @@ class Optimizer
             return self::$optimizerBinaries["jpegOptimizer"];
         }
 
-        // check the system-config for a path
-        foreach (["imgmin", "jpegoptim"] as $type) {
-            $configPath = Config::getSystemConfig()->assets->$type;
-            if ($configPath) {
-                if (@is_executable($configPath)) {
-                    self::$optimizerBinaries["pngOptimizer"] = array(
-                        "path" => $configPath,
-                        "type" => $type
-                    );
-
-                    return $configPath;
-                } else {
-                    \Logger::critical("Binary: " . $configPath . " is not executable");
-                }
-            }
-        }
-
-        $paths = array(
-            "/usr/local/bin/jpegoptim",
-            "/usr/bin/jpegoptim",
-            "/bin/jpegoptim",
-            "/usr/local/bin/imgmin",
-            "/usr/bin/imgmin",
-            "/bin/imgmin",
-        );
-
-        foreach ($paths as $path) {
-            if (@is_executable($path)) {
-                self::$optimizerBinaries["jpegOptimizer"] = array(
+        foreach (["jpegoptim", "imgmin"] as $app) {
+            $path = \Pimcore\Tool\Console::getExecutable($app);
+            if ($path) {
+                self::$optimizerBinaries["jpegOptimizer"] = [
                     "path" => $path,
-                    "type" => basename($path)
-                );
+                    "type" => $app
+                ];
+
                 return self::$optimizerBinaries["jpegOptimizer"];
             }
         }

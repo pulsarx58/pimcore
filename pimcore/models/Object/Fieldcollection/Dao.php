@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object\Fieldcollection
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Fieldcollection;
@@ -35,7 +37,7 @@ class Dao extends Model\Dao\AbstractDao
     public function load(Object\Concrete $object)
     {
         $fieldDef = $object->getClass()->getFieldDefinition($this->model->getFieldname());
-        $values = array();
+        $values = [];
 
         
         foreach ($fieldDef->getAllowedTypes() as $type) {
@@ -48,9 +50,9 @@ class Dao extends Model\Dao\AbstractDao
             $tableName = $definition->getTableName($object->getClass());
             
             try {
-                $results = $this->db->fetchAll("SELECT * FROM " . $tableName . " WHERE o_id = ? AND fieldname = ? ORDER BY `index` ASC", array($object->getId(), $this->model->getFieldname()));
+                $results = $this->db->fetchAll("SELECT * FROM " . $tableName . " WHERE o_id = ? AND fieldname = ? ORDER BY `index` ASC", [$object->getId(), $this->model->getFieldname()]);
             } catch (\Exception $e) {
-                $results = array();
+                $results = [];
             }
 
             $fieldDefinitions = $definition->getFieldDefinitions();
@@ -67,19 +69,19 @@ class Dao extends Model\Dao\AbstractDao
                     if (method_exists($fd, "load")) {
                         // datafield has it's own loader
                         $value = $fd->load($collection,
-                            array(
-                                "context" => array(
+                            [
+                                "context" => [
                                     "containerType" => "fieldcollection",
                                     "containerKey" => $type,
                                     "fieldname" =>  $this->model->getFieldname(),
                                     "index" => $index
-                            )));
+                            ]]);
                         if ($value === 0 || !empty($value)) {
                             $collection->setValue($key, $value);
                         }
                     } else {
                         if (is_array($fd->getColumnType())) {
-                            $multidata = array();
+                            $multidata = [];
                             foreach ($fd->getColumnType() as $fkey => $fvalue) {
                                 $multidata[$key . "__" . $fkey] = $result[$key . "__" . $fkey];
                             }
@@ -95,7 +97,7 @@ class Dao extends Model\Dao\AbstractDao
             }
         }
         
-        $orderedValues = array();
+        $orderedValues = [];
         foreach ($values as $value) {
             $orderedValues[$value->getIndex()] = $value;
         }
@@ -112,7 +114,7 @@ class Dao extends Model\Dao\AbstractDao
      */
     public function delete(Object\Concrete $object)
     {
-        // empty or create all relevant tables 
+        // empty or create all relevant tables
         $fieldDef = $object->getClass()->getFieldDefinition($this->model->getFieldname());
         
         foreach ($fieldDef->getAllowedTypes() as $type) {
@@ -136,13 +138,13 @@ class Dao extends Model\Dao\AbstractDao
             if (is_array($childDefinitions)) {
                 foreach ($childDefinitions as $fd) {
                     if (method_exists($fd, "delete")) {
-                        $fd->delete($object, array(
-                                "context" => array(
+                        $fd->delete($object, [
+                                "context" => [
                                     "containerType" => "fieldcollection",
                                     "containerKey" => $type,
                                     "fieldname" =>  $this->model->getFieldname()
-                                )
-                            )
+                                ]
+                            ]
                         );
                     }
                 }

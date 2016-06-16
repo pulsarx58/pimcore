@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document;
@@ -161,6 +163,7 @@ class DocType extends Model\AbstractModel
     public function setAction($action)
     {
         $this->action = $action;
+
         return $this;
     }
 
@@ -171,6 +174,7 @@ class DocType extends Model\AbstractModel
     public function setController($controller)
     {
         $this->controller = $controller;
+
         return $this;
     }
 
@@ -181,6 +185,7 @@ class DocType extends Model\AbstractModel
     public function setId($id)
     {
         $this->id = (int) $id;
+
         return $this;
     }
 
@@ -191,6 +196,7 @@ class DocType extends Model\AbstractModel
     public function setName($name)
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -201,6 +207,7 @@ class DocType extends Model\AbstractModel
     public function setTemplate($template)
     {
         $this->template = $template;
+
         return $this;
     }
 
@@ -219,6 +226,7 @@ class DocType extends Model\AbstractModel
     public function setType($type)
     {
         $this->type = $type;
+
         return $this;
     }
 
@@ -230,6 +238,7 @@ class DocType extends Model\AbstractModel
     public function setPriority($priority)
     {
         $this->priority = (int) $priority;
+
         return $this;
     }
 
@@ -248,6 +257,7 @@ class DocType extends Model\AbstractModel
     public function setModule($module)
     {
         $this->module = $module;
+
         return $this;
     }
 
@@ -266,6 +276,7 @@ class DocType extends Model\AbstractModel
     public function setModificationDate($modificationDate)
     {
         $this->modificationDate = (int) $modificationDate;
+
         return $this;
     }
 
@@ -284,6 +295,7 @@ class DocType extends Model\AbstractModel
     public function setCreationDate($creationDate)
     {
         $this->creationDate = (int) $creationDate;
+
         return $this;
     }
 

@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Console\Command;
@@ -69,7 +71,7 @@ class UpdateCommand extends AbstractCommand
 
                 $table = new Table($output);
                 $table
-                    ->setHeaders(array('Version', 'Date', 'Build'))
+                    ->setHeaders(['Version', 'Date', 'Build'])
                     ->setRows($rows);
                 $table->render();
             }
@@ -101,6 +103,16 @@ class UpdateCommand extends AbstractCommand
 
             if (!$build) {
                 $this->writeError("Update with build / version " . $updateInfo . " not found.");
+                exit;
+            }
+
+            if (!Update::isWriteable()) {
+                $this->writeError(PIMCORE_PATH . " is not recursivly writable, please check!");
+                exit;
+            }
+
+            if (!Update::isComposerAvailable()) {
+                $this->writeError("Composer is not installed properly, please ensure composer is in your PATH variable.");
                 exit;
             }
 
@@ -141,10 +153,8 @@ class UpdateCommand extends AbstractCommand
                     $job["dry-run"] = true;
                 }
 
-                $phpCli = Console::getPhpCli();
-
-                $cmd = $phpCli . " " . realpath(PIMCORE_PATH . DIRECTORY_SEPARATOR . "cli" . DIRECTORY_SEPARATOR . "console.php"). " internal:update-processor " . escapeshellarg(json_encode($job));
-                $return = Console::exec($cmd);
+                $script = realpath(PIMCORE_PATH . DIRECTORY_SEPARATOR . "cli" . DIRECTORY_SEPARATOR . "console.php");
+                $return = Console::runPhpScript($script, "internal:update-processor " . escapeshellarg(json_encode($job)));
 
                 $return = trim($return);
 
@@ -168,6 +178,8 @@ class UpdateCommand extends AbstractCommand
 
             $progress->finish();
 
+            Update::composerDumpAutoload();
+
             Admin::deactivateMaintenanceMode();
 
             $this->output->writeln("\n");
@@ -181,7 +193,7 @@ class UpdateCommand extends AbstractCommand
                 if (count($returnMessages)) {
                     $table = new Table($output);
                     $table
-                        ->setHeaders(array('Build', 'Message'))
+                        ->setHeaders(['Build', 'Message'])
                         ->setRows($returnMessages);
                     $table->render();
                 }

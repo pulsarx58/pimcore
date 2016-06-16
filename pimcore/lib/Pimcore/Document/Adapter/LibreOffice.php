@@ -1,20 +1,21 @@
-<?php 
+<?php
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Document\Adapter;
 
 use Pimcore\Document\Adapter\Ghostscript;
 use Pimcore\Tool\Console;
-use Pimcore\Config;
 use Pimcore\File;
 use Pimcore\Model;
 
@@ -64,28 +65,7 @@ class LibreOffice extends Ghostscript
      */
     public static function getLibreOfficeCli()
     {
-        $loPath = Config::getSystemConfig()->assets->libreoffice;
-        if ($loPath) {
-            if (@is_executable($loPath)) {
-                return $loPath;
-            } else {
-                \Logger::critical("LibreOffice binary: " . $loPath . " is not executable");
-            }
-        }
-
-        $paths = array(
-            "/usr/local/bin/soffice",
-            "/usr/bin/soffice",
-            "/bin/soffice"
-        );
-
-        foreach ($paths as $path) {
-            if (@is_executable($path)) {
-                return $path;
-            }
-        }
-
-        throw new \Exception("No LibreOffice executable found, please configure the correct path in the system settings");
+        return \Pimcore\Tool\Console::getExecutable("soffice", true);
     }
 
     /**
@@ -95,6 +75,7 @@ class LibreOffice extends Ghostscript
      */
     public function load($path)
     {
+        $path = $this->preparePath($path);
 
         // avoid timeouts
         $maxExecTime = (int) ini_get("max_execution_time");
@@ -130,6 +111,10 @@ class LibreOffice extends Ghostscript
      */
     public function getPdf($path = null)
     {
+        if ($path) {
+            $path = $this->preparePath($path);
+        }
+
         $pdfPath = null;
         if (!$path && $this->path) {
             $path = $this->path;
@@ -138,6 +123,7 @@ class LibreOffice extends Ghostscript
         try {
             // if the document is already an PDF, delegate the call directly to parent::getPdf() (Ghostscript)
             $pdfPath = parent::getPdf($path);
+
             return $pdfPath;
         } catch (\Exception $e) {
             // nothing to do, delegate to libreoffice
@@ -154,7 +140,7 @@ class LibreOffice extends Ghostscript
 
             // a list of all available filters is here:
             // http://cgit.freedesktop.org/libreoffice/core/tree/filter/source/config/fragments/filters
-            $cmd = self::getLibreOfficeCli() . " --headless --nologo --nofirststartwizard --norestore --convert-to pdf:writer_web_pdf_Export --outdir " . PIMCORE_TEMPORARY_DIRECTORY . " " . $path;
+            $cmd = self::getLibreOfficeCli() . " --headless --nologo --nofirststartwizard --norestore --convert-to pdf:writer_web_pdf_Export --outdir " . PIMCORE_SYSTEM_TEMP_DIRECTORY . " " . $path;
 
             Model\Tool\Lock::acquire($lockKey); // avoid parallel conversions
             $out = Console::exec($cmd, PIMCORE_LOG_DIRECTORY . "/libreoffice-pdf-convert.log", 240);
@@ -162,9 +148,9 @@ class LibreOffice extends Ghostscript
 
             \Logger::debug("LibreOffice Output was: " . $out);
 
-            $tmpName = PIMCORE_TEMPORARY_DIRECTORY . "/" . preg_replace("/\." . File::getFileExtension($path) . "$/", ".pdf", basename($path));
+            $tmpName = PIMCORE_SYSTEM_TEMP_DIRECTORY . "/" . preg_replace("/\." . File::getFileExtension($path) . "$/", ".pdf", basename($path));
             if (file_exists($tmpName)) {
-                rename($tmpName, $pdfFile);
+                File::rename($tmpName, $pdfFile);
                 $pdfPath = $pdfFile;
             } else {
                 $message = "Couldn't convert document to PDF: " . $path . " with the command: '" . $cmd . "'";
@@ -186,7 +172,7 @@ class LibreOffice extends Ghostscript
      */
     public function getText($page = null, $path = null)
     {
-        $path = $path ? $path : $this->path;
+        $path = $path ? $this->preparePath($path) : $this->path;
 
         if ($page || parent::isFileTypeSupported($path)) {
             // for per page extraction we have to convert the document to PDF and extract the text via ghostscript
@@ -203,6 +189,7 @@ class LibreOffice extends Ghostscript
                 $text = file_get_contents($tmpName);
                 $text = \Pimcore\Tool\Text::convertToUTF8($text);
                 unlink($tmpName);
+
                 return $text;
             } else {
                 $message = "Couldn't convert document to PDF: " . $path . " with the command: '" . $cmd . "' - now trying to get the text out of the PDF ...";

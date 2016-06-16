@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\ClassDefinition\Data;
@@ -84,6 +86,7 @@ class Password extends Model\Object\ClassDefinition\Data
     public function setWidth($width)
     {
         $this->width = $this->getAsIntegerCast($width);
+
         return $this;
     }
 
@@ -142,7 +145,7 @@ class Password extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataForResource($data, $object = null, $params = array())
+    public function getDataForResource($data, $object = null, $params = [])
     {
         if (empty($data)) {
             return null;
@@ -250,7 +253,7 @@ class Password extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataFromResource($data, $object = null, $params = array())
+    public function getDataFromResource($data, $object = null, $params = [])
     {
         return $data;
     }
@@ -262,7 +265,7 @@ class Password extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataForQueryResource($data, $object = null, $params = array())
+    public function getDataForQueryResource($data, $object = null, $params = [])
     {
         return $this->getDataForResource($data, $object, $params);
     }
@@ -274,7 +277,7 @@ class Password extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataForEditmode($data, $object = null, $params = array())
+    public function getDataForEditmode($data, $object = null, $params = [])
     {
         return $data;
     }
@@ -286,7 +289,7 @@ class Password extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataFromEditmode($data, $object = null, $params = array())
+    public function getDataFromEditmode($data, $object = null, $params = [])
     {
         return $data;
     }
@@ -298,12 +301,12 @@ class Password extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getVersionPreview($data, $object = null, $params = array())
+    public function getVersionPreview($data, $object = null, $params = [])
     {
         return "******";
     }
 
-    public function getDataForGrid($data, $object, $params = array())
+    public function getDataForGrid($data, $object, $params = [])
     {
         return "******";
     }
@@ -319,7 +322,7 @@ class Password extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return Object\ClassDefinition\Data
      */
-    public function getFromCsvImport($importValue, $object = null, $params = array())
+    public function getFromCsvImport($importValue, $object = null, $params = [])
     {
         return $this->getDataFromEditmode($importValue, $object, $params);
     }
@@ -330,7 +333,7 @@ class Password extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return mixed
      */
-    public function getForWebserviceExport($object, $params = array())
+    public function getForWebserviceExport($object, $params = [])
     {
         //neither hash nor password is exported via WS
         return null;
@@ -341,7 +344,7 @@ class Password extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return bool
      */
-    public function isDiffChangeAllowed($object, $params = array())
+    public function isDiffChangeAllowed($object, $params = [])
     {
         return true;
     }
@@ -353,7 +356,7 @@ class Password extends Model\Object\ClassDefinition\Data
      * @return null|Pimcore_Date
      */
 
-    public function getDiffDataFromEditmode($data, $object = null, $params = array())
+    public function getDiffDataFromEditmode($data, $object = null, $params = [])
     {
         return $data[0]["data"];
     }
@@ -365,9 +368,9 @@ class Password extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return array|null
      */
-    public function getDiffDataForEditMode($data, $object = null, $params = array())
+    public function getDiffDataForEditMode($data, $object = null, $params = [])
     {
-        $diffdata = array();
+        $diffdata = [];
         $diffdata["data"] = $data;
         $diffdata["disabled"] = !($this->isDiffChangeAllowed($object, $params));
         $diffdata["field"] = $this->getName();
@@ -381,8 +384,9 @@ class Password extends Model\Object\ClassDefinition\Data
 
         $diffdata["title"] = !empty($this->title) ? $this->title : $this->name;
 
-        $result = array();
+        $result = [];
         $result[] = $diffdata;
+
         return $result;
     }
 

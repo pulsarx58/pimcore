@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.settings.system");
@@ -71,7 +73,7 @@ pimcore.settings.system = Class.create({
         });
     },
 
-    getValue: function (key) {
+    getValue: function (key, ignoreCheck) {
 
         var nk = key.split("\.");
         var current = this.data.values;
@@ -85,7 +87,7 @@ pimcore.settings.system = Class.create({
             }
         }
 
-        if (typeof current != "object" && typeof current != "array" && typeof current != "function") {
+        if (ignoreCheck || (typeof current != "object" && typeof current != "array" && typeof current != "function")) {
             return current;
         }
 
@@ -126,7 +128,7 @@ pimcore.settings.system = Class.create({
                 },
                 buttons: [
                     {
-                        text: "Save",
+                        text: t("save"),
                         handler: this.save.bind(this),
                         iconCls: "pimcore_icon_apply"
                     }
@@ -165,10 +167,10 @@ pimcore.settings.system = Class.create({
                                 mode: "local",
                                 triggerAction: "all"
                             }, {
-                                fieldLabel: t("absolute_path_to_php_cli_binary"),
+                                fieldLabel: t("additional_path_variable_colon_separated") + " (/x/y:/foo/bar)",
                                 xtype: "textfield",
-                                name: "general.php_cli",
-                                value: this.getValue("general.php_cli"),
+                                name: "general.path_variable",
+                                value: this.getValue("general.path_variable"),
                                 width: 600
                             },
                             {
@@ -338,7 +340,7 @@ pimcore.settings.system = Class.create({
                                 xtype: "textfield",
                                 id: "system_settings_general_debug_ip",
                                 name: "general.debug_ip",
-                                width: 500,
+                                width: 600,
                                 value: this.getValue("general.debug_ip")
                             },
                             {
@@ -1023,34 +1025,6 @@ pimcore.settings.system = Class.create({
                                 minValue: 0
                             },
                             {
-                                fieldLabel: t('absolute_path_to_ffmpeg_binary'),
-                                name: 'assets.ffmpeg',
-                                value: this.getValue("assets.ffmpeg")
-                            }, {
-                                fieldLabel: t('absolute_path_to_ghostscript'),
-                                name: 'assets.ghostscript',
-                                value: this.getValue("assets.ghostscript")
-                            }, {
-                                fieldLabel: t('absolute_path_to_libreoffice'),
-                                name: 'assets.libreoffice',
-                                value: this.getValue("assets.libreoffice")
-                            }, {
-                                fieldLabel: t('absolute_path_to_pngcrush'),
-                                name: 'assets.pngcrush',
-                                value: this.getValue("assets.pngcrush")
-                            }, {
-                                fieldLabel: t('absolute_path_to_imgmin'),
-                                name: 'assets.imgmin',
-                                value: this.getValue("assets.imgmin")
-                            }, {
-                                fieldLabel: t('absolute_path_to_jpegoptim'),
-                                name: 'assets.jpegoptim',
-                                value: this.getValue("assets.jpegoptim")
-                            }, {
-                                fieldLabel: t('absolute_path_to_pdftotext'),
-                                name: 'assets.pdftotext',
-                                value: this.getValue("assets.pdftotext")
-                            }, {
                                 fieldLabel: t('absolute_path_to_icc_rgb_profile') + " (imagick)",
                                 name: 'assets.icc_rgb_profile',
                                 value: this.getValue("assets.icc_rgb_profile")
@@ -1065,6 +1039,12 @@ pimcore.settings.system = Class.create({
                                 xtype: "checkbox",
                                 name: "assets.hide_edit_image",
                                 checked: this.getValue("assets.hide_edit_image")
+                            },
+                            {
+                                fieldLabel: t("disable_tree_preview"),
+                                xtype: "checkbox",
+                                name: "assets.disable_tree_preview",
+                                checked: this.getValue("assets.disable_tree_preview")
                             }
                         ]
                     }
@@ -1179,11 +1159,12 @@ pimcore.settings.system = Class.create({
                                 width: "100%",
                                 resizable: true,
                                 minChars: 2,
-                                store: Ext.create('Ext.data.Store', {
+                                store: Ext.create('Ext.data.JsonStore', {
                                     proxy: {
                                         type: 'memory'
                                     },
-                                    fields: ['value']
+                                    fields: ['value'],
+                                    data: this.getValue("cache.excludePatternsArray", true)
                                 }),
                                 fieldLabel: t('exclude_patterns'),
                                 name: 'cache.excludePatterns',

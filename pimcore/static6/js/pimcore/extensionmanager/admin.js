@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.extensionmanager.admin");
@@ -61,24 +63,16 @@ pimcore.extensionmanager.admin = Class.create({
                 proxy: {
                     type: 'ajax',
                     url: '/admin/extensionmanager/admin/get-extensions',
-                    // Reader is now on the proxy, as the message was explaining
                     reader: {
                         type: 'json',
                         rootProperty: "extensions"
-                        //totalProperty:'total',            // default
-                        //successProperty:'success'         // default
                     }
-                    //,                                     // default
-                    //writer: {
-                    //    type: 'json'
-                    //}
                 }
             });
         }
 
         this.store = new Ext.data.Store({
-            model: 'pimcore.model.extensions.admin',
-            id: 'redirects_store'
+            model: 'pimcore.model.extensions.admin'
         });
 
         this.store.load();
@@ -217,17 +211,15 @@ pimcore.extensionmanager.admin = Class.create({
                                                                         + pimcore.globalmanager.get("user").language;
                         var xmlEditorFile =  rec.get("xmlEditorFile");
 
-                        try {
-                            pimcore.globalmanager.get("extension_settings_" + id + "_" + type).activate();
-                        }
-                        catch (e) {
-                            if(xmlEditorFile){
-                                pimcore.globalmanager.add("extension_settings_" + id + "_" + type,
-                                                new pimcore.extensionmanager.xmlEditor(id, type, xmlEditorFile));
-                            }else{
-                                pimcore.globalmanager.add("extension_settings_" + id + "_" + type,
-                                                new pimcore.extensionmanager.settings(id, type, iframeSrc));
+                        if(xmlEditorFile){
+                            try {
+                                pimcore.globalmanager.get("extension_settings_" + id + "_" + type).activate();
                             }
+                            catch (e) {
+                                pimcore.globalmanager.add("extension_settings_" + id + "_" + type, new pimcore.extensionmanager.xmlEditor(id, type, xmlEditorFile));
+                            }
+                        } else {
+                            pimcore.helpers.openGenericIframeWindow("extension_settings_" + id + "_" + type, iframeSrc, "pimcore_icon_plugin", id);
                         }
                     }.bind(this)
                 }]

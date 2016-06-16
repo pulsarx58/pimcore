@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document\Tag;
@@ -59,7 +61,7 @@ class Link extends Model\Document\Tag
 
         if (strlen($url) > 0) {
             // add attributes to link
-            $attribs = array();
+            $attribs = [];
             if (is_array($this->options)) {
                 foreach ($this->options as $key => $value) {
                     if (is_string($value) || is_numeric($value)) {
@@ -68,14 +70,14 @@ class Link extends Model\Document\Tag
                 }
             }
             // add attributes to link
-            $allowedAttributes = array("charset", "coords", "hreflang", "name", "rel", "rev", "shape", "target", "accesskey", "class", "dir", "id", "lang", "style", "tabindex", "title", "xml:lang", "onblur", "onclick", "ondblclick", "onfocus", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onkeydown", "onkeypress", "onkeyup");
-            $defaultAttributes = array();
+            $allowedAttributes = ["charset", "coords", "hreflang", "name", "rel", "rev", "shape", "target", "accesskey", "class", "dir", "id", "lang", "style", "tabindex", "title", "xml:lang", "onblur", "onclick", "ondblclick", "onfocus", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onkeydown", "onkeypress", "onkeyup"];
+            $defaultAttributes = [];
 
             if (!is_array($this->options)) {
-                $this->options = array();
+                $this->options = [];
             }
             if (!is_array($this->data)) {
-                $this->data = array();
+                $this->data = [];
             }
 
             $availableAttribs = array_merge($defaultAttributes, $this->data, $this->options);
@@ -96,6 +98,7 @@ class Link extends Model\Document\Tag
 
             return '<a href="' . $url . '" ' . implode(" ", $attribs) . '>' . htmlspecialchars($this->data["text"]) . '</a>';
         }
+
         return "";
     }
 
@@ -124,6 +127,7 @@ class Link extends Model\Document\Tag
                 }
             }
         }
+
         return $sane;
     }
 
@@ -149,11 +153,11 @@ class Link extends Model\Document\Tag
     }
 
     /**
-     * 
+     *
      */
     protected function updatePathFromInternal()
     {
-        if ($this->data["internal"]) {
+        if (isset($this->data["internal"]) && $this->data["internal"]) {
             if ($this->data["internalType"] == "document") {
                 if ($doc = Document::getById($this->data["internalId"])) {
                     if (!Document::doHideUnpublished() || $doc->isPublished()) {
@@ -244,8 +248,9 @@ class Link extends Model\Document\Tag
     {
         $this->data = \Pimcore\Tool\Serialize::unserialize($data);
         if (!is_array($this->data)) {
-            $this->data = array();
+            $this->data = [];
         }
+
         return $this;
     }
 
@@ -257,7 +262,7 @@ class Link extends Model\Document\Tag
     public function setDataFromEditmode($data)
     {
         if (!is_array($data)) {
-            $data = array();
+            $data = [];
         }
 
         if ($doc = Document::getByPath($data["path"])) {
@@ -279,6 +284,7 @@ class Link extends Model\Document\Tag
         }
 
         $this->data = $data;
+
         return $this;
     }
 
@@ -295,7 +301,7 @@ class Link extends Model\Document\Tag
      */
     public function resolveDependencies()
     {
-        $dependencies = array();
+        $dependencies = [];
 
         if (is_array($this->data) && $this->data["internal"]) {
             if (intval($this->data["internalId"]) > 0) {
@@ -303,23 +309,24 @@ class Link extends Model\Document\Tag
                     if ($doc = Document::getById($this->data["internalId"])) {
                         $key = "document_" . $doc->getId();
 
-                        $dependencies[$key] = array(
+                        $dependencies[$key] = [
                             "id" => $doc->getId(),
                             "type" => "document"
-                        );
+                        ];
                     }
                 } elseif ($this->data["internalType"] == "asset") {
                     if ($asset = Asset::getById($this->data["internalId"])) {
                         $key = "asset_" . $asset->getId();
 
-                        $dependencies[$key] = array(
+                        $dependencies[$key] = [
                             "id" => $asset->getId(),
                             "type" => "asset"
-                        );
+                        ];
                     }
                 }
             }
         }
+
         return $dependencies;
     }
 
@@ -329,7 +336,7 @@ class Link extends Model\Document\Tag
      * @param null $idMapper
      * @throws \Exception
      */
-    public function getFromWebserviceImport($wsElement, $document = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($wsElement, $document = null, $params = [], $idMapper = null)
     {
         if ($wsElement->value->data instanceof \stdClass) {
             $wsElement->value->data = (array) $wsElement->value->data;
@@ -380,7 +387,7 @@ class Link extends Model\Document\Tag
      * @abstract
      * @return array
      */
-    public function getForWebserviceExport($document = null, $params = array())
+    public function getForWebserviceExport($document = null, $params = [])
     {
         $el = parent::getForWebserviceExport($document, $params);
         if ($this->data["internal"]) {
@@ -402,6 +409,7 @@ class Link extends Model\Document\Tag
         }
 
         $el->data = $this->data;
+
         return $el;
     }
 

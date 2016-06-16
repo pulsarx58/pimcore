@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Google;
@@ -29,6 +31,7 @@ class Api
     public static function getPrivateKeyPath()
     {
         $path = \Pimcore\Config::locateConfigFile("google-api-private-key.p12");
+
         return $path;
     }
 
@@ -63,6 +66,7 @@ class Api
         if ($config->client_id && $config->email && file_exists(self::getPrivateKeyPath())) {
             return true;
         }
+
         return false;
     }
 
@@ -76,6 +80,7 @@ class Api
         if ($config->simpleapikey) {
             return true;
         }
+
         return false;
     }
 
@@ -144,6 +149,7 @@ class Api
         }
 
         $client->setAccessToken($token);
+
         return $client;
     }
 
@@ -194,6 +200,7 @@ class Api
         $client->setUri(self::ANALYTICS_API_URL.'metadata/ga/columns');
 
         $result = $client->request();
+
         return \Zend_Json::decode($result->getBody());
     }
 
@@ -207,26 +214,26 @@ class Api
         $data = self::getAnalyticsMetadata();
         $t = \Zend_Registry::get("Zend_Translate");
 
-        $result = array();
+        $result = [];
         foreach ($data['items'] as $item) {
             if ($item['attributes']['type'] == $type) {
                 if (strpos($item['id'], 'XX') !== false) {
                     for ($i = 1; $i<=5; $i++) {
                         $name = str_replace('1', $i, str_replace('01', $i, $t->translate($item['attributes']['uiName'])));
 
-                        if (in_array($item['id'], array('ga:dimensionXX', 'ga:metricXX'))) {
+                        if (in_array($item['id'], ['ga:dimensionXX', 'ga:metricXX'])) {
                             $name .= ' '.$i;
                         }
-                        $result[] = array(
+                        $result[] = [
                             'id'=>str_replace('XX', $i, $item['id']),
                             'name'=>$name
-                        );
+                        ];
                     }
                 } else {
-                    $result[] = array(
+                    $result[] = [
                         'id'=>$item['id'],
                         'name'=>$t->translate($item['attributes']['uiName'])
-                    );
+                    ];
                 }
             }
         }

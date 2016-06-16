@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Classificationstore\CollectionConfig\Listing;
@@ -21,21 +23,22 @@ class Dao extends Model\Listing\Dao\AbstractDao
 {
 
     /**
-     * Loads a list of Classificationstore collection configs for the specifies parameters, returns an array of config elements
+     * Loads a list of Classificationstore collection configs for the specified parameters, returns an array of config elements
      *
      * @return array
      */
     public function load()
     {
         $sql = "SELECT id FROM " . Object\Classificationstore\CollectionConfig\Dao::TABLE_NAME_COLLECTIONS . $this->getCondition() . $this->getOrder() . $this->getOffsetLimit();
-        $configsData = $this->db->fetchCol($sql,  $this->model->getConditionVariables());
+        $configsData = $this->db->fetchCol($sql, $this->model->getConditionVariables());
 
-        $configData = array();
+        $configData = [];
         foreach ($configsData as $config) {
             $configData[] = Object\Classificationstore\CollectionConfig::getById($config);
         }
 
         $this->model->setList($configData);
+
         return $configData;
     }
 
@@ -45,6 +48,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
     public function getDataArray()
     {
         $configsData = $this->db->fetchAll("SELECT * FROM " . Object\Classificationstore\CollectionConfig\Dao::TABLE_NAME_COLLECTIONS . $this->getCondition() . $this->getOrder() . $this->getOffsetLimit(), $this->model->getConditionVariables());
+
         return $configsData;
     }
 

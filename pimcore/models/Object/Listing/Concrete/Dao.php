@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Listing\Concrete;
@@ -36,6 +38,9 @@ class Dao extends Model\Object\Listing\Dao
      */
     protected $totalCount = 0;
 
+    /** @var  Callback function */
+    protected $onCreateQueryCallback;
+
 
     /**
      * get select query
@@ -54,10 +59,10 @@ class Dao extends Model\Object\Listing\Dao
         $field = $this->getTableName() . ".o_id";
         $select->from(
             [ $this->getTableName() ], [
-                new \Zend_Db_Expr(sprintf('SQL_CALC_FOUND_ROWS %s as o_id', $this->getSelectPart($field, $field))), 'o_type'
+                new \Zend_Db_Expr(
+                    sprintf('SQL_CALC_FOUND_ROWS %s as o_id', $this->getSelectPart($field, $field))), 'o_type'
             ]
         );
-
 
         // add joins
         $this->addJoins($select);
@@ -73,6 +78,11 @@ class Dao extends Model\Object\Listing\Dao
 
         // limit
         $this->addLimit($select);
+
+        if ($this->onCreateQueryCallback) {
+            $closure = $this->onCreateQueryCallback;
+            $closure($select);
+        }
 
         return $select;
     }
@@ -121,7 +131,7 @@ class Dao extends Model\Object\Listing\Dao
      * @throws \Exception
      * @throws \Zend_Exception
      */
-    protected function getTableName()
+    public function getTableName()
     {
         if (empty($this->tableName)) {
 
@@ -156,6 +166,7 @@ class Dao extends Model\Object\Listing\Dao
                 }
             }
         }
+
         return $this->tableName;
     }
 
@@ -172,6 +183,7 @@ class Dao extends Model\Object\Listing\Dao
         if (!empty($fieldCollections)) {
             $selectPart = "DISTINCT " . $column;
         }
+
         return $selectPart;
     }
 
@@ -240,5 +252,11 @@ CONDITION
 
 
         return $this;
+    }
+
+
+    public function onCreateQuery(callable $callback)
+    {
+        $this->onCreateQueryCallback = $callback;
     }
 }

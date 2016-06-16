@@ -2,20 +2,20 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 use Pimcore\Model\Tool;
 
 class Install_IndexController extends \Pimcore\Controller\Action
 {
-
-
     public function init()
     {
         parent::init();
@@ -38,7 +38,7 @@ class Install_IndexController extends \Pimcore\Controller\Action
 
     public function indexAction()
     {
-        $errors = array();
+        $errors = [];
 
         // check permissions
         $files = rscandir(PIMCORE_WEBSITE_VAR . "/");
@@ -106,20 +106,20 @@ class Install_IndexController extends \Pimcore\Controller\Action
                 }
             }
 
-            $setup->config(array(
-                "database" => array(
+            $setup->config([
+                "database" => [
                     "adapter" => $this->getParam("mysql_adapter"),
                     "params" => $dbConfig
-                ),
-            ));
+                ],
+            ]);
 
             // look for a template dump
             // eg. for use with demo installer
             $dbDataFile = PIMCORE_WEBSITE_PATH . "/dump/data.sql";
-            $contentConfig = array(
+            $contentConfig = [
                 "username" => $this->getParam("admin_username"),
                 "password" => $this->getParam("admin_password")
-            );
+            ];
 
             if (!file_exists($dbDataFile)) {
                 $setup->database();
@@ -132,9 +132,9 @@ class Install_IndexController extends \Pimcore\Controller\Action
                 $setup->createOrUpdateUser($contentConfig);
             }
 
-            $this->_helper->json(array(
+            $this->_helper->json([
                 "success" => true
-            ));
+            ]);
         } else {
             echo implode("<br />", $errors);
             die();

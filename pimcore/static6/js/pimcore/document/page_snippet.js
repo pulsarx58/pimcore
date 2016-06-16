@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.document.page_snippet");
@@ -149,10 +151,25 @@ pimcore.document.page_snippet = Class.create(pimcore.document.document, {
             });
 
             this.toolbarButtons.remove = new Ext.Button({
-                text: t('delete'),
+                tooltip: t('delete'),
                 iconCls: "pimcore_icon_delete",
                 scale: "medium",
                 handler: this.remove.bind(this)
+            });
+
+            this.toolbarButtons.rename = new Ext.Button({
+                tooltip: t('rename'),
+                iconCls: "pimcore_icon_key pimcore_icon_overlay_go",
+                scale: "medium",
+                handler: function () {
+                    var options = {
+                        elementType: "document",
+                        elementSubType: this.getType(),
+                        id: this.id,
+                        default: this.data.key
+                    }
+                    pimcore.elementservice.editElementKey(options);
+                }.bind(this)
             });
 
 
@@ -168,58 +185,74 @@ pimcore.document.page_snippet = Class.create(pimcore.document.document, {
                 buttons.push(this.toolbarButtons.unpublish);
             }
 
+            buttons.push("-");
+
             if(this.isAllowed("delete") && !this.data.locked && this.data.id != 1) {
                 buttons.push(this.toolbarButtons.remove);
             }
+            if(this.isAllowed("rename") && !this.data.locked && this.data.id != 1) {
+                buttons.push(this.toolbarButtons.rename);
+            }
 
-            buttons.push("-");
 
-            var moreButtons = [];
-
-            moreButtons.push({
-                text: t('reload'),
+            buttons.push({
+                tooltip: t('reload'),
                 iconCls: "pimcore_icon_reload",
+                scale: "medium",
                 handler: this.reload.bind(this)
             });
 
-            moreButtons.push({
-                text: t('show_in_tree'),
-                iconCls: "pimcore_icon_show_in_tree",
-                handler: this.selectInTree.bind(this)
-            });
+            if (pimcore.elementservice.showLocateInTreeButton("document")) {
+                buttons.push({
+                    tooltip: t('show_in_tree'),
+                    iconCls: "pimcore_icon_show_in_tree",
+                    scale: "medium",
+                    handler: this.selectInTree.bind(this)
+                });
+            }
 
-            moreButtons.push({
-                text: t("show_metainfo"),
+            buttons.push({
+                tooltip: t("show_metainfo"),
                 iconCls: "pimcore_icon_info",
+                scale: "medium",
                 handler: this.showMetaInfo.bind(this)
             });
 
-            moreButtons.push(this.getTranslationButtons());
-
-            buttons.push({
-                text: t("more"),
-                iconCls: "pimcore_icon_more",
-                scale: "medium",
-                menu: moreButtons
-            });
+            buttons.push(this.getTranslationButtons());
 
             buttons.push("-");
             buttons.push({
-                text: t("open"),
+                tooltip: t("open"),
                 iconCls: "pimcore_icon_cursor",
                 scale: "medium",
                 handler: function () {
                     var date = new Date();
-                    var link = this.data.path + this.data.key + "?pimcore_preview=true&time=" + date.getTime();
+                    var link = this.data.path + this.data.key;
+                    var linkParams = [];
+
+                    if(this.isDirty()) {
+                        linkParams.push("pimcore_preview=true");
+                        linkParams.push("_dc=" + date.getTime());
+                    }
 
                     // add persona parameter if available
                     if(this["edit"] && this.edit["persona"]) {
                         if(this.edit.persona && this.edit.persona.getValue()) {
-                            link += "&_ptp=" + this.edit.persona.getValue();
+                            linkParams.push("_ptp=" + this.edit.persona.getValue());
                         }
                     }
 
-                    window.open(link);
+                    if(linkParams.length) {
+                        link += "?" + linkParams.join("&");
+                    }
+
+                    if(this.isDirty()) {
+                        this.saveToSession(function () {
+                            window.open(link);
+                        });
+                    } else {
+                        window.open(link);
+                    }
                 }.bind(this)
             });
             buttons.push("-");
@@ -254,7 +287,7 @@ pimcore.document.page_snippet = Class.create(pimcore.document.document, {
                 border: false,
                 cls: "main-toolbar",
                 items: buttons,
-                overflowHandler: 'menu'
+                overflowHandler: 'scroller'
             });
 
             this.toolbar.on("afterrender", function () {

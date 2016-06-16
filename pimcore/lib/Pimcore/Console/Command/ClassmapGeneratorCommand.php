@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Console\Command;
@@ -40,10 +42,10 @@ class ClassmapGeneratorCommand extends AbstractCommand
     {
         $excludePatterns = [];
         if ($input->getOption("core")) {
-            $paths = array(
+            $paths = [
                 PIMCORE_PATH . "/lib",
                 PIMCORE_PATH . "/models",
-            );
+            ];
             $output = PIMCORE_PATH . "/config/autoload-classmap.php";
 
             $excludePatterns = [
@@ -54,7 +56,7 @@ class ClassmapGeneratorCommand extends AbstractCommand
             $output = PIMCORE_CONFIGURATION_DIRECTORY . "/autoload-classmap.php";
         }
 
-        $globalMap = array();
+        $globalMap = [];
         $map = new \stdClass();
 
         foreach ($paths as $path) {
@@ -105,7 +107,7 @@ class ClassmapGeneratorCommand extends AbstractCommand
         // Create a file with the class/file map.
         // Stupid syntax highlighters make separating < from PHP declaration necessary
         $content = '<' . "?php\n"
-            . '$pdr = PIMCORE_DOCUMENT_ROOT;' . "\n"
+            . '$pdr = PIMCORE_DOCUMENT_ROOT;' . "\n\n"
             . 'return ' . var_export((array) $globalMap, true) . ';';
 
         // Prefix with dirname(__FILE__); modify the generated content

@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Schedule
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Schedule;
@@ -85,13 +87,14 @@ class Task extends Model\AbstractModel
     {
         $task = new self();
         $task->setValues($data);
+
         return $task;
     }
 
     /**
      * @param array $data
      */
-    public function __construct($data = array())
+    public function __construct($data = [])
     {
         $this->setValues($data);
     }
@@ -151,6 +154,7 @@ class Task extends Model\AbstractModel
     public function setId($id)
     {
         $this->id = (int) $id;
+
         return $this;
     }
 
@@ -161,6 +165,7 @@ class Task extends Model\AbstractModel
     public function setCid($cid)
     {
         $this->cid = (int) $cid;
+
         return $this;
     }
 
@@ -171,6 +176,7 @@ class Task extends Model\AbstractModel
     public function setCtype($ctype)
     {
         $this->ctype = $ctype;
+
         return $this;
     }
 
@@ -181,6 +187,7 @@ class Task extends Model\AbstractModel
     public function setDate($date)
     {
         $this->date = (int) $date;
+
         return $this;
     }
 
@@ -191,6 +198,7 @@ class Task extends Model\AbstractModel
     public function setAction($action)
     {
         $this->action = $action;
+
         return $this;
     }
 
@@ -201,6 +209,7 @@ class Task extends Model\AbstractModel
     public function setVersion($version)
     {
         $this->version = $version;
+
         return $this;
     }
 
@@ -222,6 +231,7 @@ class Task extends Model\AbstractModel
             $active = false;
         }
         $this->active = (bool) $active;
+
         return $this;
     }
 }

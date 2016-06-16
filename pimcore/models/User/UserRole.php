@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    User
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\User;
@@ -22,32 +24,34 @@ class UserRole extends AbstractUser
     /**
      * @var array
      */
-    public $permissions = array();
+    public $permissions = [];
 
     /**
      * @var array
      */
-    public $workspacesAsset = array();
+    public $workspacesAsset = [];
 
     /**
      * @var array
      */
-    public $workspacesObject = array();
+    public $workspacesObject = [];
 
     /**
      * @var array
      */
-    public $workspacesDocument = array();
+    public $workspacesDocument = [];
 
     /**
      * @var array
      */
-    public $classes = array();
+    public $classes = [];
 
     /**
      * @var array
      */
-    public $docTypes = array();
+    public $docTypes = [];
+
+    public $perspectives;
 
     /**
      *
@@ -75,7 +79,8 @@ class UserRole extends AbstractUser
      */
     public function setAllAclToFalse()
     {
-        $this->permissions = array();
+        $this->permissions = [];
+
         return $this;
     }
 
@@ -92,6 +97,7 @@ class UserRole extends AbstractUser
             $position = array_search($permissionName, $this->permissions);
             array_splice($this->permissions, $position, 1);
         }
+
         return $this;
     }
 
@@ -146,6 +152,7 @@ class UserRole extends AbstractUser
         } elseif (is_array($permissions)) {
             $this->permissions = $permissions;
         }
+
         return $this;
     }
 
@@ -156,6 +163,7 @@ class UserRole extends AbstractUser
     public function setWorkspacesAsset($workspacesAsset)
     {
         $this->workspacesAsset = $workspacesAsset;
+
         return $this;
     }
 
@@ -174,6 +182,7 @@ class UserRole extends AbstractUser
     public function setWorkspacesDocument($workspacesDocument)
     {
         $this->workspacesDocument = $workspacesDocument;
+
         return $this;
     }
 
@@ -192,6 +201,7 @@ class UserRole extends AbstractUser
     public function setWorkspacesObject($workspacesObject)
     {
         $this->workspacesObject = $workspacesObject;
+
         return $this;
     }
 
@@ -215,7 +225,7 @@ class UserRole extends AbstractUser
         }
 
         if (empty($classes)) {
-            $classes = array();
+            $classes = [];
         }
         $this->classes = $classes;
     }
@@ -240,7 +250,7 @@ class UserRole extends AbstractUser
         }
 
         if (empty($docTypes)) {
-            $docTypes = array();
+            $docTypes = [];
         }
 
         $this->docTypes = $docTypes;
@@ -252,5 +262,32 @@ class UserRole extends AbstractUser
     public function getDocTypes()
     {
         return $this->docTypes;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPerspectives()
+    {
+        return $this->perspectives;
+    }
+
+    /**
+     * @param mixed $perspectives
+     */
+    public function setPerspectives($perspectives)
+    {
+        if (is_string($perspectives)) {
+            if (strlen($perspectives)) {
+                $perspectives = explode(",", $perspectives);
+            }
+        }
+
+        if (empty($perspectives)) {
+            $perspectives = [];
+        }
+
+
+        $this->perspectives = $perspectives;
     }
 }

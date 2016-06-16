@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Tool
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Tool\Qrcode;
@@ -83,6 +85,7 @@ class Config extends Model\AbstractModel
     public function setDescription($description)
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -101,6 +104,7 @@ class Config extends Model\AbstractModel
     public function setName($name)
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -119,6 +123,7 @@ class Config extends Model\AbstractModel
     public function setUrl($url)
     {
         $this->url = $url;
+
         return $this;
     }
 
@@ -137,6 +142,7 @@ class Config extends Model\AbstractModel
     public function setBackgroundColor($backgroundColor)
     {
         $this->backgroundColor = $backgroundColor;
+
         return $this;
     }
 
@@ -155,6 +161,7 @@ class Config extends Model\AbstractModel
     public function setForeColor($foreColor)
     {
         $this->foreColor = $foreColor;
+
         return $this;
     }
 
@@ -173,6 +180,7 @@ class Config extends Model\AbstractModel
     public function setGoogleAnalytics($googleAnalytics)
     {
         $this->googleAnalytics = (bool) $googleAnalytics;
+
         return $this;
     }
 

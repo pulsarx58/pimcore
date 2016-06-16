@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\ClassDefinition\CustomLayout;
@@ -29,7 +31,7 @@ class Dao extends Model\Dao\AbstractDao
     /**
      * @var array
      */
-    protected $_sqlChangeLog = array();
+    protected $_sqlChangeLog = [];
 
     /**
      * @param null $id
@@ -65,6 +67,7 @@ class Dao extends Model\Dao\AbstractDao
         if (is_file($file)) {
             return Serialize::unserialize(file_get_contents($file));
         }
+
         return;
     }
 
@@ -79,6 +82,7 @@ class Dao extends Model\Dao\AbstractDao
         if ($this->model->getId()) {
             return $this->update();
         }
+
         return $this->create();
     }
 
@@ -89,7 +93,7 @@ class Dao extends Model\Dao\AbstractDao
     public function update()
     {
         $class = get_object_vars($this->model);
-        $data = array();
+        $data = [];
 
         foreach ($class as $key => $value) {
             if (in_array($key, $this->getValidTableColumns("custom_layouts"))) {
@@ -119,7 +123,7 @@ class Dao extends Model\Dao\AbstractDao
      */
     public function create()
     {
-        $this->db->insert("custom_layouts", array("name" => $this->model->getName(), "classId" => $this->model->getClassId()));
+        $this->db->insert("custom_layouts", ["name" => $this->model->getName(), "classId" => $this->model->getClassId()]);
 
         $this->model->setId($this->db->lastInsertId());
         $this->model->setCreationDate(time());

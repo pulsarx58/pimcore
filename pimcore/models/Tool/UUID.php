@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Tool
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Tool;
@@ -18,7 +20,6 @@ use Pimcore\Model;
 
 class UUID extends Model\AbstractModel
 {
-
     public $itemId;
     public $type;
     public $uuid;
@@ -28,6 +29,7 @@ class UUID extends Model\AbstractModel
     public function setInstanceIdentifier($instanceIdentifier)
     {
         $this->instanceIdentifier = $instanceIdentifier;
+
         return $this;
     }
 
@@ -43,6 +45,7 @@ class UUID extends Model\AbstractModel
             throw new \Exception("No instance identifier set in system config!");
         }
         $this->setInstanceIdentifier($instanceIdentifier);
+
         return $this;
     }
 
@@ -53,6 +56,7 @@ class UUID extends Model\AbstractModel
     public function setItemId($id)
     {
         $this->itemId = $id;
+
         return $this;
     }
 
@@ -71,6 +75,7 @@ class UUID extends Model\AbstractModel
     public function setType($type)
     {
         $this->type = $type;
+
         return $this;
     }
 
@@ -128,6 +133,7 @@ class UUID extends Model\AbstractModel
         }
 
         $this->item = $item;
+
         return $this;
     }
 
@@ -141,6 +147,7 @@ class UUID extends Model\AbstractModel
         $self = new self;
         $self->setSystemInstanceIdentifier();
         $self->setUuid($self->setItem($item)->createUuid());
+
         return $self;
     }
 
@@ -151,6 +158,7 @@ class UUID extends Model\AbstractModel
     public static function getByUuid($uuid)
     {
         $self = new self;
+
         return $self->getDao()->getByUuid($uuid);
     }
 
@@ -164,6 +172,7 @@ class UUID extends Model\AbstractModel
         $uuid = new static;
         $uuid->setSystemInstanceIdentifier()->setItem($item);
         $uuid->setUuid($uuid->createUuid());
+
         return $uuid;
     }
 }

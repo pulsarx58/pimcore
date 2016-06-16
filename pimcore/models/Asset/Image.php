@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Asset
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Asset;
@@ -35,7 +37,7 @@ class Image extends Model\Asset
             try {
                 // save the current data into a tmp file to calculate the dimensions, otherwise updates wouldn't be updated
                 // because the file is written in parent::update();
-                $tmpFile = $this->getTemporaryFile(true);
+                $tmpFile = $this->getTemporaryFile();
                 $dimensions = $this->getDimensions($tmpFile, true);
                 unlink($tmpFile);
 
@@ -66,7 +68,7 @@ class Image extends Model\Asset
                 // so that the thumbnail check doesn't fail in Asset\Image\Thumbnail\Processor::process();
                 touch($path, $this->getModificationDate());
             } catch (\Exception $e) {
-                \Logger::error("Problem while creating system-thumbnails for image " . $this->getFullPath());
+                \Logger::error("Problem while creating system-thumbnails for image " . $this->getRealFullPath());
                 \Logger::error($e);
             }
         }
@@ -101,6 +103,7 @@ class Image extends Model\Asset
     public function getThumbnailConfig($config)
     {
         $thumbnail = $this->getThumbnail($config);
+
         return $thumbnail->getConfig();
     }
 
@@ -147,6 +150,7 @@ class Image extends Model\Asset
         } elseif ($this->getHeight() > $this->getWidth()) {
             return "portrait";
         }
+
         return "unknown";
     }
 
@@ -159,7 +163,10 @@ class Image extends Model\Asset
     }
 
     /**
-     * @return array
+     * @param null $path
+     * @param bool $force
+     * @return array|void
+     * @throws \Exception
      */
     public function getDimensions($path = null, $force = false)
     {
@@ -186,10 +193,10 @@ class Image extends Model\Asset
             return;
         }
 
-        $dimensions = array(
+        $dimensions = [
             "width" => $image->getWidth(),
             "height" => $image->getHeight()
-        );
+        ];
 
         return $dimensions;
     }
@@ -200,6 +207,7 @@ class Image extends Model\Asset
     public function getWidth()
     {
         $dimensions = $this->getDimensions();
+
         return $dimensions["width"];
     }
 
@@ -209,6 +217,7 @@ class Image extends Model\Asset
     public function getHeight()
     {
         $dimensions = $this->getDimensions();
+
         return $dimensions["height"];
     }
 

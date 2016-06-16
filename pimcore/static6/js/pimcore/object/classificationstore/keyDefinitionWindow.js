@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.object.classificationstore.keyDefinitionWindow");
@@ -28,14 +30,24 @@ pimcore.object.classificationstore.keyDefinitionWindow = Class.create({
 
         var fieldtype = this.data.fieldtype;
         this.editor = new pimcore.object.classes.data[fieldtype](null, this.data);
+        this.editor.setInClassificationStoreEditor(true);
         var layout = this.editor.getLayout();
+
+        var invisibleFields = ["invisible","visibleGridView","visibleSearch","index"];
+        var invisibleField;
+        for(var f=0; f<invisibleFields.length; f++) {
+            invisibleField = layout.getComponent("standardSettings").getComponent(invisibleFields[f]);
+            if(invisibleField) {
+                invisibleField.hide();
+            }
+        }
 
         this.window = new Ext.Window({
             modal: true,
             width: 800,
             height: 600,
             resizable: true,
-            autoScroll: true,
+            scrollable: "y",
             title: t("classificationstore_detailed_config"),
             items: [layout],
             bbar: [

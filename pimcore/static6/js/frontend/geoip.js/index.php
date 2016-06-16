@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 // referrer check
@@ -53,13 +55,13 @@ if (file_exists($geoDbFile)) {
 
 function ip_is_private($ip)
 {
-    $pri_addrs = array(
+    $pri_addrs = [
         '10.0.0.0|10.255.255.255', // single class A network
         '172.16.0.0|172.31.255.255', // 16 contiguous class B network
         '192.168.0.0|192.168.255.255', // 256 contiguous class C network
         '169.254.0.0|169.254.255.255', // Link-local address also refered to as Automatic Private IP Addressing
         '127.0.0.0|127.255.255.255' // localhost
-    );
+    ];
 
     $long_ip = ip2long($ip);
     if ($long_ip != -1) {

@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.report.custom.report");
@@ -31,22 +33,23 @@ pimcore.report.custom.report = Class.create(pimcore.report.abstract, {
         return "pimcore_icon_sql";
     },
 
-    initGrid: function (data) {
+    prepareGridConfig: function(data) {
         this.drillDownFilters = {};
         this.drillDownStores = [];
 
-        var storeFields = [];
-        var gridColums = [];
-        var colConfig;
-        var gridColConfig = {};
-        var filters = [];
-        var drillDownFilterDefinitions = [];
+        this.storeFields = [];
+        this.gridColumns = [];
+
+        this.drillDownFilterDefinitions = [];
         this.columnLabels = {};
         this.gridfilters = {};
 
+        var gridColConfig = {};
+
         for(var f=0; f<data.columnConfiguration.length; f++) {
-            colConfig = data.columnConfiguration[f];
-            storeFields.push(colConfig["name"]);
+
+            var colConfig = data.columnConfiguration[f];
+            this.storeFields.push(colConfig["name"]);
 
             this.columnLabels[colConfig["name"]] = colConfig["label"] ? ts(colConfig["label"]) : ts(colConfig["name"]);
 
@@ -66,23 +69,64 @@ pimcore.report.custom.report = Class.create(pimcore.report.abstract, {
                 this.gridfilters[colConfig["name"]] = colConfig["filter"];
             }
 
+            if (colConfig["displayType"] == "date") {
+                gridColConfig["renderer"] = function (key, value, metaData, record) {
+                    if (value) {
+                        var timestamp = intval(value) * 1000;
+                        var date = new Date(timestamp);
+
+                        return Ext.Date.format(date, "Y-m-d H:i");
+                    }
+                    return "";
+                }.bind(this, colConfig["name"]);
+            };
+
 
             if(colConfig["filter_drilldown"] == 'only_filter' || colConfig["filter_drilldown"] == 'filter_and_show') {
-                drillDownFilterDefinitions.push(colConfig);
+                this.drillDownFilterDefinitions.push(colConfig);
             }
 
             if(colConfig["filter_drilldown"] != 'only_filter') {
-                gridColums.push(gridColConfig);
+                this.gridColumns.push(gridColConfig);
             }
 
+            if (colConfig["columnAction"]) {
+                this.gridColumns.push({
+                    header: t("open"),
+                    xtype: 'actioncolumn',
+                    width: 40,
+                    items: [
+                        {
+                            tooltip: t("open") + " " + (colConfig["label"] ? ts(colConfig["label"]) : ts(colConfig["name"])),
+                            icon: "/pimcore/static6/img/flat-color-icons/cursor.svg",
+                            handler: function (colConfig, grid, rowIndex) {
+                                var data = grid.getStore().getAt(rowIndex).getData();
+                                var columnName = colConfig["name"];
+                                var id = data[columnName];
+                                var action = colConfig["columnAction"]
+                                if (action == "openDocument") {
+                                    pimcore.helpers.openElement(id, "document");
+                                } else if (action == "openAsset") {
+                                    pimcore.helpers.openElement(id, "asset");
+                                } else if (action == "openObject") {
+                                    pimcore.helpers.openElement(id, "object");
+                                }
+                            }.bind(this, colConfig)
+                        }
+                    ]
+                });
+            }
         }
 
-        var itemsPerPage = 40;
+    },
+
+    createGrid: function() {
+        var itemsPerPage = pimcore.helpers.grid.getDefaultPageSize();
         var url = '/admin/reports/custom-report/data?';
         this.store = pimcore.helpers.grid.buildDefaultStore(
-            url, storeFields, itemsPerPage
+            url, this.storeFields, itemsPerPage
         );
-        this.pagingtoolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.store, itemsPerPage);
+        this.pagingtoolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.store);
 
         var proxy = this.store.getProxy();
         proxy.extraParams.name = this.config["name"];
@@ -114,7 +158,7 @@ pimcore.report.custom.report = Class.create(pimcore.report.abstract, {
 
         }.bind(this));
 
-        var topBar = this.buildTopBar(drillDownFilterDefinitions);
+        var topBar = this.buildTopBar(this.drillDownFilterDefinitions);
 
         topBar.push("->");
         topBar.push({
@@ -148,14 +192,13 @@ pimcore.report.custom.report = Class.create(pimcore.report.abstract, {
             }.bind(this)
         });
 
-
         this.grid = new Ext.grid.GridPanel({
             region: "center",
             store: this.store,
             bbar: this.pagingtoolbar,
-            columns: gridColums,
+            columns: this.gridColumns,
             columnLines: true,
-            plugins: ['gridfilters'],
+            plugins: ['pimcore.gridfilters'],
             stripeRows: true,
             trackMouseOver: true,
             viewConfig: {
@@ -167,14 +210,19 @@ pimcore.report.custom.report = Class.create(pimcore.report.abstract, {
         return this.grid;
     },
 
+    initGrid: function (data) {
+        this.prepareGridConfig(data);
+        return this.createGrid();
+    },
+
     buildTopBar: function(drillDownFilterDefinitions) {
         var drillDownFilterComboboxes = [];
 
-        for(var i = 0; i < drillDownFilterDefinitions.length; i++) {
+        for(var i = 0; i < this.drillDownFilterDefinitions.length; i++) {
             drillDownFilterComboboxes.push({
                 xtype: 'label',
-                text: drillDownFilterDefinitions[i]["label"] ? ts(drillDownFilterDefinitions[i]["label"])
-                                                    : ts(drillDownFilterDefinitions[i]["name"]),
+                text: this.drillDownFilterDefinitions[i]["label"] ? ts(this.drillDownFilterDefinitions[i]["label"])
+                    : ts(this.drillDownFilterDefinitions[i]["name"]),
                 style: 'padding-right: 5px'
             });
 
@@ -185,7 +233,7 @@ pimcore.report.custom.report = Class.create(pimcore.report.abstract, {
             );
             var proxy = drillDownStore.getProxy();
             proxy.extraParams.name = this.config["name"];
-            proxy.extraParams.field = drillDownFilterDefinitions[i]["name"];
+            proxy.extraParams.field = this.drillDownFilterDefinitions[i]["name"];
 
             this.drillDownStores.push(drillDownStore);
 
@@ -215,12 +263,12 @@ pimcore.report.custom.report = Class.create(pimcore.report.abstract, {
                         }
 
                         this.store.reload();
-                    }.bind(this, drillDownFilterDefinitions[i]["name"])
+                    }.bind(this, this.drillDownFilterDefinitions[i]["name"])
                 },
                 valueField: 'value',
                 displayField: 'value'
             });
-            if(i < drillDownFilterDefinitions.length-1) {
+            if(i < this.drillDownFilterDefinitions.length-1) {
                 drillDownFilterComboboxes.push('-');
             }
         }
@@ -319,7 +367,10 @@ pimcore.report.custom.report = Class.create(pimcore.report.abstract, {
                 chartFields.push(data.pieLabelColumn);
             };
             if (data.pieColumn) {
-                chartFields.push(data.pieColumn);
+                chartFields.push({
+                    name: data.pieColumn,
+                    type: "int"
+                });
             }
 
             this.chartStore = pimcore.helpers.grid.buildDefaultStore(
@@ -348,8 +399,14 @@ pimcore.report.custom.report = Class.create(pimcore.report.abstract, {
                     tooltip: {
                         trackMouse: true,
                         renderer: function (tooltip, record, item) {
-                            tooltip.setHtml(record.get(data.pieLabelColumn) + ': ' + record.get(data.pieColumn) + '%');
-                        }
+                            var count = this.chartStore.getCount();
+                            var value = record.get(data.pieColumn);
+
+
+                            var sum = this.chartStore.sum(data.pieColumn);
+                            var percentage = sum > 0 ? " (" + Math.round((value * 100 / sum)) + ' %)' : "";
+                            tooltip.setHtml(record.get(data.pieLabelColumn) + ': ' + value + percentage);
+                        }.bind(this)
                     }
                 }]
             });
@@ -360,8 +417,6 @@ pimcore.report.custom.report = Class.create(pimcore.report.abstract, {
             series.provideLegendInfo = function (target) {
                 var me = this,
                     store = me.getStore();
-
-                console.log("hello");
 
                 if (store) {
                     var items = store.getData().items,
@@ -498,8 +553,9 @@ pimcore.report.custom.reportplugin = Class.create(pimcore.plugin.admin, {
                                 report["groupIconClass"] = "pimcore_icon_sql";
                             }
 
+                            var reportClass = report.reportClass ? report.reportClass : "pimcore.report.custom.report";
                             pimcore.report.broker.addGroup(report["group"], report["group"], report["groupIconClass"]);
-                            pimcore.report.broker.addReport(pimcore.report.custom.report, report["group"], {
+                            pimcore.report.broker.addReport(reportClass, report["group"], {
                                 name: report["name"],
                                 text: report["niceName"],
                                 niceName: report["niceName"],
@@ -515,7 +571,7 @@ pimcore.report.custom.reportplugin = Class.create(pimcore.plugin.admin, {
                                             text: report["niceName"],
                                             iconCls: report["iconClass"],
                                             handler: function (report) {
-                                                toolbar.showReports(pimcore.report.custom.report, {
+                                                toolbar.showReports(reportClass, {
                                                     name: report["name"],
                                                     text: report["niceName"],
                                                     niceName: report["niceName"],

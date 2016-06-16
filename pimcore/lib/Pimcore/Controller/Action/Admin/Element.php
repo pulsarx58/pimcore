@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Controller\Action\Admin;
@@ -24,7 +26,7 @@ abstract class Element extends Admin
     public function treeGetRootAction()
     {
         $type = $this->getParam("controller");
-        $allowedTypes = ["asset","document","object"];
+        $allowedTypes = ["asset", "document", "object"];
 
         $id = 1;
         if ($this->getParam("id")) {
@@ -38,7 +40,7 @@ abstract class Element extends Admin
             }
         }
 
-        $this->_helper->json(array("success" => false, "message" => "missing_permission"));
+        $this->_helper->json(["success" => false, "message" => "missing_permission"]);
     }
 
     /**
@@ -56,14 +58,14 @@ abstract class Element extends Admin
     {
         $id = intval($this->getParam("id"));
         $type = $this->getParam("controller");
-        $allowedTypes = ["asset","document","object"];
+        $allowedTypes = ["asset", "document", "object"];
 
         if ($id && in_array($type, $allowedTypes)) {
             $element = Model\Element\Service::getElementById($type, $id);
             if ($element) {
                 if ($element->isAllowed("versions")) {
                     $schedule = $element->getScheduledTasks();
-                    $schedules = array();
+                    $schedules = [];
                     foreach ($schedule as $task) {
                         if ($task->getActive()) {
                             $schedules[$task->getVersion()] = $task->getDate();
@@ -81,7 +83,7 @@ abstract class Element extends Admin
                         }
                     }
 
-                    $this->_helper->json(array("versions" => $versions));
+                    $this->_helper->json(["versions" => $versions]);
                 } else {
                     throw new \Exception("Permission denied, " . $type . " id [" . $id . "]");
                 }
@@ -99,7 +101,7 @@ abstract class Element extends Admin
         $version = Model\Version::getById($this->getParam("id"));
         $version->delete();
 
-        $this->_helper->json(array("success" => true));
+        $this->_helper->json(["success" => true]);
     }
 
     /*
@@ -109,7 +111,7 @@ abstract class Element extends Admin
     {
         $id = $this->getParam("id");
         $type = $this->getParam("controller");
-        $allowedTypes = ["asset","document","object"];
+        $allowedTypes = ["asset", "document", "object"];
 
         if ($id && in_array($type, $allowedTypes)) {
             $element = Model\Element\Service::getElementById($type, $id);
@@ -128,7 +130,7 @@ abstract class Element extends Admin
     {
         $id = $this->getParam("id");
         $type = $this->getParam("controller");
-        $allowedTypes = ["asset","document","object"];
+        $allowedTypes = ["asset", "document", "object"];
 
         if ($id && in_array($type, $allowedTypes)) {
             $element = Model\Element\Service::getElementById($type, $id);
@@ -145,9 +147,9 @@ abstract class Element extends Admin
      */
     public function getPredefinedPropertiesAction()
     {
-        $properties = array();
+        $properties = [];
         $type = $this->getParam("controller");
-        $allowedTypes = ["asset","document","object"];
+        $allowedTypes = ["asset", "document", "object"];
 
         if (in_array($type, $allowedTypes)) {
             $list = new Model\Property\Predefined\Listing();
@@ -155,6 +157,7 @@ abstract class Element extends Admin
                 if ($row["ctype"] == $type) {
                     return true;
                 }
+
                 return false;
             });
 
@@ -165,6 +168,6 @@ abstract class Element extends Admin
             }
         }
 
-        $this->_helper->json(array("properties" => $properties));
+        $this->_helper->json(["properties" => $properties]);
     }
 }

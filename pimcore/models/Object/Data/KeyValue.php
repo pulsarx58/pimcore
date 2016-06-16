@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Data;
@@ -33,7 +35,7 @@ class KeyValue extends Model\AbstractModel
     /**
      * @var array
      */
-    public $arr = array();
+    public $arr = [];
 
     /** Whether multivalent values are allowed.
      * @var
@@ -54,6 +56,7 @@ class KeyValue extends Model\AbstractModel
     public function setClass(Object\ClassDefinition $class)
     {
         $this->class = $class;
+
         return $this;
     }
 
@@ -78,6 +81,7 @@ class KeyValue extends Model\AbstractModel
                 $str .= "    " . $prop["key"] . "=>" . $prop["value"] . "\n";
             }
         }
+
         return $str;
     }
 
@@ -96,6 +100,7 @@ class KeyValue extends Model\AbstractModel
     public function setObjectId($objectId)
     {
         $this->objectId = $objectId;
+
         return $this;
     }
 
@@ -105,7 +110,7 @@ class KeyValue extends Model\AbstractModel
      */
     public function setProperties($arr)
     {
-        $newProperties = array();
+        $newProperties = [];
         foreach ($arr as $key => $pair) {
             if (!$pair["inherited"]) {
                 $newProperties[] = $pair;
@@ -113,6 +118,7 @@ class KeyValue extends Model\AbstractModel
         }
 
         $this->arr = $newProperties;
+
         return $this;
     }
 
@@ -130,7 +136,7 @@ class KeyValue extends Model\AbstractModel
      */
     public function getKeyvaluepairsByGroup($groupName)
     {
-        $data = array();
+        $data = [];
         $group = Object\KeyValue\GroupConfig::getByName($groupName);
         if (!empty($group)) {
             $properties = $this->getProperties();
@@ -140,6 +146,7 @@ class KeyValue extends Model\AbstractModel
                 }
             }
         }
+
         return $data;
     }
 
@@ -149,14 +156,14 @@ class KeyValue extends Model\AbstractModel
      */
     public function getProperties($forEditMode = false)
     {
-        $result = array();
+        $result = [];
         $object = Object::getById($this->objectId);
         if (!$object) {
             throw new \Exception('Object with Id '. $this->objectId .' not found');
         }
         $objectName = $object->getKey();
 
-        $internalKeys = array();
+        $internalKeys = [];
         foreach ($this->arr as $pair) {
             $pair["inherited"] = false;
             $pair["source"] = $object->getId();
@@ -172,7 +179,7 @@ class KeyValue extends Model\AbstractModel
             $kv = $parent->getKeyvaluepairs();
             $parentProperties = $kv ? $kv->getInternalProperties() : [];
 
-            $addedKeys = array();
+            $addedKeys = [];
 
             foreach ($parentProperties as $parentPair) {
                 $parentKeyId = $parentPair["key"];
@@ -253,6 +260,7 @@ class KeyValue extends Model\AbstractModel
             throw new \Exception("key does not exist");
         }
         $keyId =  $keyConfig->getId();
+
         return $keyId;
     }
 
@@ -267,7 +275,7 @@ class KeyValue extends Model\AbstractModel
     {
         $keyId =  $this->getKeyId($propName, $groupId);
 
-        $result = array();
+        $result = [];
         // the key name is valid, now iterate over the object's pairs
         $propsWithInheritance = $this->getProperties();
         foreach ($propsWithInheritance as $pair) {
@@ -305,14 +313,16 @@ class KeyValue extends Model\AbstractModel
                 $pair["value"] = $value;
                 $pair["translated"] = $translatedValue;
                 $this->arr[$i] = $pair;
+
                 return;
             }
         }
 
-        $pair = array();
+        $pair = [];
         $pair["key"] = $keyId;
         $pair["value"] = $value;
         $this->arr[] = $pair;
+
         return $this;
     }
 
@@ -335,6 +345,7 @@ class KeyValue extends Model\AbstractModel
                 $translatedValue = $value;
             }
         }
+
         return $translatedValue;
     }
 
@@ -361,18 +372,23 @@ class KeyValue extends Model\AbstractModel
         if (substr($name, 0, 16) == "getWithGroupName") {
             $key = substr($name, 16, strlen($name)-16);
             $groupConfig = Object\KeyValue\GroupConfig::getByName($arguments[0]);
+
             return $this->getProperty($key, $groupConfig->getId());
         } elseif (substr($name, 0, 14) == "getWithGroupId") {
             $key = substr($name, 14, strlen($name)-14);
             $groupConfig = Object\KeyValue\GroupConfig::getById($arguments[0]);
+
             return $this->getProperty($key, $groupConfig->getId());
         } elseif (substr($name, 0, 3) == "get") {
             $key = substr($name, 3, strlen($name)-3);
+
             return $this->getProperty($key);
         } elseif (substr($name, 0, 3) == "set") {
             $key = substr($name, 3, strlen($name)-3);
+
             return $this->setProperty($key, $arguments[0]);
         }
+
         return parent::__call($name, $arguments);
     }
 
@@ -382,7 +398,7 @@ class KeyValue extends Model\AbstractModel
      */
     public function getEntryByKeyId($keyId)
     {
-        $result = array();
+        $result = [];
         foreach ($this->getProperties() as $property) {
             if ($property['key'] == $keyId) {
                 $result[] = new Object\Data\KeyValue\Entry($property["value"], $property["translated"], $property["metadata"]);
@@ -400,12 +416,27 @@ class KeyValue extends Model\AbstractModel
     }
 
     /**
+     * deletes an entry with the given keyId if the entry exists
+     *
+     * @param $keyId
+     */
+    public function deleteEntryByKeyId($keyId)
+    {
+        foreach ($this->arr as $i => $entry) {
+            if ($entry['key'] == $keyId) {
+                unset($this->arr[$i]);
+                break;
+            }
+        }
+    }
+
+    /**
      * @param $keyId
      * @param $value
      */
     public function setValueWithKeyId($keyId, $value)
     {
-        $cleanedUpValues = array();
+        $cleanedUpValues = [];
         foreach ($this->arr as $entry) {
             if ($entry['key'] != $keyId) {
                 $cleanedUpValues[] = $entry;
@@ -414,11 +445,11 @@ class KeyValue extends Model\AbstractModel
         $this->arr = $cleanedUpValues;
 
         if (!is_array($value)) {
-            $value = array($value);
+            $value = [$value];
         }
 
         foreach ($value as $v) {
-            $pair = array();
+            $pair = [];
             $pair["key"] = $keyId;
             $pair["value"] = $v;
             $pair["translated"] = $this->getTranslatedValue($keyId, $v);

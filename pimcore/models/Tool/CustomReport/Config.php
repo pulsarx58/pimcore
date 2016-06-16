@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Tool
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Tool\CustomReport;
@@ -32,12 +34,12 @@ class Config extends Model\AbstractModel
     /**
      * @var string[]
      */
-    public $dataSourceConfig = array();
+    public $dataSourceConfig = [];
 
     /**
      * @var array
      */
-    public $columnConfiguration = array();
+    public $columnConfiguration = [];
 
     /**
      * @var string
@@ -63,6 +65,11 @@ class Config extends Model\AbstractModel
      * @var bool
      */
     public $menuShortcut;
+
+    /**
+     * @var string
+     */
+    public $reportClass;
 
     /**
      * @var string
@@ -126,10 +133,10 @@ class Config extends Model\AbstractModel
         $items = $list->load();
 
         foreach ($items as $item) {
-            $reports[] = array(
+            $reports[] = [
                 "id" => $item->getName(),
                 "text" => $item->getName()
-            );
+            ];
         }
 
         return $reports;
@@ -144,6 +151,7 @@ class Config extends Model\AbstractModel
     {
         $type = $configuration->type ? ucfirst($configuration->type) : 'Sql';
         $adapter = "\\Pimcore\\Model\\Tool\\CustomReport\\Adapter\\{$type}";
+
         return new $adapter($configuration, $fullConfig);
     }
 
@@ -402,5 +410,21 @@ class Config extends Model\AbstractModel
     public function setCreationDate($creationDate)
     {
         $this->creationDate = $creationDate;
+    }
+
+    /**
+     * @return string
+     */
+    public function getReportClass()
+    {
+        return $this->reportClass;
+    }
+
+    /**
+     * @param string $reportClass
+     */
+    public function setReportClass($reportClass)
+    {
+        $this->reportClass = $reportClass;
     }
 }

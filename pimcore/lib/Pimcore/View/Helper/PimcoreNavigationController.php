@@ -3,12 +3,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\View\Helper;
@@ -106,6 +108,19 @@ class PimcoreNavigationController
             $activePages = $navigation->findAllBy("uri", $activeDocument->getFullPath());
         }
 
+        // cleanup active pages from links
+        // pages have priority, if we don't find any active page, we use all we found
+        $tmpPages = [];
+        foreach ($activePages as $page) {
+            if ($page->getDocumentType() != "link") {
+                $tmpPages[] = $page;
+            }
+        }
+        if (count($tmpPages)) {
+            $activePages = $tmpPages;
+        }
+
+
         if (!empty($activePages)) {
             // we found an active document, so we can build the active trail by getting respectively the parent
             foreach ($activePages as $activePage) {
@@ -118,13 +133,13 @@ class PimcoreNavigationController
             foreach ($allPages as $page) {
                 $activeTrail = false;
 
-                if (strpos($activeDocument->getRealFullPath(), $page->getUri() . "/") === 0) {
+                if ($page->getUri() && strpos($activeDocument->getRealFullPath(), $page->getUri() . "/") === 0) {
                     $activeTrail = true;
                 }
 
                 if ($page instanceof Uri) {
                     if ($page->getDocumentType() == "link") {
-                        if (strpos($activeDocument->getFullPath(), $page->getUri() . "/") === 0) {
+                        if ($page->getUri() && strpos($activeDocument->getFullPath(), $page->getUri() . "/") === 0) {
                             $activeTrail = true;
                         }
                     }
@@ -178,6 +193,7 @@ class PimcoreNavigationController
     public function setPageClass($pageClass)
     {
         $this->_pageClass = $pageClass;
+
         return $this;
     }
 
@@ -209,7 +225,7 @@ class PimcoreNavigationController
      */
     protected function buildNextLevel($parentDocument, $isRoot = false, $pageCallback = null)
     {
-        $pages = array();
+        $pages = [];
 
         $childs = $this->getChilds($parentDocument);
         if (is_array($childs)) {

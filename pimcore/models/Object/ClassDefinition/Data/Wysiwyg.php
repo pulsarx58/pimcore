@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\ClassDefinition\Data;
@@ -21,7 +23,6 @@ use Pimcore\Tool\Text;
 
 class Wysiwyg extends Model\Object\ClassDefinition\Data
 {
-
     use Model\Object\ClassDefinition\Data\Extension\Text;
 
     /**
@@ -90,6 +91,7 @@ class Wysiwyg extends Model\Object\ClassDefinition\Data
     public function setWidth($width)
     {
         $this->width = $this->getAsIntegerCast($width);
+
         return $this;
     }
 
@@ -100,6 +102,7 @@ class Wysiwyg extends Model\Object\ClassDefinition\Data
     public function setHeight($height)
     {
         $this->height = $this->getAsIntegerCast($height);
+
         return $this;
     }
 
@@ -130,7 +133,7 @@ class Wysiwyg extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataForResource($data, $object = null, $params = array())
+    public function getDataForResource($data, $object = null, $params = [])
     {
         return Text::wysiwygText($data);
     }
@@ -142,7 +145,7 @@ class Wysiwyg extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataFromResource($data, $object = null, $params = array())
+    public function getDataFromResource($data, $object = null, $params = [])
     {
         return Text::wysiwygText($data);
     }
@@ -154,7 +157,7 @@ class Wysiwyg extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataForQueryResource($data, $object = null, $params = array())
+    public function getDataForQueryResource($data, $object = null, $params = [])
     {
         $data = $this->getDataForResource($data, $object, $params);
 
@@ -176,7 +179,7 @@ class Wysiwyg extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataForEditmode($data, $object = null, $params = array())
+    public function getDataForEditmode($data, $object = null, $params = [])
     {
         return $this->getDataForResource($data, $object, $params);
     }
@@ -188,7 +191,7 @@ class Wysiwyg extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataFromEditmode($data, $object = null, $params = array())
+    public function getDataFromEditmode($data, $object = null, $params = [])
     {
         return $data;
     }
@@ -208,7 +211,7 @@ class Wysiwyg extends Model\Object\ClassDefinition\Data
      * @param array $tags
      * @return array
      */
-    public function getCacheTags($data, $tags = array())
+    public function getCacheTags($data, $tags = [])
     {
         return Text::getCacheTagsOfWysiwygText($data, $tags);
     }
@@ -224,14 +227,14 @@ class Wysiwyg extends Model\Object\ClassDefinition\Data
     public function checkValidity($data, $omitMandatoryCheck = false)
     {
         if (!$omitMandatoryCheck and $this->getMandatory() and empty($data)) {
-            throw new \Exception("Empty mandatory field [ ".$this->getName()." ]");
+            throw new Element\ValidationException("Empty mandatory field [ ".$this->getName()." ]");
         }
         $dependencies = Text::getDependenciesOfWysiwygText($data);
         if (is_array($dependencies)) {
             foreach ($dependencies as $key => $value) {
                 $el = Element\Service::getElementById($value['type'], $value['id']);
                 if (!$el) {
-                    throw new \Exception("invalid dependency in wysiwyg text");
+                    throw new Element\ValidationException("Invalid dependency in wysiwyg text");
                 }
             }
         }
@@ -241,7 +244,7 @@ class Wysiwyg extends Model\Object\ClassDefinition\Data
      * @param Object\Concrete $object
      * @return string
      */
-    public function preGetData($object, $params = array())
+    public function preGetData($object, $params = [])
     {
         $data = "";
         if ($object instanceof Object\Concrete) {
@@ -264,12 +267,13 @@ class Wysiwyg extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return array|string
      */
-    public function getDiffVersionPreview($data, $object = null, $params = array())
+    public function getDiffVersionPreview($data, $object = null, $params = [])
     {
         if ($data) {
-            $value = array();
+            $value = [];
             $value["html"] = $data;
             $value["type"] = "html";
+
             return $value;
         } else {
             return "";
@@ -292,7 +296,7 @@ class Wysiwyg extends Model\Object\ClassDefinition\Data
      * @param array $params
      * @return Element\ElementInterface
      */
-    public function rewriteIds($object, $idMapping, $params = array())
+    public function rewriteIds($object, $idMapping, $params = [])
     {
         include_once("simple_html_dom.php");
 

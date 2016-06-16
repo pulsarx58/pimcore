@@ -1,15 +1,17 @@
-<?php 
+<?php
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Asset
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Asset\WebDAV;
@@ -17,6 +19,7 @@ namespace Pimcore\Model\Asset\WebDAV;
 use Sabre\DAV;
 use Pimcore\Tool\Admin as AdminTool;
 use Pimcore\Model\Asset;
+use Pimcore\File as FileHelper;
 
 class File extends DAV\File
 {
@@ -78,11 +81,11 @@ class File extends DAV\File
             $log = Asset\WebDAV\Service::getDeleteLog();
 
             $this->asset->_fulldump = true;
-            $log[$this->asset->getFullpath()] = array(
+            $log[$this->asset->getRealFullPath()] = [
                 "id" => $this->asset->getId(),
                 "timestamp" => time(),
                 "data" => \Pimcore\Tool\Serialize::serialize($this->asset)
-            );
+            ];
 
             unset($this->asset->_fulldump);
 
@@ -111,7 +114,7 @@ class File extends DAV\File
             // read from resource -> default for SabreDAV
             $tmpFile = PIMCORE_SYSTEM_TEMP_DIRECTORY . "/asset-dav-tmp-file-" . uniqid();
             file_put_contents($tmpFile, $data);
-            $file = fopen($tmpFile, "r+");
+            $file = fopen($tmpFile, "r+", false, FileHelper::getContext());
 
             $user = AdminTool::getCurrentUser();
             $this->asset->setUserModification($user->getId());
@@ -133,7 +136,7 @@ class File extends DAV\File
     public function get()
     {
         if ($this->asset->isAllowed("view")) {
-            return fopen($this->asset->getFileSystemPath(), "r");
+            return fopen($this->asset->getFileSystemPath(), "r", false, FileHelper::getContext());
         } else {
             throw new DAV\Exception\Forbidden();
         }

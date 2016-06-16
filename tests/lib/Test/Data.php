@@ -16,7 +16,7 @@ class Test_Data
 
     private static function createRandomProperties()
     {
-        $properties = array();
+        $properties = [];
 
             // object property
         $property = new Property();
@@ -32,6 +32,7 @@ class Test_Data
         $list->setOrderKey("o_id");
         $list->setCondition($condition);
         $objects = $list->load();
+
         return $objects;
     }
 
@@ -57,8 +58,10 @@ class Test_Data
 
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
@@ -75,8 +78,10 @@ class Test_Data
         $expected = "123" + $seed;
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
@@ -93,8 +98,10 @@ class Test_Data
         $expected = "sometext<br>" . $seed;
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
@@ -114,8 +121,10 @@ class Test_Data
 
         if ($value != $expected) {
             print("   expected " . $expected->getId() . " but was " . $value->getId());
+
             return false;
         }
+
         return true;
     }
 
@@ -138,15 +147,18 @@ class Test_Data
 
         if (count($expectedArray) != count($value)) {
             print("count is different  " . count($expectedArray) . " != " . count($value) . "\n");
+
             return false;
         }
 
         for ($i = 0; $i < count($expectedArray); $i++) {
             if ($value[$i] != $expectedArray[$i]) {
                 print("   expected " . $expectedArray[$i]->getId() . " but was " . $value[$i]->getId());
+
                 return false;
             }
         }
+
         return true;
     }
 
@@ -166,8 +178,10 @@ class Test_Data
         $expected = 7 + ($seed % 3);
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
@@ -192,14 +206,16 @@ class Test_Data
         $expected = Asset::getByPath("/" . self::IMAGE);
         if ($expected != $value) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
     private static function createHotspots()
     {
-        $result = array();
+        $result = [];
         $hotspot = new stdClass();
         $hotspot->name = "hotspot1";
         $hotspot->width = "10";
@@ -212,6 +228,7 @@ class Test_Data
         $hotspot->top  = "20";
         $hotspot->left = "40";
         $result[] = $hotspot;
+
         return $result;
     }
 
@@ -238,6 +255,7 @@ class Test_Data
         $hotspots = $value->getHotspots();
         if (count($hotspots)  != 2) {
             print("hotspot count is " . count($hotspots));
+
             return false;
         }
         $asset = Asset::getByPath("/" . self::HOTSPOT_IMAGE);
@@ -249,8 +267,10 @@ class Test_Data
 
         if ($expected != $value) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
@@ -267,8 +287,10 @@ class Test_Data
         $expected = "de";
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
@@ -285,8 +307,10 @@ class Test_Data
         $expected = "AU";
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
@@ -309,8 +333,10 @@ class Test_Data
 
         if ($value->format("Y-m-d") != $expected->format("Y-m-d")) {
             print("   expected " . $expected->format("Y-m-d") . " but was " . $value->format("Y-m-d"));
+
             return false;
         }
+
         return true;
     }
 
@@ -327,26 +353,30 @@ class Test_Data
         $expected = 1 + ($seed % 2);
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
     public static function fillMultiSelect($object, $field, $seed = 1)
     {
         $setter = "set" . ucfirst($field);
-        $object->$setter(array("1", "2"));
+        $object->$setter(["1", "2"]);
     }
 
     public static function assertMultiSelect($object, $field, $seed = 1)
     {
         $getter = "get" . ucfirst($field);
         $value = $object->$getter();
-        $expected = array("1", "2");
+        $expected = ["1", "2"];
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
@@ -358,12 +388,12 @@ class Test_Data
         $user = User::getByName($username);
 
         if (!$user) {
-            $user = User::create(array(
+            $user = User::create([
                 "parentId" => 0,
                 "username" => $username,
                 "password" => Pimcore_Tool_Authentication::getPasswordHash($username, $username),
                 "active" => true
-            ));
+            ]);
             $user->setAdmin(true);
             $user->save();
         }
@@ -379,8 +409,10 @@ class Test_Data
         $expected = $user->getId();
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
@@ -397,8 +429,10 @@ class Test_Data
         $expected = ($seed % 2) == true;
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
@@ -415,8 +449,10 @@ class Test_Data
         $expected = "06:4" . $seed % 10;
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
@@ -444,44 +480,50 @@ class Test_Data
         $expected = null;
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value . "\n");
+
             return false;
         }
+
         return true;
     }
 
     public static function fillCountryMultiSelect($object, $field, $seed = 1)
     {
         $setter = "set" . ucfirst($field);
-        $object->$setter(array("1", "2"));
+        $object->$setter(["1", "2"]);
     }
 
     public static function assertCountryMultiSelect($object, $field, $seed = 1)
     {
         $getter = "get" . ucfirst($field);
         $value = $object->$getter();
-        $expected = array("1", "2");
+        $expected = ["1", "2"];
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
     public static function fillLanguageMultiSelect($object, $field, $seed = 1)
     {
         $setter = "set" . ucfirst($field);
-        $object->$setter(array("1", "2"));
+        $object->$setter(["1", "2"]);
     }
 
     public static function assertLanguageMultiSelect($object, $field, $seed = 1)
     {
         $getter = "get" . ucfirst($field);
         $value = $object->$getter();
-        $expected = array("1", "3");
+        $expected = ["1", "3"];
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
@@ -506,8 +548,10 @@ class Test_Data
 
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
@@ -527,15 +571,17 @@ class Test_Data
 
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
     public static function fillGeopolygon($object, $field, $seed = 1)
     {
         $setter = "set" . ucfirst($field);
-        $polygon  = array(new Object_Data_Geopoint(150.54428100585938, -33.464671118242684), new Object_Data_Geopoint(150.73654174804688, -33.913733814316245), new Object_Data_Geopoint(151.2542724609375, -33.9946115848146));
+        $polygon  = [new Object_Data_Geopoint(150.54428100585938, -33.464671118242684), new Object_Data_Geopoint(150.73654174804688, -33.913733814316245), new Object_Data_Geopoint(151.2542724609375, -33.9946115848146)];
         $object->$setter($polygon);
     }
 
@@ -547,15 +593,17 @@ class Test_Data
 
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
     public static function fillTable($object, $field, $seed = 1)
     {
         $setter = "set" . ucfirst($field);
-        $tabledata  = array(array("eins", "zwei", "drei"), array($seed, 2, 3), array("a", "b", "c"));
+        $tabledata  = [["eins", "zwei", "drei"], [$seed, 2, 3], ["a", "b", "c"]];
         $object->$setter($tabledata);
     }
 
@@ -568,8 +616,10 @@ class Test_Data
         if ($value != $expected) {
             $getter = "get" . ucfirst($field);
             print("   expected:\n" . print_r($object->$getter(), true) . " \n\nbut was:\n" . print_r($comparisonObject->$getter(), true) . "\n\n\n");
+
             return false;
         }
+
         return true;
     }
 
@@ -601,8 +651,10 @@ class Test_Data
 
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
@@ -641,8 +693,10 @@ class Test_Data
 
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
@@ -682,15 +736,18 @@ class Test_Data
 
         if (count($expectedArray) != count($value)) {
             print("count is different  " . count($expectedArray) . " != " . count($value) . "\n");
+
             return false;
         }
 
         for ($i = 0; $i < count($expectedArray); $i++) {
             if ($value[$i] != $expectedArray[$i]) {
                 print("   expected " . $expectedArray[$i]->getId() . " but was " . $value[$i]->getId());
+
                 return false;
             }
         }
+
         return true;
     }
 
@@ -700,9 +757,9 @@ class Test_Data
         $objects = self::getObjectList("o_type = 'object' AND o_className = 'unittest'");
         $objects = array_slice($objects, 0, 4);
 
-        $metaobjects = array();
+        $metaobjects = [];
         foreach ($objects as $o) {
-            $mo = new Object_Data_ObjectMetadata($field, array("meta1", "meta2"), $o);
+            $mo = new Object_Data_ObjectMetadata($field, ["meta1", "meta2"], $o);
             $mo->setMeta1("value1" . $seed);
             $mo->setMeta2("value2" . $seed);
             $metaobjects[] = $mo;
@@ -722,6 +779,7 @@ class Test_Data
 
         if ($valueForField != $expected) {
             print("   expected " . $expected . " but was " . $valueForField);
+
             return false;
         }
 
@@ -729,8 +787,10 @@ class Test_Data
         $meta = $rel1->getMeta1();
         if ($meta != ("value1".$seed)) {
             print("sample value does not match");
+
             return false;
         }
+
         return true;
     }
 
@@ -748,10 +808,10 @@ class Test_Data
             $config->setName("unittest_key2");
             $config->setType("select");
 
-            $options = array(
-                array("key" => "option1", "value" => "1"),
-                array("key" => "option2", "value" => "2")
-            );
+            $options = [
+                ["key" => "option1", "value" => "1"],
+                ["key" => "option2", "value" => "2"]
+            ];
             $config->setPossibleValues(json_encode($options));
 
             $config->save();
@@ -763,19 +823,20 @@ class Test_Data
         $keyConfig1 = Object_KeyValue_KeyConfig::getByName("unittest_key1");
         $keyConfig2 = Object_KeyValue_KeyConfig::getByName("unittest_key2");
 
-        $pair = array();
+        $pair = [];
         $pair["key"] = $keyConfig1->getId();
         $pair["value"] = "text1_" . $seed;
         $pair["metadata"] = "meta1_" . $seed;
         $pairs[] = $pair;
 
-        $pair = array();
+        $pair = [];
         $pair["key"] = $keyConfig2->getId();
         $pair["value"] = 1 + ($seed % 2);
         $pair["metadata"] = "metda" . (1 + ($seed % 2));
 
 
         $pairs[] = $pair;
+
         return $pairs;
     }
 
@@ -802,6 +863,7 @@ class Test_Data
 
         if (count($expected) != count($properties)) {
             print("    number of properties do not match\n");
+
             return false;
         }
 
@@ -810,9 +872,11 @@ class Test_Data
             $p2 = $properties[i];
             if ($p1["key"] != $p2["key"] || $p1["value"] != $p2["value"] || $p1["metadata"] != $p2["metadata"]) {
                 print("    property does not match\n");
+
                 return false;
             }
         }
+
         return true;
     }
 
@@ -838,8 +902,10 @@ class Test_Data
 
         if ($value != $expected) {
             print("   expected " . $expected . " but was " . $value);
+
             return false;
         }
+
         return true;
     }
 
@@ -852,7 +918,7 @@ class Test_Data
         $fc->setFieldinput1("field1" . $seed);
         $fc->setFieldinput2("field2" . $seed);
 
-        $items = new Object_Fieldcollection(array($fc), $field);
+        $items = new Object_Fieldcollection([$fc], $field);
         $object->$setter($items);
     }
 
@@ -863,6 +929,7 @@ class Test_Data
 
         if ($value->getCount() != 1) {
             print("    expected 1 item");
+
             return false;
         }
 
@@ -870,11 +937,13 @@ class Test_Data
         $value = $value[0];
         if ($value->getFieldinput1() != "field1" . $seed) {
             print("field1" . $seed . " but was " . $value->getFieldInput1());
+
             return false;
         }
 
         if ($value->getFieldInput2() != "field2" . $seed) {
             print("field2" . $seed . " but was " . $value->getFieldInput2());
+
             return false;
         }
 

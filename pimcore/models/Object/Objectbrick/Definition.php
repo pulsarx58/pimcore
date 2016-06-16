@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object\Objectbrick
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Objectbrick;
@@ -25,12 +27,12 @@ class Definition extends Model\Object\Fieldcollection\Definition
     /**
      * @var array()
      */
-    public $classDefinitions = array();
+    public $classDefinitions = [];
 
     /**
      * @var array
      */
-    private $oldClassDefinitions = array();
+    private $oldClassDefinitions = [];
 
     /**
      * @param $classDefinitions
@@ -39,6 +41,7 @@ class Definition extends Model\Object\Fieldcollection\Definition
     public function setClassDefinitions($classDefinitions)
     {
         $this->classDefinitions = $classDefinitions;
+
         return $this;
     }
 
@@ -102,8 +105,8 @@ class Definition extends Model\Object\Fieldcollection\Definition
             File::mkdir($objectBrickFolder);
         }
 
-        $newClassDefinitions = array();
-        $classDefinitionsToDelete = array();
+        $newClassDefinitions = [];
+        $classDefinitionsToDelete = [];
 
         foreach ($this->classDefinitions as $cl) {
             if (!$cl['deleted']) {
@@ -198,7 +201,7 @@ class Definition extends Model\Object\Fieldcollection\Definition
      */
     private function cleanupOldFiles($serializedFilename)
     {
-        $this->oldClassDefinitions = array();
+        $this->oldClassDefinitions = [];
         if (file_exists($serializedFilename)) {
             $prevSerialized = file_get_contents($serializedFilename);
         }
@@ -236,7 +239,7 @@ class Definition extends Model\Object\Fieldcollection\Definition
      */
     private function updateDatabase()
     {
-        $processedClasses = array();
+        $processedClasses = [];
         if (!empty($this->classDefinitions)) {
             foreach ($this->classDefinitions as $cl) {
                 unset($this->oldClassDefinitions[$cl['classname']]);
@@ -277,7 +280,7 @@ class Definition extends Model\Object\Fieldcollection\Definition
      */
     private function createContainerClasses()
     {
-        $containerDefinition = array();
+        $containerDefinition = [];
 
         if (!empty($this->classDefinitions)) {
             foreach ($this->classDefinitions as $cl) {
@@ -424,7 +427,7 @@ class Definition extends Model\Object\Fieldcollection\Definition
         @unlink($fieldClass);
 
 
-        $processedClasses = array();
+        $processedClasses = [];
         if (!empty($this->classDefinitions)) {
             foreach ($this->classDefinitions as $cl) {
                 unset($this->oldClassDefinitions[$cl['classname']]);

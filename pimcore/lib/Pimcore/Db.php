@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore;
@@ -143,6 +145,7 @@ class Db
         try {
             $db = self::getConnection();
             self::set($db);
+
             return $db;
         } catch (\Exception $e) {
             $errorMessage = "Unable to establish the database connection with the given configuration in /website/var/config/system.php, for details see the debug.log. \nReason: " . $e->getMessage();
@@ -220,7 +223,7 @@ class Db
                 self::logDefinitionModification($args[0]);
             }
         } else {
-            $tablesToCheck = array("classes","users_permission_definitions");
+            $tablesToCheck = ["classes", "users_permission_definitions"];
 
             if (in_array($args[0], $tablesToCheck)) {
                 self::$_logProfilerWasEnabled = $connection->getProfiler()->getEnabled();
@@ -261,7 +264,7 @@ class Db
      */
     public static function isWriteQuery($method, $args)
     {
-        $methodsToCheck = array("update","delete","insert","lastInsertId");
+        $methodsToCheck = ["update", "delete", "insert", "lastInsertId"];
         if (in_array($method, $methodsToCheck)) {
             return true;
         }
@@ -313,11 +316,11 @@ class Db
     {
         if ($logError) {
             \Logger::error($exception);
-            \Logger::error(array(
+            \Logger::error([
                 "message" => $exception->getMessage(),
                 "method" => $method,
                 "arguments" => $args
-            ));
+            ]);
         }
 
         $lowerErrorMessage = strtolower($exception->getMessage());
@@ -334,6 +337,7 @@ class Db
                 \Logger::warning("Reconnecting to the MySQL-Server was successful, sending the command again to the server.");
                 $r = self::get()->callResourceMethod($method, $args);
                 \Logger::warning("Resending the command was successful");
+
                 return $r;
             } catch (\Exception $e) {
                 \Logger::error($e);

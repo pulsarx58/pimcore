@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Version
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model;
@@ -120,6 +122,7 @@ class Version extends AbstractModel
      */
     public function save()
     {
+        \Pimcore::getEventManager()->trigger("version.preSave", $this);
 
         // check if versioning is disabled for this process
         if (self::$disabled) {
@@ -170,12 +173,13 @@ class Version extends AbstractModel
             // assets are kina special because they can contain massive amount of binary data which isn't serialized, we append it to the data file
             if ($data instanceof Asset && $data->getType() != "folder") {
                 // append binary data to version file
-                $handle = fopen($this->getBinaryFilePath(), "w+");
+                $handle = fopen($this->getBinaryFilePath(), "w", false, File::getContext());
                 $src = $data->getStream();
                 stream_copy_to_stream($src, $handle);
                 fclose($handle);
             }
         }
+        \Pimcore::getEventManager()->trigger("version.postSave", $this);
     }
 
     /**
@@ -183,6 +187,8 @@ class Version extends AbstractModel
      */
     public function delete()
     {
+        \Pimcore::getEventManager()->trigger("version.preDelete", $this);
+
         foreach ([$this->getFilePath(), $this->getLegacyFilePath()] as $path) {
             if (is_file($path)) {
                 @unlink($path);
@@ -199,6 +205,7 @@ class Version extends AbstractModel
         }
 
         $this->getDao()->delete();
+        \Pimcore::getEventManager()->trigger("version.postDelete", $this);
     }
 
     /**
@@ -234,6 +241,7 @@ class Version extends AbstractModel
         if (!$data) {
             \Logger::err("Version: cannot read version data from file system.");
             $this->delete();
+
             return;
         }
 
@@ -242,7 +250,7 @@ class Version extends AbstractModel
         }
 
         if ($data instanceof Asset && file_exists($this->getBinaryFilePath())) {
-            $binaryHandle = fopen($this->getBinaryFilePath(), "r+");
+            $binaryHandle = fopen($this->getBinaryFilePath(), "r+", false, File::getContext());
             $data->setStream($binaryHandle);
         } elseif ($data instanceof Asset && $data->data) {
             // this is for backward compatibility
@@ -254,7 +262,7 @@ class Version extends AbstractModel
 
         return $data;
     }
-    
+
 
     /**
      * Returns the path on the file system
@@ -312,8 +320,8 @@ class Version extends AbstractModel
             return;
         }
 
-        $days = array();
-        $steps = array();
+        $days = [];
+        $steps = [];
 
         if (intval($conf->days) > 0) {
             $days = $this->getDao()->getOutdatedVersionsDays($conf->days);
@@ -375,6 +383,7 @@ class Version extends AbstractModel
     public function setCid($cid)
     {
         $this->cid = (int) $cid;
+
         return $this;
     }
 
@@ -385,6 +394,7 @@ class Version extends AbstractModel
     public function setDate($date)
     {
         $this->date = (int) $date;
+
         return $this;
     }
 
@@ -395,6 +405,7 @@ class Version extends AbstractModel
     public function setId($id)
     {
         $this->id = (int) $id;
+
         return $this;
     }
 
@@ -405,6 +416,7 @@ class Version extends AbstractModel
     public function setNote($note)
     {
         $this->note = (string) $note;
+
         return $this;
     }
 
@@ -420,6 +432,7 @@ class Version extends AbstractModel
                 $this->setUser($user);
             }
         }
+
         return $this;
     }
 
@@ -431,6 +444,7 @@ class Version extends AbstractModel
         if (!$this->data) {
             $this->loadData();
         }
+
         return $this->data;
     }
 
@@ -441,6 +455,7 @@ class Version extends AbstractModel
     public function setData($data)
     {
         $this->data = $data;
+
         return $this;
     }
 
@@ -459,6 +474,7 @@ class Version extends AbstractModel
     public function setSerialized($serialized)
     {
         $this->serialized = (bool) $serialized;
+
         return $this;
     }
 
@@ -477,6 +493,7 @@ class Version extends AbstractModel
     public function setCtype($ctype)
     {
         $this->ctype = (string) $ctype;
+
         return $this;
     }
 
@@ -495,6 +512,7 @@ class Version extends AbstractModel
     public function setUser($user)
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -505,7 +523,7 @@ class Version extends AbstractModel
     {
         return $this->public;
     }
-    
+
     /**
      * @return bool
      */
@@ -521,6 +539,7 @@ class Version extends AbstractModel
     public function setPublic($public)
     {
         $this->public = (bool) $public;
+
         return $this;
     }
 
@@ -575,6 +594,7 @@ class Version extends AbstractModel
             // versions need to be compressed, that's not perfect but a compromise we can (hopefully) live with.
             if ($alreadyCompressedCounter > 100) {
                 \Logger::debug("Over " . $alreadyCompressedCounter . " versions were already compressed before, it doesn't seem that there are still uncompressed versions in the past, skip...");
+
                 return;
             }
         }
@@ -589,7 +609,7 @@ class Version extends AbstractModel
         $conf["asset"] = Config::getSystemConfig()->assets->versions;
         $conf["object"] = Config::getSystemConfig()->objects->versions;
 
-        $elementTypes = array();
+        $elementTypes = [];
 
         foreach ($conf as $elementType => $tConf) {
             if (intval($tConf->days) > 0) {
@@ -601,14 +621,14 @@ class Version extends AbstractModel
             }
 
             if ($versioningType) {
-                $elementTypes[] = array(
+                $elementTypes[] = [
                     "elementType" => $elementType,
                     $versioningType => $value
-                );
+                ];
             }
         }
 
-        $ignoredIds = array();
+        $ignoredIds = [];
 
         while (true) {
             $versions = $this->getDao()->maintenanceGetOutdatedVersions($elementTypes, $ignoredIds);

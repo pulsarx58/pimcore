@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Tool
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Tool;
@@ -23,7 +25,7 @@ class Setup extends Model\AbstractModel
     /**
      * @param array $config
      */
-    public function config($config = array())
+    public function config($config = [])
     {
         $settings = null;
 
@@ -47,8 +49,8 @@ class Setup extends Model\AbstractModel
         // set default configuration if no template is present
         if (!$settings) {
             // write configuration file
-            $settings = array(
-                "general" => array(
+            $settings = [
+                "general" => [
                     "timezone" => "Europe/Berlin",
                     "language" => "en",
                     "validLanguages" => "en",
@@ -56,54 +58,54 @@ class Setup extends Model\AbstractModel
                     "debugloglevel" => "debug",
                     "custom_php_logfile" => "1",
                     "extjs6" => "1",
-                ),
-                "database" => array(
+                ],
+                "database" => [
                     "adapter" => "Mysqli",
-                    "params" => array(
+                    "params" => [
                         "username" => "root",
                         "password" => "",
                         "dbname" => "",
-                    )
-                ),
-                "documents" => array(
-                    "versions" => array(
+                    ]
+                ],
+                "documents" => [
+                    "versions" => [
                         "steps" => "10"
-                    ),
+                    ],
                     "default_controller" => "default",
                     "default_action" => "default",
-                    "error_pages" => array(
+                    "error_pages" => [
                         "default" => "/"
-                    ),
+                    ],
                     "createredirectwhenmoved" => "",
                     "allowtrailingslash" => "no",
                     "allowcapitals" => "no",
                     "generatepreview" => "1"
-                ),
-                "objects" => array(
-                    "versions" => array(
+                ],
+                "objects" => [
+                    "versions" => [
                         "steps" => "10"
-                    )
-                ),
-                "assets" => array(
-                    "versions" => array(
+                    ]
+                ],
+                "assets" => [
+                    "versions" => [
                         "steps" => "10"
-                    )
-                ),
-                "services" => array(),
-                "cache" => array(
+                    ]
+                ],
+                "services" => [],
+                "cache" => [
                     "excludeCookie" => ""
-                ),
-                "httpclient" => array(
+                ],
+                "httpclient" => [
                     "adapter" => "Zend_Http_Client_Adapter_Socket"
-                )
-            );
+                ]
+            ];
         }
 
         $settings = array_replace_recursive($settings, $config);
 
         // create initial /website/var folder structure
         // @TODO: should use values out of startup.php (Constants)
-        $varFolders = array("areas","assets","backup","cache","classes","config","email","log","plugins","recyclebin","search","system","tmp","versions","webdav");
+        $varFolders = ["areas", "assets", "backup", "cache", "classes", "config", "email", "log", "plugins", "recyclebin", "search", "system", "tmp", "versions", "webdav"];
         foreach ($varFolders as $folder) {
             \Pimcore\File::mkdir(PIMCORE_WEBSITE_VAR . "/" . $folder);
         }
@@ -115,7 +117,7 @@ class Setup extends Model\AbstractModel
     /**
      *
      */
-    public function contents($config = array())
+    public function contents($config = [])
     {
         $this->getDao()->contents();
         $this->createOrUpdateUser($config);
@@ -124,12 +126,12 @@ class Setup extends Model\AbstractModel
     /**
      * @param array $config
      */
-    public function createOrUpdateUser($config = array())
+    public function createOrUpdateUser($config = [])
     {
-        $defaultConfig = array(
+        $defaultConfig = [
             "username" => "admin",
             "password" => md5(microtime())
-        );
+        ];
 
         $settings = array_replace_recursive($defaultConfig, $config);
 
@@ -137,12 +139,12 @@ class Setup extends Model\AbstractModel
             $user->delete();
         }
 
-        $user = Model\User::create(array(
+        $user = Model\User::create([
             "parentId" => 0,
             "username" => $settings["username"],
             "password" => \Pimcore\Tool\Authentication::getPasswordHash($settings["username"], $settings["password"]),
             "active" => true
-        ));
+        ]);
         $user->setAdmin(true);
         $user->save();
     }

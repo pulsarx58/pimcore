@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 
@@ -472,19 +474,22 @@ Ext.onReady(function () {
                     var cv;
                     var cvTree;
                     for (var cvs = 0; cvs < pimcore.settings.customviews.length; cvs++) {
-                        cv = pimcore.settings.customviews[cvs];
 
-                        cvTree = new pimcore.object.customviews.tree({
-                            allowedClasses:cv.allowedClasses,
-                            rootId:cv.rootId,
-                            rootVisible:cv.showroot,
-                            treeId:"pimcore_panel_tree_customviews_" + cv.id,
-                            treeIconCls:"pimcore_object_customviews_icon_" + cv.id,
-                            treeTitle:ts(cv.name),
-                            parentPanel:Ext.getCmp("pimcore_panel_tree_left"),
-                            index:(cvs + 10),
-                            loaderBaseParams:{}
-                        });
+                        cv = pimcore.settings.customviews[cvs];
+                        if (!cv.treetype || cv.treetype == "object")
+                        {
+                            cvTree = new pimcore.object.customviews.tree({
+                                allowedClasses: cv.allowedClasses,
+                                rootId: cv.rootId,
+                                rootVisible: cv.showroot,
+                                treeId: "pimcore_panel_tree_customviews_" + cv.id,
+                                treeIconCls: "pimcore_object_customviews_icon_" + cv.id,
+                                treeTitle: ts(cv.name),
+                                parentPanel: Ext.getCmp("pimcore_panel_tree_left"),
+                                index: (cvs + 10),
+                                loaderBaseParams: {}
+                            });
+                        }
                     }
                 }
             }

@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  *
  */
 
@@ -25,7 +27,7 @@ class Document extends Element\AbstractElement
      * possible types of a document
      * @var array
      */
-    public static $types = array("folder", "page", "snippet", "link", "hardlink", "email");  //ck added "email"
+    public static $types = ["folder", "page", "snippet", "link", "hardlink", "email", "printpage", "printcontainer"];
 
     /**
      * @param $type
@@ -278,6 +280,7 @@ class Document extends Element\AbstractElement
                 }
             } catch (\Exception $e) {
                 \Logger::warning($e->getMessage());
+
                 return null;
             }
         }
@@ -318,7 +321,7 @@ class Document extends Element\AbstractElement
      * @param array $data
      * @return Document
      */
-    public static function create($parentId, $data = array(), $save = true)
+    public static function create($parentId, $data = [], $save = true)
     {
         $document = new static();
         $document->setParentId($parentId);
@@ -340,7 +343,7 @@ class Document extends Element\AbstractElement
      * @return mixed
      * @throws \Exception
      */
-    public static function getList($config = array())
+    public static function getList($config = [])
     {
         if (is_array($config)) {
             $listClass = "\\Pimcore\\Model\\Document\\Listing";
@@ -363,7 +366,7 @@ class Document extends Element\AbstractElement
      * @param array $config
      * @return total count
      */
-    public static function getTotalCount($config = array())
+    public static function getTotalCount($config = [])
     {
         if (is_array($config)) {
             $listClass = "\\Pimcore\\Model\\Document\\Listing";
@@ -427,8 +430,8 @@ class Document extends Element\AbstractElement
                 $this->update();
 
                 // if the old path is different from the new path, update all children
-                $updatedChildren = array();
-                if ($oldPath && $oldPath != $this->getFullPath()) {
+                $updatedChildren = [];
+                if ($oldPath && $oldPath != $this->getRealFullPath()) {
                     $this->getDao()->updateWorkspaces();
                     $updatedChildren = $this->getDao()->updateChildsPaths($oldPath);
                 }
@@ -458,7 +461,7 @@ class Document extends Element\AbstractElement
             }
         }
 
-        $additionalTags = array();
+        $additionalTags = [];
         if (isset($updatedChildren) && is_array($updatedChildren)) {
             foreach ($updatedChildren as $documentId) {
                 $tag = "document_" . $documentId;
@@ -530,7 +533,7 @@ class Document extends Element\AbstractElement
      */
     protected function update()
     {
-        $disallowedKeysInFirstLevel = array("install","admin","webservice","plugin");
+        $disallowedKeysInFirstLevel = ["install", "admin", "webservice", "plugin"];
         if ($this->getParentId() == 1 && in_array($this->getKey(), $disallowedKeysInFirstLevel)) {
             throw new \Exception("Key: " . $this->getKey() . " is not allowed in first level (root-level)");
         }
@@ -587,10 +590,10 @@ class Document extends Element\AbstractElement
     /**
      * @param array $additionalTags
      */
-    public function clearDependentCache($additionalTags = array())
+    public function clearDependentCache($additionalTags = [])
     {
         try {
-            $tags = array("document_" . $this->getId(), "document_properties", "output");
+            $tags = ["document_" . $this->getId(), "document_properties", "output"];
             $tags = array_merge($tags, $additionalTags);
 
             \Pimcore\Cache::clearTags($tags);
@@ -609,6 +612,7 @@ class Document extends Element\AbstractElement
         if (!$this->dependencies) {
             $this->dependencies = Dependency::getBySourceId($this->getId(), "document");
         }
+
         return $this->dependencies;
     }
 
@@ -627,6 +631,7 @@ class Document extends Element\AbstractElement
         } else {
             $this->hasChilds=false;
         }
+
         return $this;
     }
 
@@ -645,6 +650,7 @@ class Document extends Element\AbstractElement
             $list->setOrder("asc");
             $this->childs = $list->load();
         }
+
         return $this->childs;
     }
 
@@ -663,6 +669,7 @@ class Document extends Element\AbstractElement
                 return $this->hasChilds;
             }
         }
+
         return $this->getDao()->hasChilds();
     }
 
@@ -684,6 +691,7 @@ class Document extends Element\AbstractElement
             $list->setOrder("asc");
             $this->siblings = $list->load();
         }
+
         return $this->siblings;
     }
 
@@ -701,6 +709,7 @@ class Document extends Element\AbstractElement
                 return $this->hasSiblings;
             }
         }
+
         return $this->getDao()->hasSiblings();
     }
 
@@ -713,6 +722,7 @@ class Document extends Element\AbstractElement
         if (empty($this->locked)) {
             return null;
         }
+
         return $this->locked;
     }
 
@@ -723,6 +733,7 @@ class Document extends Element\AbstractElement
     public function setLocked($locked)
     {
         $this->locked = $locked;
+
         return $this;
     }
 
@@ -785,7 +796,9 @@ class Document extends Element\AbstractElement
                 $site = Site::getCurrentSite();
                 if ($site instanceof Site) {
                     if ($site->getRootDocument()->getId() == $this->getId()) {
-                        return "/";
+                        $link = $this->prepareFrontendPath("/");
+
+                        return $link;
                     }
                 }
             }
@@ -813,8 +826,10 @@ class Document extends Element\AbstractElement
                         $siteRootPath = preg_quote($siteRootPath);
                         $hardlinkPath = preg_replace("@^" . $siteRootPath . "@", "", $hardlink->getRealFullPath());
 
-                        return preg_replace("@^" . preg_quote($parent->getRealFullPath()) . "@", $hardlinkPath, $this->getRealFullPath());
-                        break;
+                        $link = preg_replace("@^" . preg_quote($parent->getRealFullPath()) . "@", $hardlinkPath, $this->getRealFullPath());
+                        $link = $this->prepareFrontendPath($link);
+
+                        return $link;
                     }
                 }
                 $parent = $parent->getParent();
@@ -827,18 +842,47 @@ class Document extends Element\AbstractElement
                 if ($site->getMainDomain()) {
                     // check if current document is the root of the different site, if so, preg_replace below doesn't work, so just return /
                     if ($site->getRootDocument()->getId() == $this->getId()) {
-                        return $scheme . $site->getMainDomain() . "/";
+                        $link = $scheme . $site->getMainDomain() . "/";
+                        $link = $this->prepareFrontendPath($link);
+
+                        return $link;
                     }
-                    return $scheme . $site->getMainDomain() . preg_replace("@^" . $site->getRootPath() . "/@", "/", $this->getRealFullPath());
+                    $link = $scheme . $site->getMainDomain() . preg_replace("@^" . $site->getRootPath() . "/@", "/", $this->getRealFullPath());
+                    $link = $this->prepareFrontendPath($link);
+
+                    return $link;
                 }
             }
 
             if ($config->general->domain) {
-                return $scheme . $config->general->domain . $this->getRealFullPath();
+                $link = $scheme . $config->general->domain . $this->getRealFullPath();
+                $link = $this->prepareFrontendPath($link);
+
+                return $link;
             }
         }
 
         $path = $this->getPath() . $this->getKey();
+        $path = $this->prepareFrontendPath($path);
+
+        return $path;
+    }
+
+    /**
+     * @param $path
+     * @return mixed
+     */
+    protected function prepareFrontendPath($path)
+    {
+        if (!\Pimcore::inAdmin()) {
+            $results = \Pimcore::getEventManager()->trigger("frontend.path.document", $this, [
+                "frontendPath" => $path
+            ]);
+            if ($results->count()) {
+                $path = $results->last();
+            }
+        }
+
         return $path;
     }
 
@@ -896,7 +940,9 @@ class Document extends Element\AbstractElement
                     if ($site->getRootDocument() instanceof Document\Page && $site->getRootDocument() !== $this) {
                         $rootPath = $site->getRootPath();
                         $rootPath = preg_quote($rootPath);
-                        return preg_replace("@^" . $rootPath . "@", "", $this->path);
+                        $link = preg_replace("@^" . $rootPath . "@", "", $this->path);
+
+                        return $link;
                     }
                 }
             }
@@ -921,6 +967,7 @@ class Document extends Element\AbstractElement
     public function getRealFullPath()
     {
         $path = $this->getRealPath() . $this->getKey();
+
         return $path;
     }
 
@@ -931,6 +978,7 @@ class Document extends Element\AbstractElement
     public function setCreationDate($creationDate)
     {
         $this->creationDate = (int) $creationDate;
+
         return $this;
     }
 
@@ -941,6 +989,7 @@ class Document extends Element\AbstractElement
     public function setId($id)
     {
         $this->id = (int) $id;
+
         return $this;
     }
 
@@ -951,6 +1000,7 @@ class Document extends Element\AbstractElement
     public function setKey($key)
     {
         $this->key = $key;
+
         return $this;
     }
 
@@ -962,6 +1012,7 @@ class Document extends Element\AbstractElement
     public function setModificationDate($modificationDate)
     {
         $this->modificationDate = (int) $modificationDate;
+
         return $this;
     }
 
@@ -974,6 +1025,7 @@ class Document extends Element\AbstractElement
     {
         $this->parentId = (int) $parentId;
         $this->parent = null;
+
         return $this;
     }
 
@@ -984,6 +1036,7 @@ class Document extends Element\AbstractElement
     public function setPath($path)
     {
         $this->path = $path;
+
         return $this;
     }
 
@@ -1002,6 +1055,7 @@ class Document extends Element\AbstractElement
     public function setIndex($index)
     {
         $this->index = (int) $index;
+
         return $this;
     }
 
@@ -1020,6 +1074,7 @@ class Document extends Element\AbstractElement
     public function setType($type)
     {
         $this->type = $type;
+
         return $this;
     }
 
@@ -1046,6 +1101,7 @@ class Document extends Element\AbstractElement
     public function setUserModification($userModification)
     {
         $this->userModification = (int) $userModification;
+
         return $this;
     }
 
@@ -1056,6 +1112,7 @@ class Document extends Element\AbstractElement
     public function setUserOwner($userOwner)
     {
         $this->userOwner = (int) $userOwner;
+
         return $this;
     }
 
@@ -1082,6 +1139,7 @@ class Document extends Element\AbstractElement
     public function setPublished($published)
     {
         $this->published = (bool) $published;
+
         return $this;
     }
 
@@ -1099,12 +1157,13 @@ class Document extends Element\AbstractElement
             if (!is_array($properties)) {
                 $properties = $this->getDao()->getProperties();
                 $elementCacheTag = $this->getCacheTag();
-                $cacheTags = array("document_properties" => "document_properties", $elementCacheTag => $elementCacheTag);
+                $cacheTags = ["document_properties" => "document_properties", $elementCacheTag => $elementCacheTag];
                 \Pimcore\Cache::save($properties, $cacheKey, $cacheTags);
             }
 
             $this->setProperties($properties);
         }
+
         return $this->properties;
     }
 
@@ -1115,6 +1174,7 @@ class Document extends Element\AbstractElement
     public function setProperties($properties)
     {
         $this->properties = $properties;
+
         return $this;
     }
 
@@ -1140,6 +1200,7 @@ class Document extends Element\AbstractElement
         $property->setInheritable($inheritable);
 
         $this->properties[$name] = $property;
+
         return $this;
     }
 
@@ -1165,6 +1226,7 @@ class Document extends Element\AbstractElement
         if ($parent instanceof Document) {
             $this->parentId = $parent->getId();
         }
+
         return $this;
     }
 
@@ -1173,17 +1235,17 @@ class Document extends Element\AbstractElement
      */
     public function __sleep()
     {
-        $finalVars = array();
+        $finalVars = [];
         $parentVars = parent::__sleep();
 
         if (isset($this->_fulldump)) {
             // this is if we want to make a full dump of the object (eg. for a new version), including childs for recyclebin
-            $blockedVars = array("dependencies", "userPermissions", "hasChilds", "versions", "scheduledTasks", "parent");
+            $blockedVars = ["dependencies", "userPermissions", "hasChilds", "versions", "scheduledTasks", "parent"];
             $finalVars[] = "_fulldump";
             $this->removeInheritedProperties();
         } else {
             // this is if we want to cache the object
-            $blockedVars = array("dependencies", "userPermissions", "childs", "hasChilds", "versions", "scheduledTasks", "properties", "parent");
+            $blockedVars = ["dependencies", "userPermissions", "childs", "hasChilds", "versions", "scheduledTasks", "properties", "parent"];
         }
 
 
@@ -1206,7 +1268,7 @@ class Document extends Element\AbstractElement
             $originalElement = Document::getById($this->getId());
             if ($originalElement) {
                 $this->setKey($originalElement->getKey());
-                $this->setPath($originalElement->getPath());
+                $this->setPath($originalElement->getRealPath());
             }
         }
 
@@ -1224,7 +1286,7 @@ class Document extends Element\AbstractElement
      */
     public function removeInheritedProperties()
     {
-        $myProperties = array();
+        $myProperties = [];
         if ($this->properties !== null) {
             foreach ($this->properties as $name => $property) {
                 if (!$property->getInherited()) {

@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Property
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model;
@@ -70,7 +72,7 @@ class Property extends AbstractModel
     {
         // IMPORTANT: if you use this method be sure that the type of the property is already set
 
-        if (in_array($this->getType(), array("document", "asset", "object"))) {
+        if (in_array($this->getType(), ["document", "asset", "object"])) {
             $el = Element\Service::getElementByPath($this->getType(), $data);
             $this->data = null;
             if ($el) {
@@ -85,6 +87,7 @@ class Property extends AbstractModel
             // plain text
             $this->data = $data;
         }
+
         return $this;
     }
 
@@ -109,6 +112,7 @@ class Property extends AbstractModel
             // plain text
             $this->data = $data;
         }
+
         return $this;
     }
 
@@ -135,7 +139,7 @@ class Property extends AbstractModel
     {
 
         // lazy-load data of type asset, document, object
-        if (in_array($this->getType(), array("document", "asset", "object")) && !$this->data instanceof ElementInterface && is_numeric($this->data)) {
+        if (in_array($this->getType(), ["document", "asset", "object"]) && !$this->data instanceof ElementInterface && is_numeric($this->data)) {
             return Element\Service::getElementById($this->getType(), $this->data);
         }
 
@@ -165,6 +169,7 @@ class Property extends AbstractModel
     public function setCid($cid)
     {
         $this->cid = (int) $cid;
+
         return $this;
     }
 
@@ -175,6 +180,7 @@ class Property extends AbstractModel
     public function setCtype($ctype)
     {
         $this->ctype = $ctype;
+
         return $this;
     }
 
@@ -190,6 +196,7 @@ class Property extends AbstractModel
         }
 
         $this->data = $data;
+
         return $this;
     }
 
@@ -200,6 +207,7 @@ class Property extends AbstractModel
     public function setName($name)
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -210,6 +218,7 @@ class Property extends AbstractModel
     public function setType($type)
     {
         $this->type = $type;
+
         return $this;
     }
 
@@ -246,6 +255,7 @@ class Property extends AbstractModel
     public function setCpath($cpath)
     {
         $this->cpath = $cpath;
+
         return $this;
     }
 
@@ -256,6 +266,7 @@ class Property extends AbstractModel
     public function setInherited($inherited)
     {
         $this->inherited = (bool) $inherited;
+
         return $this;
     }
 
@@ -274,6 +285,7 @@ class Property extends AbstractModel
     public function setInheritable($inheritable)
     {
         $this->inheritable = (bool) $inheritable;
+
         return $this;
     }
 
@@ -282,15 +294,15 @@ class Property extends AbstractModel
      */
     public function resolveDependencies()
     {
-        $dependencies = array();
+        $dependencies = [];
 
         if ($this->getData() instanceof ElementInterface) {
             $elementType = Element\Service::getElementType($this->getData());
             $key = $elementType . "_" . $this->getData()->getId();
-            $dependencies[$key] = array(
+            $dependencies[$key] = [
                 "id" => $this->getData()->getId(),
                 "type" => $elementType
-            );
+            ];
         }
 
         return $dependencies;

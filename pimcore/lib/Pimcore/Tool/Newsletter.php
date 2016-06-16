@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Tool;
@@ -32,14 +34,14 @@ class Newsletter
      */
     public static function sendMail($newsletter, $object, $emailAddress = null, $hostUrl = null)
     {
-        $params = array(
+        $params = [
             "gender" => $object->getGender(),
             'firstname' => $object->getFirstname(),
             'lastname' => $object->getLastname(),
             "email" => $object->getEmail(),
             'token' => $object->getProperty("token"),
             "object" => $object
-        );
+        ];
 
         $mail = new Mail();
         $mail->setIgnoreDebugMode(true);
@@ -181,18 +183,18 @@ class Newsletter
         }
 
         // generate token
-        $token = base64_encode(\Zend_Json::encode(array(
+        $token = base64_encode(\Zend_Json::encode([
             "salt" => md5(microtime()),
             "email" => $object->getEmail(),
             "id" => $object->getId()
-        )));
+        ]));
         $token = str_replace("=", "~", $token); // base64 can contain = which isn't safe in URL's
         $object->setProperty("token", "text", $token);
 
         if (!$onlyCreateVersion) {
             $object->save();
         } else {
-            $object->saveVersion();
+            $object->saveVersion(true, true);
         }
 
         $this->addNoteOnObject($object, "subscribe");
@@ -206,16 +208,16 @@ class Newsletter
      * @param array $params
      * @throws \Exception
      */
-    public function sendConfirmationMail($object, $mailDocument, $params = array())
+    public function sendConfirmationMail($object, $mailDocument, $params = [])
     {
-        $defaultParameters = array(
+        $defaultParameters = [
             "gender" => $object->getGender(),
             'firstname' => $object->getFirstname(),
             'lastname' => $object->getLastname(),
             "email" => $object->getEmail(),
             'token' => $object->getProperty("token"),
             "object" => $object
-        );
+        ];
 
         $params = array_merge($defaultParameters, $params);
 
@@ -250,6 +252,7 @@ class Newsletter
                 }
             }
         }
+
         return false;
     }
 
@@ -303,6 +306,7 @@ class Newsletter
             foreach ($objects as $object) {
                 $this->unsubscribe($object);
             }
+
             return true;
         }
 
@@ -324,6 +328,7 @@ class Newsletter
 
             return true;
         }
+
         return false;
     }
 
@@ -339,13 +344,31 @@ class Newsletter
         $note->setType("newsletter");
         $note->setTitle($title);
         $note->setUser(0);
-        $note->setData(array(
-            "ip" => array(
+        $note->setData([
+            "ip" => [
                 "type" => "text",
                 "data" => Tool::getClientIp()
-            )
-        ));
+            ]
+        ]);
         $note->save();
+    }
+
+    /**
+     * Checks if e-mail address already
+     * exists in the database.
+     *
+     * @param array $params
+     * @return bool
+     */
+    public function isEmailExists($params)
+    {
+        $className = $this->getClassName();
+        $existingObject = $className::getByEmail($params["email"], 1);
+        if ($existingObject) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Tool
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Tool\Setup;
@@ -55,13 +57,16 @@ class Dao extends Model\Dao\AbstractDao
     public function insertDump($file)
     {
         $sql = file_get_contents($file);
-        
+
+        //replace document root placeholder with current document root
+        $sql = str_replace("~~DOCUMENTROOT~~", PIMCORE_DOCUMENT_ROOT, $sql);
+
         // we have to use the raw connection here otherwise \Zend_Db uses prepared statements, which causes problems with inserts (: placeholders)
         // and mysqli causes troubles because it doesn't support multiple queries
         if ($this->db->getResource() instanceof \Zend_Db_Adapter_Mysqli) {
             $mysqli = $this->db->getConnection();
             $mysqli->multi_query($sql);
-            
+
             // loop through results, because ->multi_query() is asynchronous
             do {
                 if ($result = $mysqli->store_result()) {
@@ -71,11 +76,11 @@ class Dao extends Model\Dao\AbstractDao
         } elseif ($this->db->getResource() instanceof \Zend_Db_Adapter_Pdo_Mysql) {
             $this->db->getConnection()->exec($sql);
         }
-                
+
         \Pimcore\Db::reset();
 
         // set the id of the system user to 0
-        $this->db->update("users", array("id" => 0), $this->db->quoteInto("name = ?", "system"));
+        $this->db->update("users", ["id" => 0], $this->db->quoteInto("name = ?", "system"));
     }
 
     /**
@@ -83,7 +88,7 @@ class Dao extends Model\Dao\AbstractDao
      */
     public function contents()
     {
-        $this->db->insert("assets", array(
+        $this->db->insert("assets", [
             "id" => 1,
             "parentId" => 0,
             "type" => "folder",
@@ -93,8 +98,8 @@ class Dao extends Model\Dao\AbstractDao
             "modificationDate" => time(),
             "userOwner" => 1,
             "userModification" => 1
-        ));
-        $this->db->insert("documents", array(
+        ]);
+        $this->db->insert("documents", [
             "id" => 1,
             "parentId" => 0,
             "type" => "page",
@@ -106,17 +111,16 @@ class Dao extends Model\Dao\AbstractDao
             "modificationDate" => time(),
             "userOwner" => 1,
             "userModification" => 1
-        ));
-        $this->db->insert("documents_page", array(
+        ]);
+        $this->db->insert("documents_page", [
             "id" => 1,
             "controller" => "",
             "action" => "",
             "template" => "",
             "title" => "",
-            "description" => "",
-            "keywords" => ""
-        ));
-        $this->db->insert("objects", array(
+            "description" => ""
+        ]);
+        $this->db->insert("objects", [
             "o_id" => 1,
             "o_parentId" => 0,
             "o_type" => "folder",
@@ -128,55 +132,55 @@ class Dao extends Model\Dao\AbstractDao
             "o_modificationDate" => time(),
             "o_userOwner" => 1,
             "o_userModification" => 1
-        ));
+        ]);
 
 
-        $this->db->insert("users", array(
+        $this->db->insert("users", [
             "parentId" => 0,
             "name" => "system",
             "admin" => 1,
             "active" => 1
-        ));
-        $this->db->update("users", array("id" => 0), $this->db->quoteInto("name = ?", "system"));
+        ]);
+        $this->db->update("users", ["id" => 0], $this->db->quoteInto("name = ?", "system"));
 
 
-        $userPermissions = array(
-            array("key" => "application_logging"),
-            array("key" => "assets"),
-            array("key" => "classes"),
-            array("key" => "clear_cache"),
-            array("key" => "clear_temp_files"),
-            array("key" => "document_types"),
-            array("key" => "documents"),
-            array("key" => "objects"),
-            array("key" => "plugins"),
-            array("key" => "predefined_properties"),
-            array("key" => "routes"),
-            array("key" => "seemode"),
-            array("key" => "system_settings"),
-            array("key" => "thumbnails"),
-            array("key" => "translations"),
-            array("key" => "redirects"),
-            array("key" => "glossary" ),
-            array("key" => "reports"),
-            array("key" => "recyclebin"),
-            array("key" => "seo_document_editor"),
-            array("key" => "tags_config"),
-            array("key" => "tags_assignment"),
-            array("key" => "tags_search"),
-            array("key" => "robots.txt"),
-            array("key" => "http_errors"),
-            array("key" => "tag_snippet_management"),
-            array("key" => "qr_codes"),
-            array("key" => "targeting"),
-            array("key" => "notes_events"),
-            array("key" => "backup"),
-            array("key" => "emails"),
-            array("key" => "website_settings"),
-            array("key" => "newsletter"),
-            array("key" => "dashboards"),
-            array("key" => "users"),
-        );
+        $userPermissions = [
+            ["key" => "application_logging"],
+            ["key" => "assets"],
+            ["key" => "classes"],
+            ["key" => "clear_cache"],
+            ["key" => "clear_temp_files"],
+            ["key" => "document_types"],
+            ["key" => "documents"],
+            ["key" => "objects"],
+            ["key" => "plugins"],
+            ["key" => "predefined_properties"],
+            ["key" => "routes"],
+            ["key" => "seemode"],
+            ["key" => "system_settings"],
+            ["key" => "thumbnails"],
+            ["key" => "translations"],
+            ["key" => "redirects"],
+            ["key" => "glossary" ],
+            ["key" => "reports"],
+            ["key" => "recyclebin"],
+            ["key" => "seo_document_editor"],
+            ["key" => "tags_config"],
+            ["key" => "tags_assignment"],
+            ["key" => "tags_search"],
+            ["key" => "robots.txt"],
+            ["key" => "http_errors"],
+            ["key" => "tag_snippet_management"],
+            ["key" => "qr_codes"],
+            ["key" => "targeting"],
+            ["key" => "notes_events"],
+            ["key" => "backup"],
+            ["key" => "emails"],
+            ["key" => "website_settings"],
+            ["key" => "newsletter"],
+            ["key" => "dashboards"],
+            ["key" => "users"],
+        ];
         foreach ($userPermissions as $up) {
             $this->db->insert("users_permission_definitions", $up);
         }

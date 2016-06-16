@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document;
@@ -74,12 +76,12 @@ class Dao extends Model\Element\Dao
     public function create()
     {
         try {
-            $this->db->insert("documents", array(
+            $this->db->insert("documents", [
                 "key" => $this->model->getKey(),
                 "path" => $this->model->getRealPath(),
                 "parentId" => $this->model->getParentId(),
                 "index" => 0
-            ));
+            ]);
 
             $date = time();
             $this->model->setId($this->db->lastInsertId());
@@ -176,9 +178,9 @@ class Dao extends Model\Element\Dao
      */
     public function updateWorkspaces()
     {
-        $this->db->update("users_workspaces_document", array(
+        $this->db->update("users_workspaces_document", [
             "cpath" => $this->model->getRealFullPath()
-        ), "cid = " . $this->model->getId());
+        ], "cid = " . $this->model->getId());
     }
 
     /**
@@ -230,7 +232,7 @@ class Dao extends Model\Element\Dao
      */
     public function getProperties($onlyInherited = false, $onlyDirect = false)
     {
-        $properties = array();
+        $properties = [];
 
         if ($onlyDirect) {
             $propertiesRaw = $this->db->fetchAll("SELECT * FROM properties WHERE cid = ? AND ctype='document'", $this->model->getId());
@@ -315,6 +317,7 @@ class Dao extends Model\Element\Dao
     public function hasChilds()
     {
         $c = $this->db->fetchOne("SELECT id FROM documents WHERE parentId = ? LIMIT 1", $this->model->getId());
+
         return (bool)$c;
     }
 
@@ -336,6 +339,7 @@ class Dao extends Model\Element\Dao
             $query = "SELECT COUNT(*) AS count FROM documents WHERE parentId = ?";
         }
         $c = $this->db->fetchOne($query, $this->model->getId());
+
         return $c;
     }
 
@@ -347,6 +351,7 @@ class Dao extends Model\Element\Dao
     public function hasSiblings()
     {
         $c = $this->db->fetchOne("SELECT id FROM documents WHERE parentId = ? and id != ? LIMIT 1", [$this->model->getParentId(), $this->model->getId()]);
+
         return (bool)$c;
     }
 
@@ -360,7 +365,7 @@ class Dao extends Model\Element\Dao
         // check for an locked element below this element
         $belowLocks = $this->db->fetchOne("SELECT tree_locks.id FROM tree_locks
             INNER JOIN documents ON tree_locks.id = documents.id
-                WHERE documents.path LIKE ? AND tree_locks.type = 'document' AND tree_locks.locked IS NOT NULL AND tree_locks.locked != '' LIMIT 1", $this->model->getFullpath() . "/%");
+                WHERE documents.path LIKE ? AND tree_locks.type = 'document' AND tree_locks.locked IS NOT NULL AND tree_locks.locked != '' LIMIT 1", $this->model->getRealFullPath() . "/%");
 
         if ($belowLocks > 0) {
             return true;
@@ -385,11 +390,11 @@ class Dao extends Model\Element\Dao
         // tree_locks
         $this->db->delete("tree_locks", "id = " . $this->model->getId() . " AND type = 'document'");
         if ($this->model->getLocked()) {
-            $this->db->insert("tree_locks", array(
+            $this->db->insert("tree_locks", [
                 "id" => $this->model->getId(),
                 "type" => "document",
                 "locked" => $this->model->getLocked()
-            ));
+            ]);
         }
     }
 
@@ -398,8 +403,9 @@ class Dao extends Model\Element\Dao
      */
     public function unlockPropagate()
     {
-        $lockIds = $this->db->fetchCol("SELECT id from documents WHERE path LIKE " . $this->db->quote($this->model->getFullPath() . "/%") . " OR id = " . $this->model->getId());
+        $lockIds = $this->db->fetchCol("SELECT id from documents WHERE path LIKE " . $this->db->quote($this->model->getRealFullPath() . "/%") . " OR id = " . $this->model->getId());
         $this->db->delete("tree_locks", "type = 'document' AND id IN (" . implode(",", $lockIds) . ")");
+
         return $lockIds;
     }
 
@@ -411,7 +417,7 @@ class Dao extends Model\Element\Dao
     public function isAllowed($type, $user)
     {
         // collect properties via parent - ids
-        $parentIds = array(1);
+        $parentIds = [1];
 
         $obj = $this->model->getParent();
         if ($obj) {
@@ -435,7 +441,7 @@ class Dao extends Model\Element\Dao
             // exception for list permission
             if (empty($permissionsParent) && $type == "list") {
                 // check for childs with permissions
-                $path = $this->model->getFullPath() . "/";
+                $path = $this->model->getRealFullPath() . "/";
                 if ($this->model->getId() == 1) {
                     $path = "/";
                 }
@@ -458,7 +464,7 @@ class Dao extends Model\Element\Dao
      */
     public function saveIndex($index)
     {
-        $this->db->update("documents", array("index" => $index), $this->db->quoteInto("id = ?", $this->model->getId()));
+        $this->db->update("documents", ["index" => $index], $this->db->quoteInto("id = ?", $this->model->getId()));
     }
 
     /**
@@ -466,8 +472,9 @@ class Dao extends Model\Element\Dao
      */
     public function getNextIndex()
     {
-        $index = $this->db->fetchOne("SELECT MAX(`index`) FROM documents WHERE parentId = ?", array($this->model->getParentId()));
+        $index = $this->db->fetchOne("SELECT MAX(`index`) FROM documents WHERE parentId = ?", [$this->model->getParentId()]);
         $index++;
+
         return $index;
     }
 }

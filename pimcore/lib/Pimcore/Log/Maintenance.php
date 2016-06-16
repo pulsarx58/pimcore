@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Log;
@@ -46,7 +48,7 @@ class Maintenance
                                     $fileModified = filemtime(PIMCORE_LOG_MAIL_TEMP."/".$file);
                                     \Logger::debug(get_class($this).": file is writeable and was last modified: ".$fileModified);
                                     if ($fileModified!==false and $fileModified<($now-$threshold)) {
-                                        $mail = Tool::getMail(array($email), "pimcore log notification - ".$file);
+                                        $mail = Tool::getMail([$email], "pimcore log notification - ".$file);
                                         $mail->setIgnoreDebugMode(true);
                                         $mail->setBodyText(file_get_contents(PIMCORE_LOG_MAIL_TEMP."/".$file));
                                         $mail->send();
@@ -96,7 +98,7 @@ class Maintenance
         $logFile = PIMCORE_LOG_DIRECTORY . "/usagelog.log";
         if (is_file($logFile) && filesize($logFile) > 200000) {
             $data = gzencode(file_get_contents($logFile));
-            $response = Tool::getHttpData("https://www.pimcore.org/usage-statistics/", array(), array("data" => $data));
+            $response = Tool::getHttpData("https://www.pimcore.org/usage-statistics/", [], ["data" => $data]);
             if (strpos($response, "true") !== false) {
                 @unlink($logFile);
                 \Logger::debug("Usage statistics are transmitted and logfile was cleaned");
@@ -126,6 +128,7 @@ class Maintenance
 
     public function checkErrorLogsDb()
     {
+        $db = \Pimcore\Db::get();
         $conf = Config::getSystemConfig();
         $config = $conf->applicationlog;
 
@@ -137,8 +140,6 @@ class Maintenance
             });
 
             $logLevel = (int)$config->mail_notification->filter_priority;
-            $db = \Pimcore\Db::get()->getResource();
-
 
             $query = "SELECT * FROM ". \Pimcore\Log\Handler\ApplicationLoggerDb::TABLE_NAME . " WHERE maintenanceChecked IS NULL AND priority <= $logLevel order by id desc";
 
@@ -149,7 +150,7 @@ class Maintenance
             $rowCount = count($rows);
             if ($rowCount) {
                 while ($rowsProcessed < $rowCount) {
-                    $entries = array();
+                    $entries = [];
 
                     if ($rowCount <= $limit) {
                         $entries = $rows;
@@ -171,9 +172,12 @@ class Maintenance
                     $mail->send();
                 }
             }
-
-            $db->query("UPDATE " . \Pimcore\Log\Handler\ApplicationLoggerDb::TABLE_NAME . " set maintenanceChecked = 1");
         }
+
+        // flag them as checked, regardless if email notifications are enabled or not
+        // otherwise, when activating email notifications, you'll receive all log-messages from the past and not
+        // since the point when you enabled the notifications
+        $db->query("UPDATE " . \Pimcore\Log\Handler\ApplicationLoggerDb::TABLE_NAME . " set maintenanceChecked = 1");
     }
 
 

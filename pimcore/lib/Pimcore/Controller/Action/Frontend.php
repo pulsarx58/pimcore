@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Controller\Action;
@@ -54,6 +56,11 @@ abstract class Frontend extends Action
      * @var bool
      */
     public static $isInitial = true;
+
+    /**
+     * @var string
+     */
+    private static $locale;
 
     /**
      * @throws \Zend_Controller_Router_Exception
@@ -305,17 +312,40 @@ abstract class Frontend extends Action
      */
     public function setLocale($locale)
     {
-        if (\Zend_Locale::isLocale($locale)) {
+        if ((string) $locale != self::$locale && \Zend_Locale::isLocale($locale)) {
             $locale = new \Zend_Locale($locale);
             \Zend_Registry::set('Zend_Locale', $locale);
             $this->getResponse()->setHeader("Content-Language", strtolower(str_replace("_", "-", (string) $locale)), true);
 
+            // now we prepare everything for setlocale()
+            $localeList = [(string) $locale . ".utf8"];
+
+            if ($locale->getRegion()) {
+                // add only the language to the list as a fallback
+                $localeList[] = $locale->getLanguage() . ".utf8";
+            } else {
+                // try to get a list of territories for this language
+                // usually OS have no "language only" locale, only the combination language-territory (eg. Debian)
+                $languageRegionMapping = include PIMCORE_PATH . "/config/data/cldr-language-territory-mapping.php";
+                if (isset($languageRegionMapping[$locale->getLanguage()])) {
+                    foreach ($languageRegionMapping[$locale->getLanguage()] as $territory) {
+                        $localeList[] = $locale->getLanguage() . "_" . $territory . ".utf8";
+                    }
+                }
+            }
+
+            setlocale(LC_ALL, $localeList);
+            \Carbon\Carbon::setLocale($locale->getLanguage());
+
+            // reconfigure translation management
             if (\Zend_Registry::isRegistered("Zend_Translate")) {
                 $translator = \Zend_Registry::get("Zend_Translate");
                 if ($translator instanceof Translate) {
                     $translator->setLocale($locale);
                 }
             }
+
+            self::$locale = (string) $locale;
         }
     }
 
@@ -329,6 +359,7 @@ abstract class Frontend extends Action
             $this->document = $document;
             $this->view->document = $document;
         }
+
         return $this;
     }
 
@@ -404,7 +435,7 @@ abstract class Frontend extends Action
         // try to get template out of the document object, but only if the parameter `staticroute´ is not set, which indicates
         // if a request comes through a static/custom route (contains the route Object => Staticroute)
         // see PIMCORE-1545
-        if ($this->document instanceof Document && !in_array($this->getParam("pimcore_request_source"), array("staticroute", "renderlet"))) {
+        if ($this->document instanceof Document && !in_array($this->getParam("pimcore_request_source"), ["staticroute", "renderlet"])) {
             if (method_exists($this->document, "getTemplate") && $this->document->getTemplate()) {
                 return $this->document->getTemplate();
             }
@@ -489,7 +520,7 @@ abstract class Frontend extends Action
             \Zend_Registry::set("pimcore_tag_block_numeration", $this->parentBlockNumeration);
         }
 
-        // restore the previois set locale if available
+        // restore the previous set locale if available
         // for a detailed description on this, please have a look at $this->setLocaleFromDocument()
         if ($this->previousLocale) {
             $this->forceRender();

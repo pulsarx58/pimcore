@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.object.variantsTab");
@@ -32,21 +34,26 @@ pimcore.object.variantsTab = Class.create(pimcore.object.helpers.gridTabAbstract
             Ext.Ajax.request({
                 url: "/admin/object-helper/grid-get-column-config",
                 params: {name: this.selectedClass, gridtype: "grid"},
-                success: this.createGrid.bind(this)
+                success: this.createGrid.bind(this, false)
             });
 
             this.layout = new Ext.Panel({
                 title: t('variants'),
                 border: false,
                 iconCls: "pimcore_icon_variant",
-                layout: "fit"
+                layout: "fit",
+                listeners: {
+                    activate: function() {
+                        this.store.load();
+                    }.bind(this)
+                }
             });
         }
 
         return this.layout;
     },
 
-    createGrid: function(response) {
+    createGrid: function(fromConfig, response) {
         var fields = [];
         if(response.responseText) {
             response = Ext.decode(response.responseText);
@@ -70,12 +77,17 @@ pimcore.object.variantsTab = Class.create(pimcore.object.helpers.gridTabAbstract
             false
         );
 
+        var itemsPerPage = pimcore.helpers.grid.getDefaultPageSize(-1);
+
+
         gridHelper.showSubtype = false;
         gridHelper.showKey = true;
         gridHelper.enableEditor = true;
         gridHelper.baseParams.objectId = this.element.id;
 
         this.store = gridHelper.getStore();
+        this.store.setPageSize(itemsPerPage);
+
         var gridColumns = gridHelper.getGridColumns();
 
         gridColumns.push({
@@ -113,21 +125,22 @@ pimcore.object.variantsTab = Class.create(pimcore.object.helpers.gridTabAbstract
 
         this.gridfilters = gridHelper.getGridFilters();
 
-        this.pagingtoolbar = new Ext.PagingToolbar({
-            pageSize: 15,
-            store: this.store,
-            displayInfo: true,
-            displayMsg: '{0} - {1} / {2}',
-            emptyMsg: t("no_objects_found")
-        });
+        this.pagingtoolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.store, {pageSize: itemsPerPage});
 
         this.languageInfo = new Ext.Toolbar.TextItem({
             text: t("grid_current_language") + ": " + pimcore.available_languages[this.gridLanguage]
         });
 
-        this.toolbarFilterInfo = new Ext.Toolbar.TextItem({
-            text: ""
+        this.toolbarFilterInfo =  new Ext.Button({
+            iconCls: "pimcore_icon_filter_condition",
+            hidden: true,
+            text: '<b>' + t("filter_active") + '</b>',
+            tooltip: t("filter_condition"),
+            handler: function (button) {
+                Ext.MessageBox.alert(t("filter_condition"), button.pimcore_filter_condition);
+            }.bind(this)
         });
+
 
         this.createSqlEditor();
 
@@ -173,7 +186,7 @@ pimcore.object.variantsTab = Class.create(pimcore.object.helpers.gridTabAbstract
                             buttons: Ext.Msg.OKCANCEL ,
                             fn: function(btn){
                                 if (btn == 'ok'){
-                                    this.startCsvExport();
+                                    this.exportPrepare();
                                 }
                             }.bind(this),
                             icon: Ext.MessageBox.WARNING
@@ -211,7 +224,7 @@ pimcore.object.variantsTab = Class.create(pimcore.object.helpers.gridTabAbstract
 
         gridHelper.applyGridEvents(this.grid);
 
-        this.store.load();
+        // this.store.load();
 
         this.layout.removeAll();
         this.layout.add(this.grid);

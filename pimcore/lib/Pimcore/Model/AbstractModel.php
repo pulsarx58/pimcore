@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model;
@@ -27,7 +29,7 @@ abstract class AbstractModel
     /**
      * @var array
      */
-    private static $daoClassCache = array();
+    private static $daoClassCache = [];
 
     /**
      * @return \Pimcore\Model\Dao\AbstractDao
@@ -37,6 +39,7 @@ abstract class AbstractModel
         if (!$this->dao) {
             $this->initDao();
         }
+
         return $this->dao;
     }
 
@@ -47,6 +50,7 @@ abstract class AbstractModel
     public function setDao($dao)
     {
         $this->dao = $dao;
+
         return $this;
     }
 
@@ -61,14 +65,15 @@ abstract class AbstractModel
 
     /**
      * @param null $key
+     * @param bool $forceDetection
      * @throws \Exception
      */
-    public function initDao($key = null)
+    public function initDao($key = null, $forceDetection = false)
     {
         $myClass = get_class($this);
         $dao = null;
 
-        if (!$key) {
+        if (!$key || $forceDetection) {
             // check for a resource in the cache
             if (array_key_exists($myClass, self::$daoClassCache)) {
                 $dao = self::$daoClassCache[$myClass];
@@ -178,7 +183,7 @@ abstract class AbstractModel
      */
     protected function getParentClasses($class)
     {
-        $classes = array();
+        $classes = [];
         $classes[] = $class;
 
         $parentClass = get_parent_class($class);
@@ -193,13 +198,14 @@ abstract class AbstractModel
      * @param array $data
      * @return $this
      */
-    public function setValues($data = array())
+    public function setValues($data = [])
     {
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $key => $value) {
                 $this->setValue($key, $value);
             }
         }
+
         return $this;
     }
 
@@ -217,6 +223,7 @@ abstract class AbstractModel
             // compatibility mode for objects (they do not have any set_oXyz() methods anymore)
             $this->$method($value);
         }
+
         return $this;
     }
 
@@ -225,14 +232,15 @@ abstract class AbstractModel
      */
     public function __sleep()
     {
-        $finalVars = array();
-        $blockedVars = array("dao","_fulldump"); // _fulldump is a temp var which is used to trigger a full serialized dump in __sleep eg. in Document, \Object_Abstract
+        $finalVars = [];
+        $blockedVars = ["dao", "_fulldump"]; // _fulldump is a temp var which is used to trigger a full serialized dump in __sleep eg. in Document, \Object_Abstract
         $vars = get_object_vars($this);
         foreach ($vars as $key => $value) {
             if (!in_array($key, $blockedVars)) {
                 $finalVars[] = $key;
             }
         }
+
         return $finalVars;
     }
 
@@ -253,7 +261,8 @@ abstract class AbstractModel
         // check if the method is defined in ´dao
         if (method_exists($this->getDao(), $method)) {
             try {
-                $r = call_user_func_array(array($this->getDao(), $method), $args);
+                $r = call_user_func_array([$this->getDao(), $method], $args);
+
                 return $r;
             } catch (\Exception $e) {
                 \Logger::emergency($e);
@@ -282,6 +291,7 @@ abstract class AbstractModel
     {
         $data = get_object_vars($this);
         unset($data['dao']);
+
         return $data;
     }
 }

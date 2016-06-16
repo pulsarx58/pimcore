@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Controller\Plugin;
@@ -26,51 +28,51 @@ class Thumbnail extends \Zend_Controller_Plugin_Abstract
 
         // this is a filter which checks for common used files (by browser, crawlers, ...) and prevent the default
         // error page, because this is more resource-intensive than exiting right here
-        if (preg_match("@^/website/var/tmp/image-thumbnails(.*)?/([0-9]+)/thumb__([a-zA-Z0-9_\-]+)([^\@]+)(\@[0-9.]+x)?\.([a-zA-Z]{2,5})@", $request->getPathInfo(), $matches)) {
+        if (preg_match("@/image-thumbnails(.*)?/([0-9]+)/thumb__([a-zA-Z0-9_\-]+)([^\@]+)(\@[0-9.]+x)?\.([a-zA-Z]{2,5})@", $request->getPathInfo(), $matches)) {
             $assetId = $matches[2];
             $thumbnailName = $matches[3];
-            $format = $matches[6];
 
             if ($asset = Asset::getById($assetId)) {
                 try {
-                    $page = 1;
+                    $page = 1; // default
                     $thumbnailFile = null;
                     $thumbnailConfig = null;
-                    $deferredConfigId = "thumb_" . $assetId . "__" . md5($request->getPathInfo());
-                    if ($thumbnailConfigItem = TmpStore::get($deferredConfigId)) {
-                        $thumbnailConfig = $thumbnailConfigItem->getData();
-                        TmpStore::delete($deferredConfigId);
 
-                        if (!$thumbnailConfig instanceof Asset\Image\Thumbnail\Config) {
-                            throw new \Exception("Deferred thumbnail config file doesn't contain a valid \\Asset\\Image\\Thumbnail\\Config object");
-                        }
+                    //get thumbnail for e.g. pdf page thumb__document_pdfPage-5
+                    if (preg_match("|document_(.*)\-(\d+)$|", $thumbnailName, $matchesThumbs)) {
+                        $thumbnailName = $matchesThumbs[1];
+                        $page = (int)$matchesThumbs[2];
+                    }
 
-                        $tmpPage = array_pop(explode("-", $thumbnailName));
-                        if (is_numeric($tmpPage)) {
-                            $page = $tmpPage;
+                    // just check if the thumbnail exists -> throws exception otherwise
+                    $thumbnailConfig = Asset\Image\Thumbnail\Config::getByName($thumbnailName);
+
+                    if (!$thumbnailConfig) {
+                        // check if there's an item in the TmpStore
+                        $deferredConfigId = "thumb_" . $assetId . "__" . md5($matches[0]);
+                        if ($thumbnailConfigItem = TmpStore::get($deferredConfigId)) {
+                            $thumbnailConfig = $thumbnailConfigItem->getData();
+                            TmpStore::delete($deferredConfigId);
+
+                            if (!$thumbnailConfig instanceof Asset\Image\Thumbnail\Config) {
+                                throw new \Exception("Deferred thumbnail config file doesn't contain a valid \\Asset\\Image\\Thumbnail\\Config object");
+                            }
                         }
-                    } else {
-                        //get thumbnail for e.g. pdf page thumb__document_pdfPage-5
-                        if (preg_match("|document_(.*)\-(\d+)$|", $thumbnailName, $matchesThumbs)) {
-                            $thumbnailName = $matchesThumbs[1];
-                            $page = (int)$matchesThumbs[2];
-                        }
-                        // just check if the thumbnail exists -> throws exception otherwise
-                        $thumbnailConfig = Asset\Image\Thumbnail\Config::getByName($thumbnailName);
-                        if (!$thumbnailConfig instanceof Asset\Image\Thumbnail\Config) {
-                            throw new \Exception("Thumbnail '" . $thumbnailName . "' file doesn't exists");
-                        }
+                    }
+
+                    if (!$thumbnailConfig) {
+                        throw new \Exception("Thumbnail '" . $thumbnailName . "' file doesn't exists");
                     }
 
                     if ($asset instanceof Asset\Document) {
                         $thumbnailConfig->setName(preg_replace("/\-[\d]+/", "", $thumbnailConfig->getName()));
                         $thumbnailConfig->setName(str_replace("document_", "", $thumbnailConfig->getName()));
 
-                        $thumbnailFile = PIMCORE_DOCUMENT_ROOT . $asset->getImageThumbnail($thumbnailConfig, $page);
+                        $thumbnailFile = $asset->getImageThumbnail($thumbnailConfig, $page)->getFileSystemPath();
                     } elseif ($asset instanceof Asset\Image) {
                         //check if high res image is called
                         if (array_key_exists(5, $matches)) {
-                            $highResFactor = (float) str_replace(array("@", "x"), "", $matches[5]);
+                            $highResFactor = (float) str_replace(["@", "x"], "", $matches[5]);
                             $thumbnailConfig->setHighResolution($highResFactor);
                         }
 
@@ -79,14 +81,13 @@ class Thumbnail extends \Zend_Controller_Plugin_Abstract
 
                     if ($thumbnailFile && file_exists($thumbnailFile)) {
                         $fileExtension = \Pimcore\File::getFileExtension($thumbnailFile);
-                        if (in_array($fileExtension, array("gif", "jpeg", "jpeg", "png", "pjpeg"))) {
+                        if (in_array($fileExtension, ["gif", "jpeg", "jpeg", "png", "pjpeg"])) {
                             header("Content-Type: image/".$fileExtension, true);
                         } else {
                             header("Content-Type: " . $asset->getMimetype(), true);
                         }
 
-                        header("Content-Length: " . filesize($thumbnailFile), true);
-                        while (@ob_end_flush()) ;
+                        header("Content-Length: " . filesize($thumbnailFile), true); while (@ob_end_flush()) ;
                         flush();
 
                         readfile($thumbnailFile);

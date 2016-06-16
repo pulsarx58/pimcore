@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Schedule
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Schedule\Manager;
@@ -22,12 +24,12 @@ class Procedural
     /**
      * @var array
      */
-    public $jobs = array();
+    public $jobs = [];
 
     /**
      * @var array
      */
-    protected $validJobs = array();
+    protected $validJobs = [];
 
     /**
      * @var
@@ -56,6 +58,7 @@ class Procedural
         if (is_array($validJobs)) {
             $this->validJobs = $validJobs;
         }
+
         return $this;
     }
 
@@ -68,6 +71,7 @@ class Procedural
     {
         if (!empty($this->validJobs) and !in_array($job->getId(), $this->validJobs)) {
             \Logger::info("Skipped job with ID: " . $job->getId() . " because it is not in the valid jobs.");
+
             return false;
         }
 
@@ -122,6 +126,7 @@ class Procedural
         if ($date = $lock->getDate()) {
             return $date;
         }
+
         return;
     }
 

@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Schedule
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Schedule\Maintenance;
@@ -61,9 +63,10 @@ class Job
         if (method_exists($this->getObject(), $this->getMethod())) {
             $arguments = $this->getArguments();
             if (!is_array($arguments)) {
-                $arguments = array();
+                $arguments = [];
             }
-            return call_user_func_array(array($this->getObject(), $this->getMethod()), $arguments);
+
+            return call_user_func_array([$this->getObject(), $this->getMethod()], $arguments);
         }
     }
 
@@ -105,6 +108,7 @@ class Job
     public function setId($id)
     {
         $this->id = $id;
+
         return $this;
     }
 
@@ -123,6 +127,7 @@ class Job
     public function setObject($object)
     {
         $this->object = $object;
+
         return $this;
     }
 
@@ -141,6 +146,7 @@ class Job
     public function setMethod($method)
     {
         $this->method = $method;
+
         return $this;
     }
 
@@ -167,6 +173,7 @@ class Job
     public function setArguments($args)
     {
         $this->arguments = $args;
+
         return $this;
     }
 }

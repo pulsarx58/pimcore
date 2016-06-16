@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Controller\Plugin;
@@ -35,7 +37,7 @@ class HttpErrorLog extends \Zend_Controller_Plugin_Abstract
                 // do not cache if there's no data or an active session
 
                 if ($this->cacheKey) {
-                    \Pimcore\Cache::save($responseData, $this->cacheKey, array("output"), 900, 9992);
+                    \Pimcore\Cache::save($responseData, $this->cacheKey, ["output"], 900, 9992);
                 }
             }
         }
@@ -64,7 +66,7 @@ class HttpErrorLog extends \Zend_Controller_Plugin_Abstract
             if ($exists) {
                 $db->query("UPDATE http_error_log SET `count` = `count` + 1, date = ? WHERE uri = ?", [time(), $uri]);
             } else {
-                $db->insert("http_error_log", array(
+                $db->insert("http_error_log", [
                     "uri" => $uri,
                     "code" => (int) $code,
                     "parametersGet" => serialize($_GET),
@@ -73,7 +75,7 @@ class HttpErrorLog extends \Zend_Controller_Plugin_Abstract
                     "serverVars" => serialize($_SERVER),
                     "date" => time(),
                     "count" => 1
-                ));
+                ]);
             }
         } catch (\Exception $e) {
             \Logger::error("Unable to log http error");

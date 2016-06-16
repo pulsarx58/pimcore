@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.document.tags.image");
@@ -15,20 +17,8 @@ pimcore.document.tags.image = Class.create(pimcore.document.tag, {
     initialize: function(id, name, options, data, inherited) {
         this.id = id;
         this.name = name;
-        this.datax = new Object();
+        this.datax = {};
         this.options = this.parseOptions(options);
-
-        this.options = options;
-        this.options.style = '';
-
-        if (!this.options["height"]) {
-            if (this.options["defautHeight"]){
-                this.options.bodyStyle += (" min-height:" + this.options["defautHeight"] + "px");
-            }else{
-                this.options.bodyStyle += (" min-height:100px");
-                this.options.style += (" min-height:100px");
-            }
-        }
 
         this.originalDimensions = {
             width: this.options.width,
@@ -41,71 +31,81 @@ pimcore.document.tags.image = Class.create(pimcore.document.tag, {
 
         this.setupWrapper();
 
-        this.options.border = false;
-        this.options.name = id + "_editable";
-        this.element = new Ext.Panel(this.options);
+        this.element = Ext.get(id);
 
+        if (this.options["width"]) {
+            this.element.setStyle("width", this.options["width"] + "px");
+        }
 
-        this.element.on("render", function (el) {
-
-            // contextmenu
-            el.getEl().on("contextmenu", this.onContextMenu.bind(this));
-
-            // register at global DnD manager
-            if (typeof dndManager != 'undefined') {
-                dndManager.addDropTarget(el.getEl(), this.onNodeOver.bind(this), this.onNodeDrop.bind(this));
+        if (!this.options["height"]) {
+            if (this.options["defaultHeight"]){
+                this.element.setStyle("min-height", this.options["defaultHeight"] + "px");
             }
+        } else {
+            this.element.setStyle("height", this.options["height"] + "px");
+        }
 
-            el.getEl().setStyle({
-                position: "relative"
+        // contextmenu
+        this.element.on("contextmenu", this.onContextMenu.bind(this));
+
+        // register at global DnD manager
+        if (typeof dndManager != 'undefined') {
+            dndManager.addDropTarget(this.element, this.onNodeOver.bind(this), this.onNodeDrop.bind(this));
+        }
+
+        // tooltip
+        if(this.options["title"]) {
+            new Ext.ToolTip({
+                target: this.element,
+                showDelay: 100,
+                hideDelay: 0,
+                trackMouse: true,
+                html: this.options["title"]
             });
+        }
 
-            // alt / title
-            this.altBar = document.createElement("div");
-            this.getBody().appendChild(this.altBar);
+        // alt / title
+        this.altBar = document.createElement("div");
+        this.element.appendChild(this.altBar);
 
-            this.altBar = Ext.get(this.altBar);
-            this.altBar.addCls("pimcore_tag_image_alt");
+        this.altBar = Ext.get(this.altBar);
+        this.altBar.addCls("pimcore_tag_image_alt");
+        this.altBar.setStyle({
+            opacity: 0.8,
+            display: "none"
+        });
+
+        this.altInput = new Ext.form.TextField({
+            name: "altText",
+            width: this.options.width
+        });
+        this.altInput.render(this.altBar);
+
+        if (this.datax.alt) {
+            this.altInput.setValue(this.datax.alt);
+        }
+
+        if (this.options.hidetext == true) {
             this.altBar.setStyle({
-                opacity: 0.8,
-                display: "none"
+                display: "none",
+                visibility: "hidden"
             });
+        }
 
-            this.altInput = new Ext.form.TextField({
-                name: "altText",
-                width: this.options.width
-            });
-            this.altInput.render(this.altBar);
+        this.element.insertHtml("beforeEnd",'<div class="pimcore_tag_droptarget"></div>');
 
-            if (this.datax.alt) {
-                this.altInput.setValue(this.datax.alt);
+        this.element.addCls("pimcore_tag_image_empty");
+
+        // add additional drop targets
+        if (this.options["dropClass"]) {
+            var extra_drop_targets = Ext.query('.' + this.options.dropClass);
+
+            for (var i = 0; i < extra_drop_targets.length; ++i) {
+                var drop_el = Ext.get(extra_drop_targets[i]);
+                dndManager.addDropTarget(drop_el, this.onNodeOver.bind(this), this.onNodeDrop.bind(this));
+                drop_el.on("contextmenu", this.onContextMenu.bind(this));
             }
-
-            if (this.options.hidetext == true) {
-                this.altBar.setStyle({
-                    display: "none",
-                    visibility: "hidden"
-                });
-            }
-
-            this.getBody().insertHtml("beforeEnd",'<div class="pimcore_tag_droptarget"></div>');
-
-            this.getBody().addCls("pimcore_tag_image_empty");
-
-            // add additional drop targets
-            if (this.options["dropClass"]) {
-                var extra_drop_targets = Ext.query('.' + this.options.dropClass);
-
-                for (var i = 0; i < extra_drop_targets.length; ++i) {
-                    var drop_el = Ext.get(extra_drop_targets[i]);
-                    dndManager.addDropTarget(drop_el, this.onNodeOver.bind(this), this.onNodeDrop.bind(this));
-                    drop_el.on("contextmenu", this.onContextMenu.bind(this));
-                }
-            }
-
-        }.bind(this));
-
-        this.element.render(id);
+        }
 
 
         // insert image
@@ -158,14 +158,16 @@ pimcore.document.tags.image = Class.create(pimcore.document.tag, {
                 }.bind(this)
             }));
 
-            menu.add(new Ext.menu.Item({
-                text: t('show_in_tree'),
-                iconCls: "pimcore_icon_folder pimcore_icon_overlay_search",
-                handler: function (item) {
-                    item.parentMenu.destroy();
-                    pimcore.treenodelocator.showInTree(this.datax.id, "asset");
-                }.bind(this)
-            }));
+            if (pimcore.elementservice.showLocateInTreeButton("document")) {
+                menu.add(new Ext.menu.Item({
+                    text: t('show_in_tree'),
+                    iconCls: "pimcore_icon_show_in_tree",
+                    handler: function (item) {
+                        item.parentMenu.destroy();
+                        pimcore.treenodelocator.showInTree(this.datax.id, "asset");
+                    }.bind(this)
+                }));
+            }
         }
 
         menu.add(new Ext.menu.Item({
@@ -277,24 +279,17 @@ pimcore.document.tags.image = Class.create(pimcore.document.tag, {
         this.resetData();
 
         this.updateImage();
-        this.getBody().addCls("pimcore_tag_image_empty");
+        this.element.addCls("pimcore_tag_image_empty");
         this.altBar.setStyle({
             display: "none"
         });
         this.reload();
     },
-
-    getBody: function () {
-        // get the id from the body element of the panel because there is no method to set body's html
-        // (only in configure)
-        var body = Ext.get(this.element.getEl().query("." + Ext.baseCSSPrefix + "autocontainer-innerCt")[0]);
-        return body;
-    },
-
+    
     updateImage: function () {
 
         var path = "";
-        var existingImage = this.getBody().dom.getElementsByTagName("img")[0];
+        var existingImage = this.element.dom.getElementsByTagName("img")[0];
         if (existingImage) {
             Ext.get(existingImage).remove();
         }
@@ -306,7 +301,7 @@ pimcore.document.tags.image = Class.create(pimcore.document.tag, {
 
         if (!this.options["thumbnail"]) {
             if(!this.originalDimensions["width"] && !this.originalDimensions["height"]) {
-                path = "/admin/asset/get-image-thumbnail/id/" + this.datax.id + "/width/" + this.element.getEl().getWidth()
+                path = "/admin/asset/get-image-thumbnail/id/" + this.datax.id + "/width/" + this.element.getWidth()
                     + "/aspectratio/true?" + Ext.urlEncode(this.datax);
             } else if (this.originalDimensions["width"]) {
                 path = "/admin/asset/get-image-thumbnail/id/" + this.datax.id + "/width/" + this.originalDimensions["width"]
@@ -330,14 +325,14 @@ pimcore.document.tags.image = Class.create(pimcore.document.tag, {
         var image = document.createElement("img");
         image.src = path;
 
-        this.getBody().appendChild(image);
+        this.element.appendChild(image);
 
         // show alt input field
         this.altBar.setStyle({
             display: "block"
         });
 
-        this.getBody().removeCls("pimcore_tag_image_empty");
+        this.element.removeCls("pimcore_tag_image_empty");
 
         this.updateCounter = 0;
         this.updateDimensionsInterval = window.setInterval(this.updateDimensions.bind(this), 1000);
@@ -351,7 +346,7 @@ pimcore.document.tags.image = Class.create(pimcore.document.tag, {
 
     updateDimensions: function () {
 
-        var image = this.element.getEl().dom.getElementsByTagName("img")[0];
+        var image = this.element.dom.getElementsByTagName("img")[0];
         if (!image) {
             return;
         }

@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 
@@ -207,6 +209,27 @@ pimcore.settings.user.user.settings = Class.create({
         });
 
         generalItems.push(this.roleField);
+
+        var perspectivesStore = Ext.create('Ext.data.JsonStore', {
+            data: this.data.availablePerspectives
+        });
+
+        this.perspectivesField = Ext.create('Ext.ux.form.MultiSelect', {
+            name:"perspectives",
+            triggerAction:"all",
+            editable:false,
+            fieldLabel:t("perspectives"),
+            width:400,
+            minHeight: 100,
+            store: perspectivesStore,
+            displayField: "name",
+            valueField: "name",
+            value:this.currentUser.perspectives ? this.currentUser.perspectives.join(",") : null,
+            hidden: this.currentUser.admin
+        });
+
+        generalItems.push(this.perspectivesField);
+
 
         this.generalSet = new Ext.form.FieldSet({
             collapsible: true,

@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 use Pimcore\Tool;
@@ -16,16 +18,11 @@ use Pimcore\Model\User;
 
 class Admin_LoginController extends \Pimcore\Controller\Action\Admin
 {
-
     public function init()
     {
         parent::init();
         $this->protect();
-
-        // IE compatibility
-        //$this->getResponse()->setHeader("X-UA-Compatible", "IE=8; IE=9", true);
     }
-
 
     public function lostpasswordAction()
     {
@@ -42,7 +39,7 @@ class Admin_LoginController extends \Pimcore\Controller\Action\Admin
                         $loginUrl = $uri . "/admin/login/login/?username=" . $username . "&token=" . $token . "&reset=true";
 
                         try {
-                            $mail = Tool::getMail(array($user->getEmail()), "Pimcore lost password service");
+                            $mail = Tool::getMail([$user->getEmail()], "Pimcore lost password service");
                             $mail->setIgnoreDebugMode(true);
                             $mail->setBodyText("Login to pimcore and change your password using the following link. This temporary login link will expire in 30 minutes: \r\n\r\n" . $loginUrl);
                             $mail->send();
@@ -260,7 +257,7 @@ class Admin_LoginController extends \Pimcore\Controller\Action\Admin
     {
         $data = $this->getLogFile();
         $lines = explode("\n", $data);
-        $entries = array();
+        $entries = [];
 
         if (is_array($lines) && count($lines) > 0) {
             foreach ($lines as $line) {
@@ -278,13 +275,13 @@ class Admin_LoginController extends \Pimcore\Controller\Action\Admin
 
         $remoteHost = Tool::getAnonymizedClientIp();
 
-        $data[] = array(
+        $data[] = [
             time(),
             $remoteHost,
             $username
-        );
+        ];
 
-        $lines = array();
+        $lines = [];
 
 
         foreach ($data as $item) {

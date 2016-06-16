@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 use Pimcore\Model\Element;
@@ -15,15 +17,14 @@ use Pimcore\Model\Document;
 
 class Admin_SnippetController extends \Pimcore\Controller\Action\Admin\Document
 {
-
     public function getDataByIdAction()
     {
 
         // check for lock
         if (Element\Editlock::isLocked($this->getParam("id"), "document")) {
-            $this->_helper->json(array(
+            $this->_helper->json([
                 "editlock" => Element\Editlock::getByElement($this->getParam("id"), "document")
-            ));
+            ]);
         }
         Element\Editlock::lock($this->getParam("id"), "document");
 
@@ -31,7 +32,8 @@ class Admin_SnippetController extends \Pimcore\Controller\Action\Admin\Document
         $snippet = clone $snippet;
         $snippet = $this->getLatestVersion($snippet);
 
-        $snippet->setVersions(array_splice($snippet->getVersions(), 0, 1));
+        $versions = $snippet->getVersions();
+        $snippet->setVersions(array_splice($versions, 0, 1));
         $snippet->getScheduledTasks();
         $snippet->idPath = Element\Service::getIdPath($snippet);
         $snippet->userPermissions = $snippet->getUserPermissions();
@@ -57,43 +59,54 @@ class Admin_SnippetController extends \Pimcore\Controller\Action\Admin\Document
 
     public function saveAction()
     {
-        if ($this->getParam("id")) {
-            $snippet = Document\Snippet::getById($this->getParam("id"));
-            $snippet = $this->getLatestVersion($snippet);
+        try {
+            if ($this->getParam("id")) {
+                $snippet = Document\Snippet::getById($this->getParam("id"));
+                $snippet = $this->getLatestVersion($snippet);
 
-            $snippet->setUserModification($this->getUser()->getId());
+                $snippet->setUserModification($this->getUser()->getId());
 
-            if ($this->getParam("task") == "unpublish") {
-                $snippet->setPublished(false);
-            }
-            if ($this->getParam("task") == "publish") {
-                $snippet->setPublished(true);
-            }
-
-
-            if (($this->getParam("task") == "publish" && $snippet->isAllowed("publish")) or ($this->getParam("task") == "unpublish" && $snippet->isAllowed("unpublish"))) {
-                $this->setValuesToDocument($snippet);
-
-                try {
-                    $snippet->save();
-                    $this->saveToSession($snippet);
-                    $this->_helper->json(array("success" => true));
-                } catch (\Exception $e) {
-                    $this->_helper->json(array("success" => false, "message" => $e->getMessage()));
+                if ($this->getParam("task") == "unpublish") {
+                    $snippet->setPublished(false);
                 }
-            } else {
-                if ($snippet->isAllowed("save")) {
+                if ($this->getParam("task") == "publish") {
+                    $snippet->setPublished(true);
+                }
+
+
+                if (($this->getParam("task") == "publish" && $snippet->isAllowed("publish")) or ($this->getParam("task") == "unpublish" && $snippet->isAllowed("unpublish"))) {
                     $this->setValuesToDocument($snippet);
 
                     try {
-                        $snippet->saveVersion();
+                        $snippet->save();
                         $this->saveToSession($snippet);
-                        $this->_helper->json(array("success" => true));
+                        $this->_helper->json(["success" => true]);
                     } catch (\Exception $e) {
-                        $this->_helper->json(array("success" => false, "message" => $e->getMessage()));
+                        if (\Pimcore\Tool\Admin::isExtJS6() && $e instanceof Element\ValidationException) {
+                            throw $e;
+                        }
+                        $this->_helper->json(["success" => false, "message" => $e->getMessage()]);
+                    }
+                } else {
+                    if ($snippet->isAllowed("save")) {
+                        $this->setValuesToDocument($snippet);
+
+                        try {
+                            $snippet->saveVersion();
+                            $this->saveToSession($snippet);
+                            $this->_helper->json(["success" => true]);
+                        } catch (\Exception $e) {
+                            $this->_helper->json(["success" => false, "message" => $e->getMessage()]);
+                        }
                     }
                 }
             }
+        } catch (\Exception $e) {
+            \Logger::log($e);
+            if (\Pimcore\Tool\Admin::isExtJS6() && $e instanceof Element\ValidationException) {
+                $this->_helper->json(["success" => false, "type" => "ValidationException", "message" => $e->getMessage(), "stack" => $e->getTraceAsString(), "code" => $e->getCode()]);
+            }
+            throw $e;
         }
 
         $this->_helper->json(false);

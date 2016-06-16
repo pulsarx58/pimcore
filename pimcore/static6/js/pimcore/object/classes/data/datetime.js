@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.object.classes.data.datetime");
@@ -20,7 +22,8 @@ pimcore.object.classes.data.datetime = Class.create(pimcore.object.classes.data.
         object:true,
         objectbrick:true,
         fieldcollection:true,
-        localizedfield:true
+        localizedfield:true,
+        classificationstore : true
     },
 
     initialize:function (treeNode, initData) {
@@ -91,7 +94,7 @@ pimcore.object.classes.data.datetime = Class.create(pimcore.object.classes.data.
 
         this.component = new Ext.form.FieldSet({
             layout: 'hbox',
-            fieldLabel:t("default_value"),
+            title: t("default_value"),
             style: "border: none !important",
             combineErrors:false,
             items:[this.datefield, this.timefield],
@@ -107,11 +110,10 @@ pimcore.object.classes.data.datetime = Class.create(pimcore.object.classes.data.
                 xtype:"checkbox",
                 fieldLabel:t("use_current_date"),
                 name:"useCurrentDate",
-                value:this.datax.defaultValue,
                 checked:this.datax.useCurrentDate,
                 disabled: this.isInCustomLayoutEditor(),
                 listeners:{
-                    check:this.toggleDefaultDate.bind(this)
+                    change:this.toggleDefaultDate.bind(this)
                 }
             }, {
                 xtype: "displayfield",

@@ -1,18 +1,21 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.object.classificationstore.collectionsPanel");
 pimcore.object.classificationstore.collectionsPanel = Class.create({
 
-    initialize: function (storeConfig) {
+    initialize: function (storeConfig, groupsPanel) {
+        this.groupsPanel = groupsPanel;
         this.storeConfig = storeConfig;
     },
 
@@ -88,6 +91,24 @@ pimcore.object.classificationstore.collectionsPanel = Class.create({
 
         var gridColumns = [];
 
+        gridColumns.push({
+            header: t("open"),
+            xtype: 'actioncolumn',
+            width: 40,
+            items: [
+                {
+                    tooltip: t("open"),
+                    iconCls: "pimcore_icon_open",
+                    handler: function (grid, rowIndex) {
+                        var store = grid.getStore();
+                        var data = store.getAt(rowIndex).getData();
+                        var groupId = data.groupId;
+                        this.groupsPanel.openConfig(groupId);
+                    }.bind(this)
+                }
+            ]
+        });
+
         gridColumns.push({header: t("group_id"), flex: 60, sortable: true, dataIndex: 'groupId', filter: 'string'});
         gridColumns.push({header: t("name"), flex: 200, sortable: true, dataIndex: 'groupName', filter: 'string'});
         gridColumns.push({header: t("description"), flex: 200, sortable: true, dataIndex: 'groupDescription', filter: 'string'});
@@ -126,13 +147,9 @@ pimcore.object.classificationstore.collectionsPanel = Class.create({
         });
 
 
-        this.relationsPagingtoolbar = new Ext.PagingToolbar({
-            pageSize: 15,
-            store: this.relationsStore,
-            displayInfo: true,
-            displayMsg: '{0} - {1} / {2}',
-            emptyMsg: t("classificationstore_collection_empty")
-        });
+        var pageSize = pimcore.helpers.grid.getDefaultPageSize(-1);
+        this.relationsPagingtoolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.relationsStore, {pageSize: pageSize});
+
 
         var cellEditing = Ext.create('Ext.grid.plugin.CellEditing', {
             clicksToEdit: 2
@@ -299,24 +316,17 @@ pimcore.object.classificationstore.collectionsPanel = Class.create({
             ]
         });
 
-        this.collectionsPagingtoolbar = new Ext.PagingToolbar({
-            pageSize: 15,
-            store: this.collectionsStore,
-            displayInfo: true,
-            displayMsg: '{0} - {1} / {2}',
-            emptyMsg: t("classificationstore_no_collections")
-        });
+        var pageSize = pimcore.helpers.grid.getDefaultPageSize(-1);
+        this.collectionsPagingtoolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.collectionsStore, {pageSize: pageSize});
 
-        var cellEditing = Ext.create('Ext.grid.plugin.CellEditing', {
-            //clicksToEdit: 2
-        });
+
+        var cellEditing = Ext.create('Ext.grid.plugin.CellEditing', {});
 
         var plugins = ['gridfilters', cellEditing];
 
         var gridConfig = {
             frame: false,
             store: this.collectionsStore,
-            //border: true,
             columns: gridColumns,
             loadMask: true,
             columnLines: true,
@@ -333,7 +343,6 @@ pimcore.object.classificationstore.collectionsPanel = Class.create({
             selModel: Ext.create('Ext.selection.RowModel', {}),
             bbar: this.collectionsPagingtoolbar,
             tbar: [
-
                 {
                     text: t('add'),
                     handler: this.onAdd.bind(this),
@@ -341,7 +350,6 @@ pimcore.object.classificationstore.collectionsPanel = Class.create({
                 }
             ],
             listeners: {
-
                 selectionchange: function(rowModel, selected, eOpts ) {
                     if (selected.length > 0) {
                         var record = selected[0];

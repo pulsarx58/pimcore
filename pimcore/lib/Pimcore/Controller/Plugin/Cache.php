@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Controller\Plugin;
@@ -69,6 +71,7 @@ class Cache extends \Zend_Controller_Plugin_Abstract
         }
 
         $this->enabled = false;
+
         return true;
     }
 
@@ -78,6 +81,7 @@ class Cache extends \Zend_Controller_Plugin_Abstract
     public function enable()
     {
         $this->enabled = true;
+
         return true;
     }
 
@@ -96,7 +100,7 @@ class Cache extends \Zend_Controller_Plugin_Abstract
     public function routeStartup(\Zend_Controller_Request_Abstract $request)
     {
         $requestUri = $request->getRequestUri();
-        $excludePatterns = array();
+        $excludePatterns = [];
 
         // only enable GET method
         if (!$request->isGet()) {
@@ -158,6 +162,7 @@ class Cache extends \Zend_Controller_Plugin_Abstract
             }
         } catch (\Exception $e) {
             \Logger::error($e);
+
             return $this->disable("ERROR: Exception (see debug.log)");
         }
 
@@ -244,12 +249,12 @@ class Cache extends \Zend_Controller_Plugin_Abstract
                 }
 
                 $now = new \DateTime("now");
-                $cacheItem = array(
+                $cacheItem = [
                     "headers" => $this->getResponse()->getHeaders(),
                     "rawHeaders" => $this->getResponse()->getRawHeaders(),
                     "content" => $this->getResponse()->getBody(),
                     "date" => $now->format(\DateTime::ISO8601)
-                );
+                ];
 
                 $cacheKey = $this->defaultCacheKey;
                 $deviceDetector = Tool\DeviceDetector::getInstance();
@@ -257,9 +262,10 @@ class Cache extends \Zend_Controller_Plugin_Abstract
                     $cacheKey .= "_" . $deviceDetector->getDevice();
                 }
 
-                CacheManager::save($cacheItem, $cacheKey, array("output"), $this->lifetime, 1000);
+                CacheManager::save($cacheItem, $cacheKey, ["output"], $this->lifetime, 1000);
             } catch (\Exception $e) {
                 \Logger::error($e);
+
                 return;
             }
         } else {
@@ -276,6 +282,7 @@ class Cache extends \Zend_Controller_Plugin_Abstract
     public function setLifetime($lifetime)
     {
         $this->lifetime = $lifetime;
+
         return $this;
     }
 

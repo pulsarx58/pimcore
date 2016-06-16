@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.settings.redirects");
@@ -52,7 +54,7 @@ pimcore.settings.redirects = Class.create({
 
     getRowEditor: function () {
 
-        var itemsPerPage = 20;
+        var itemsPerPage = pimcore.helpers.grid.getDefaultPageSize();
         var url = '/admin/settings/redirects?';
 
         this.store = pimcore.helpers.grid.buildDefaultStore(
@@ -67,6 +69,7 @@ pimcore.settings.redirects = Class.create({
                 {name: 'targetSite'},
                 {name: 'statusCode'},
                 {name: 'priority', type:'int'},
+                {name: 'active'},
                 {name: 'expiry', type: "date", convert: function (v, r) {
                     if(v && !(v instanceof Date)) {
                         var d = new Date(intval(v) * 1000);
@@ -80,7 +83,7 @@ pimcore.settings.redirects = Class.create({
             ],
             itemsPerPage
         );
-        this.pagingtoolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.store, itemsPerPage);
+        this.pagingtoolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.store);
 
         this.filterField = new Ext.form.TextField({
             xtype: "textfield",
@@ -102,6 +105,12 @@ pimcore.settings.redirects = Class.create({
         var sourceEntireUrlCheck = new Ext.grid.column.Check({
             header: t("source_entire_url"),
             dataIndex: "sourceEntireUrl",
+            width: 70
+        });
+
+        var activeCheck = new Ext.grid.column.Check({
+            header: t("active"),
+            dataIndex: "active",
             width: 70
         });
 
@@ -182,7 +191,9 @@ pimcore.settings.redirects = Class.create({
                 editable: false,
                 forceSelection: true,
                 triggerAction: "all"
-            })}, {
+            })},
+            activeCheck,
+            {
                 header: t("expiry"),
                 width: 150, sortable:true, dataIndex: "expiry",
                 editor: {
@@ -432,6 +443,7 @@ pimcore.settings.redirects = Class.create({
         var u = {
             source: source,
             sourceEntireUrl: sourceEntireUrl,
+            active: true,
             priority: priority
         };
         this.grid.store.insert(0, u);

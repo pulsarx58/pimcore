@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document\Tag;
@@ -29,17 +31,17 @@ class Pdf extends Model\Document\Tag
     /**
      * @var array
      */
-    public $hotspots = array();
+    public $hotspots = [];
 
     /**
      * @var array
      */
-    public $texts = array();
+    public $texts = [];
 
     /**
      * @var array
      */
-    public $chapters = array();
+    public $chapters = [];
 
     /**
      * @see Document\Tag\TagInterface::getType
@@ -56,20 +58,19 @@ class Pdf extends Model\Document\Tag
      */
     public function getData()
     {
-        return array(
+        return [
             "id" => $this->id,
             "hotspots" => $this->hotspots,
             "texts" => $this->texts,
             "chapters" => $this->chapters
-        );
+        ];
     }
 
     public function getDataForResource()
     {
         $rewritePath = function ($data) {
-
             if (!is_array($data)) {
-                return array();
+                return [];
             }
 
             foreach ($data as &$page) {
@@ -89,20 +90,19 @@ class Pdf extends Model\Document\Tag
 
         $hotspots = $rewritePath($this->hotspots);
 
-        return array(
+        return [
             "id" => $this->id,
             "hotspots" => $hotspots,
             "texts" => $this->getTexts(),
             "chapters" => $this->getChapters()
-        );
+        ];
     }
 
     public function getDataEditmode()
     {
         $rewritePath = function ($data) {
-
             if (!is_array($data)) {
-                return array();
+                return [];
             }
 
             foreach ($data as &$page) {
@@ -116,6 +116,7 @@ class Pdf extends Model\Document\Tag
                     }
                 }
             }
+
             return $data;
         };
 
@@ -130,18 +131,18 @@ class Pdf extends Model\Document\Tag
         // force an object when converting to JSON
         $texts["__dummy"] = "__dummy";
 
-        return array(
+        return [
             "id" => $this->id,
             "pageCount" => $pages,
             "hotspots" => empty($hotspots) ? null : $hotspots,
             "texts" => $texts,
             "chapters" => $this->chapters
-        );
+        ];
     }
 
-    public function getCacheTags($ownerDocument, $tags = array())
+    public function getCacheTags($ownerDocument, $tags = [])
     {
-        $tags = is_array($tags) ? $tags : array();
+        $tags = is_array($tags) ? $tags : [];
 
         $asset = Asset::getById($this->id);
         if ($asset instanceof Asset) {
@@ -150,7 +151,6 @@ class Pdf extends Model\Document\Tag
             }
 
             $getMetaDataCacheTags = function ($data, $tags) {
-
                 if (!is_array($data)) {
                     return $tags;
                 }
@@ -166,6 +166,7 @@ class Pdf extends Model\Document\Tag
                         }
                     }
                 }
+
                 return $tags;
             };
 
@@ -182,19 +183,18 @@ class Pdf extends Model\Document\Tag
      */
     public function resolveDependencies()
     {
-        $dependencies = array();
+        $dependencies = [];
 
         $asset = Asset::getById($this->id);
         if ($asset instanceof Asset) {
             $key = "asset_" . $asset->getId();
-            $dependencies[$key] = array(
+            $dependencies[$key] = [
                 "id" => $asset->getId(),
                 "type" => "asset"
-            );
+            ];
         }
 
         $getMetaDataDependencies = function ($data, $dependencies) {
-
             if (!is_array($data)) {
                 return $dependencies;
             }
@@ -209,15 +209,16 @@ class Pdf extends Model\Document\Tag
                                     $elTtype = "document";
                                 }
 
-                                $dependencies[$elTtype . "_" . $metaData["value"]->getId()] = array(
+                                $dependencies[$elTtype . "_" . $metaData["value"]->getId()] = [
                                     "id" => $metaData["value"]->getId(),
                                     "type" => $elTtype
-                                );
+                                ];
                             }
                         }
                     }
                 }
             }
+
             return $dependencies;
         };
 
@@ -256,16 +257,15 @@ class Pdf extends Model\Document\Tag
         }
 
         $rewritePath = function ($data) {
-
             if (!is_array($data)) {
-                return array();
+                return [];
             }
 
             foreach ($data as &$page) {
                 foreach ($page as &$element) {
                     if (array_key_exists("data", $element) && is_array($element["data"]) && count($element["data"]) > 0) {
                         foreach ($element["data"] as &$metaData) {
-                            if (in_array($metaData["type"], array("object", "asset", "document", "link"))) {
+                            if (in_array($metaData["type"], ["object", "asset", "document", "link"])) {
                                 $elTtype = $metaData["type"];
                                 if ($metaData["type"] == "link") {
                                     $elTtype = "document";
@@ -282,6 +282,7 @@ class Pdf extends Model\Document\Tag
                     }
                 }
             }
+
             return $data;
         };
 
@@ -315,16 +316,15 @@ class Pdf extends Model\Document\Tag
             $this->id = $pdf->getId();
             if (array_key_exists("hotspots", $data) && !empty($data["hotspots"])) {
                 $rewritePath = function ($data) {
-
                     if (!is_array($data)) {
-                        return array();
+                        return [];
                     }
 
                     foreach ($data as &$page) {
                         foreach ($page as &$element) {
                             if (array_key_exists("data", $element) && is_array($element["data"]) && count($element["data"]) > 0) {
                                 foreach ($element["data"] as &$metaData) {
-                                    if (in_array($metaData["type"], array("object", "asset", "document", "link"))) {
+                                    if (in_array($metaData["type"], ["object", "asset", "document", "link"])) {
                                         $elTtype = $metaData["type"];
                                         if ($metaData["type"] == "link") {
                                             $elTtype = "document";
@@ -341,6 +341,7 @@ class Pdf extends Model\Document\Tag
                             }
                         }
                     }
+
                     return $data;
                 };
 
@@ -353,6 +354,7 @@ class Pdf extends Model\Document\Tag
             $this->texts = $data['texts'];
             $this->chapters = $data['chapters'];
         }
+
         return $this;
     }
 
@@ -363,6 +365,7 @@ class Pdf extends Model\Document\Tag
         if ($options["width"]) {
             return $options["width"];
         }
+
         return "100%";
     }
 
@@ -372,6 +375,7 @@ class Pdf extends Model\Document\Tag
         if ($options["height"]) {
             return $options["height"];
         }
+
         return 300;
     }
 
@@ -386,9 +390,8 @@ class Pdf extends Model\Document\Tag
             $pageCount = $asset->getPageCount();
             $hotspots = $this->getHotspots();
             $rewritePath = function ($data) use ($options) {
-
                 if (!is_array($data)) {
-                    return array();
+                    return [];
                 }
 
                 foreach ($data as &$element) {
@@ -423,23 +426,23 @@ class Pdf extends Model\Document\Tag
             };
 
             for ($i=1; $i <=$pageCount; $i++) {
-                $pageData = array(
-                    "thumbnail" => $asset->getImageThumbnail(array(
+                $pageData = [
+                    "thumbnail" => (string) $asset->getImageThumbnail([
                         "width" => 200,
                         "height" => 200,
                         "contain" => true,
                         "format" => "pjpeg"
-                    ), $i, true),
-                    "detail" => $asset->getImageThumbnail(array(
+                    ], $i, true),
+                    "detail" => (string) $asset->getImageThumbnail([
                         "width" => 1500,
                         "height" => 1500,
                         "contain" => true,
                         "quality" => "85",
                         "format" => "pjpeg"
-                    ), $i, true)
-                );
+                    ], $i, true)
+                ];
 
-                if (is_array($hotspots) && $hotspots[$i]) {
+                if (is_array($hotspots) && isset($hotspots[$i]) && $hotspots[$i]) {
                     $pageData["hotspots"] = $rewritePath($hotspots[$i]);
                 }
 
@@ -498,7 +501,7 @@ HTML;
 
         $code = '
         <div id="pimcore_pdf_' . $this->getName() . '" class="pimcore_tag_pdf">
-            <div class="pimcore_tag_video_error" style="text-align:center; width: ' . $width . '; height: ' . ($this->getHeight()-1) . 'px; border:1px solid #000; background: url(/pimcore/static/img/filetype-not-supported.png) no-repeat center center #fff;">
+            <div class="pimcore_tag_video_error" style="text-align:center; width: ' . $width . '; height: ' . ($this->getHeight()-1) . 'px; border:1px solid #000; background: url(/pimcore/static6/img/filetype-not-supported.png) no-repeat center center #fff;">
                 ' . $message . '
             </div>
         </div>';
@@ -514,6 +517,7 @@ HTML;
         if ($this->id) {
             return false;
         }
+
         return true;
     }
 
@@ -523,7 +527,7 @@ HTML;
      * @param null $idMapper
      * @throws \Exception
      */
-    public function getFromWebserviceImport($wsElement, $document = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($wsElement, $document = null, $params = [], $idMapper = null)
     {
         $data = $wsElement->value;
         if ($data->id) {
@@ -555,6 +559,7 @@ HTML;
     public function getElement()
     {
         $data = $this->getData();
+
         return Asset::getById($data['id']);
     }
 
@@ -584,6 +589,7 @@ HTML;
     public function getChapter($page)
     {
         $chapters = $this->getChapters();
+
         return $chapters[$page];
     }
 
@@ -607,6 +613,7 @@ HTML;
     public function getHotspot($page)
     {
         $hotspots = $this->getHotspots();
+
         return $hotspots[$page];
     }
 

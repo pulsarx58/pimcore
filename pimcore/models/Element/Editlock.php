@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Element
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Element;
@@ -65,8 +67,10 @@ class Editlock extends Model\AbstractModel
             if ((time() - $lock->getDate()) > 3600 || $lock->getSessionId() == session_id()) {
                 // lock is out of date unlock it
                 self::unlock($cid, $ctype);
+
                 return false;
             }
+
             return true;
         }
 
@@ -83,6 +87,7 @@ class Editlock extends Model\AbstractModel
         try {
             $lock = new self();
             $lock->getDao()->getByElement($cid, $ctype);
+
             return $lock;
         } catch (\Exception $e) {
             return null;
@@ -98,6 +103,7 @@ class Editlock extends Model\AbstractModel
         try {
             $lock = new self();
             $lock->getDao()->clearSession($sessionId);
+
             return true;
         } catch (\Exception $e) {
             return null;
@@ -138,6 +144,7 @@ class Editlock extends Model\AbstractModel
         if ($lock = self::getByElement($cid, $ctype)) {
             $lock->delete();
         }
+
         return true;
     }
 
@@ -171,6 +178,7 @@ class Editlock extends Model\AbstractModel
     public function setCid($cid)
     {
         $this->cid = (int) $cid;
+
         return $this;
     }
 
@@ -181,6 +189,7 @@ class Editlock extends Model\AbstractModel
     public function setId($id)
     {
         $this->id = (int) $id;
+
         return $this;
     }
 
@@ -196,6 +205,7 @@ class Editlock extends Model\AbstractModel
                 $this->setUser($user);
             }
         }
+
         return $this;
     }
 
@@ -214,6 +224,7 @@ class Editlock extends Model\AbstractModel
     public function setCtype($ctype)
     {
         $this->ctype = (string) $ctype;
+
         return $this;
     }
 
@@ -232,6 +243,7 @@ class Editlock extends Model\AbstractModel
     public function setSessionId($sessionId)
     {
         $this->sessionId = (string) $sessionId;
+
         return $this;
     }
 
@@ -250,6 +262,7 @@ class Editlock extends Model\AbstractModel
     public function setUser($user)
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -268,6 +281,7 @@ class Editlock extends Model\AbstractModel
     public function setDate($date)
     {
         $this->date = (int) $date;
+
         return $this;
     }
 
@@ -278,6 +292,7 @@ class Editlock extends Model\AbstractModel
     public function setCpath($cpath)
     {
         $this->cpath = $cpath;
+
         return $this;
     }
 

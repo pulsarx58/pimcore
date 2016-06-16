@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object\Fieldcollection
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Fieldcollection;
@@ -52,6 +54,7 @@ class Definition extends Model\AbstractModel
     public function setKey($key)
     {
         $this->key = $key;
+
         return $this;
     }
     
@@ -70,6 +73,7 @@ class Definition extends Model\AbstractModel
     public function setParentClass($parentClass)
     {
         $this->parentClass = $parentClass;
+
         return $this;
     }
     
@@ -89,8 +93,9 @@ class Definition extends Model\AbstractModel
     {
         $this->layoutDefinitions = $layoutDefinitions;
         
-        $this->fieldDefinitions = array();
+        $this->fieldDefinitions = [];
         $this->extractDataDefinitions($this->layoutDefinitions);
+
         return $this;
     }
     
@@ -109,6 +114,7 @@ class Definition extends Model\AbstractModel
     public function setFieldDefinitions($fieldDefinitions)
     {
         $this->fieldDefinitions = $fieldDefinitions;
+
         return $this;
     }
 
@@ -120,6 +126,7 @@ class Definition extends Model\AbstractModel
     public function addFieldDefinition($key, $data)
     {
         $this->fieldDefinitions[$key] = $data;
+
         return $this;
     }
 
@@ -131,6 +138,7 @@ class Definition extends Model\AbstractModel
         if (array_key_exists($key, $this->fieldDefinitions)) {
             return $this->fieldDefinitions[$key];
         }
+
         return false;
     }
     
@@ -254,7 +262,7 @@ class Definition extends Model\AbstractModel
         $cd .= "\n\n";
 
         if (is_array($this->getFieldDefinitions()) && count($this->getFieldDefinitions())) {
-            $relationTypes = array();
+            $relationTypes = [];
             foreach ($this->getFieldDefinitions() as $key => $def) {
 
                 /**
@@ -262,7 +270,28 @@ class Definition extends Model\AbstractModel
                  */
 
                 $cd .= $def->getGetterCodeFieldcollection($this);
+
+                if ($def instanceof Object\ClassDefinition\Data\Localizedfields) {
+                    foreach ($def->getFieldDefinitions() as $localizedFd) {
+
+                        /**
+                         * @var $fd Object\ClassDefinition\Data
+                         */
+                        $cd .= $localizedFd->getGetterCodeLocalizedfields($this);
+                    }
+                }
+
                 $cd .= $def->getSetterCodeFieldcollection($this);
+
+                if ($def instanceof Object\ClassDefinition\Data\Localizedfields) {
+                    foreach ($def->getFieldDefinitions() as $localizedFd) {
+
+                        /**
+                         * @var $fd Object\ClassDefinition\Data
+                         */
+                        $cd .= $localizedFd->getSetterCodeLocalizedfields($this);
+                    }
+                }
             }
         }
 

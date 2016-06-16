@@ -2,20 +2,20 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 use Pimcore\Update;
 
 class Update_IndexController extends \Pimcore\Controller\Action\Admin
 {
-
-
     public function init()
     {
         parent::init();
@@ -25,44 +25,46 @@ class Update_IndexController extends \Pimcore\Controller\Action\Admin
         $this->checkPermission("update");
     }
 
+    public function checkComposerInstalledAction()
+    {
+        $this->_helper->json([
+            "success" => Update::isComposerAvailable()
+        ]);
+    }
+
     public function checkFilePermissionsAction()
     {
-        $success = false;
-        if (Update::isWriteable()) {
-            $success = true;
-        }
-
-        $this->_helper->json(array(
-            "success" => $success
-        ));
+        $this->_helper->json([
+            "success" => Update::isWriteable()
+        ]);
     }
-    
+
     public function getAvailableUpdatesAction()
     {
         $availableUpdates = Update::getAvailableUpdates();
         $this->_helper->json($availableUpdates);
     }
-    
+
     public function getJobsAction()
     {
         $jobs = Update::getJobs($this->getParam("toRevision"));
-        
+
         $this->_helper->json($jobs);
     }
-    
+
     public function jobParallelAction()
     {
         if ($this->getParam("type") == "download") {
             Update::downloadData($this->getParam("revision"), $this->getParam("url"));
         }
-        
-        $this->_helper->json(array("success" => true));
+
+        $this->_helper->json(["success" => true]);
     }
-    
+
     public function jobProceduralAction()
     {
-        $status = array("success" => true);
-        
+        $status = ["success" => true];
+
         if ($this->getParam("type") == "files") {
             Update::installData($this->getParam("revision"));
         } elseif ($this->getParam("type") == "clearcache") {
@@ -73,6 +75,8 @@ class Update_IndexController extends \Pimcore\Controller\Action\Admin
             $status = Update::executeScript($this->getParam("revision"), "postupdate");
         } elseif ($this->getParam("type") == "cleanup") {
             Update::cleanup();
+        } elseif ($this->getParam("type") == "composer-dump-autoload") {
+            $status = Update::composerDumpAutoload();
         }
 
         // we use pure PHP here, otherwise this can cause issues with dependencies that changed during the update

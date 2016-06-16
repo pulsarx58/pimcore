@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Tool;
@@ -23,7 +25,7 @@ class Less
      */
     public static function processHtml($body)
     {
-        $processedPaths = array();
+        $processedPaths = [];
 
         preg_match_all("@\<link[^>]*(rel=\"stylesheet/less\")[^>]*\>@msUi", $body, $matches);
 
@@ -144,7 +146,7 @@ class Less
 
         // use the original less compiler if configured
         if ($conf->outputfilters->lesscpath) {
-            $output = array();
+            $output = [];
             exec($conf->outputfilters->lesscpath . " " . $path, $output);
             $compiledContent = implode(" ", $output);
 
@@ -226,7 +228,7 @@ class Less
         $abs = "$path/$rel";
 
         /* replace '//' or '/./' or '/foo/../' with '/' */
-        $re = array('#(/\.?/)#', '#/(?!\.\.)[^/]+/\.\./#');
+        $re = ['#(/\.?/)#', '#/(?!\.\.)[^/]+/\.\./#'];
         for ($n=1; $n>0; $abs=preg_replace($re, '/', $abs, -1, $n)) {
         }
 

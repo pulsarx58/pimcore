@@ -9,7 +9,12 @@ foreach($files as $fileName) {
         $phpFile = \Pimcore\Config::locateConfigFile($fileName . ".php");
 
         try {
-            $config = new \Zend_Config_Xml($xmlFile);
+            try {
+                $config = new \Zend_Config_Xml($xmlFile);
+            } catch(\Exception $e) {
+                continue;
+            }
+
             $contents = $config->toArray();
 
             if(!is_writable(dirname($phpFile))) {
@@ -27,6 +32,10 @@ foreach($files as $fileName) {
                 $contents = [
                     "views" => $cvData
                 ];
+            }
+
+            if(!$contents) {
+                throw new \Exception("Something went wrong during the migration of " . $xmlFile . " to " . $phpFile . " - Please check the contents of the XML and try it again");
             }
 
             $contents = var_export_pretty($contents);

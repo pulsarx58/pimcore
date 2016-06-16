@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Staticroute
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Staticroute;
@@ -66,11 +68,13 @@ class Dao extends Model\Dao\PhpArrayTable
                     return true;
                 }
             }
+
             return false;
         }, function ($a, $b) {
             if ($a["siteId"] == $b["siteId"]) {
                 return 0;
             }
+
             return ($a["siteId"] < $b["siteId"]) ? 1 : -1;
         });
 
@@ -95,8 +99,8 @@ class Dao extends Model\Dao\PhpArrayTable
         try {
             $dataRaw = get_object_vars($this->model);
             $data = [];
-            $allowedProperties = ["id","name","pattern","reverse","module","controller",
-                "action","variables","defaults","siteId","priority","creationDate","modificationDate"];
+            $allowedProperties = ["id", "name", "pattern", "reverse", "module", "controller",
+                "action", "variables", "defaults", "siteId", "priority", "creationDate", "modificationDate"];
 
             foreach ($dataRaw as $key => $value) {
                 if (in_array($key, $allowedProperties)) {

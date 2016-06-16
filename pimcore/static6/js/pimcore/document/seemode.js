@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.document.seemode");
@@ -30,7 +32,6 @@ pimcore.document.seemode = Class.create({
         }
 
         this.setIframeSrc(path);
-        window.setTimeout(this.resizeIframe.bind(this), 1000);
     },
 
     createWindow: function () {
@@ -44,7 +45,7 @@ pimcore.document.seemode = Class.create({
             closeAction:'hide',
             plain: true,
             bodyCls: "pimcore_overflow_scrolling",
-            html: '<iframe id="pimcore_seemode" name="pimcore_seemode" src="about:blank" frameborder="0" '
+            html: '<iframe id="pimcore_seemode" name="pimcore_seemode" src="about:blank" frameborder="0" style="width: 100%;" '
                         + 'allowtransparency="false"></iframe>',
             maximized: true,
             buttons: [
@@ -55,24 +56,15 @@ pimcore.document.seemode = Class.create({
                 }
             ]
         });
-        this.window.on("resize", this.onWindowResize.bind(this));
+        this.window.on("resize", this.setLayoutFrameDimensions.bind(this));
 
         pimcore.viewport.add(this.window);
     },
 
-    onWindowResize: function () {
-
-        this.resizeIframe();
-    },
-
-    resizeIframe: function () {
-
-        var width = Ext.getBody().getWidth();
-        var height = Ext.getBody().getHeight();
+    setLayoutFrameDimensions: function (el, width, height, rWidth, rHeight) {
 
         Ext.get("pimcore_seemode").setStyle({
-            width: width + "px",
-            height: height + "px",
+            height: (height-94) + "px",
             backgroundColor: "#fff"
         });
     },

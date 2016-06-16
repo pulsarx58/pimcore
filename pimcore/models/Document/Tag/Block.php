@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document\Tag;
@@ -24,7 +26,7 @@ class Block extends Model\Document\Tag
      *
      * @var array
      */
-    public $indices = array();
+    public $indices = [];
 
     /**
      * Current step of the block while iteration
@@ -36,7 +38,7 @@ class Block extends Model\Document\Tag
     /**
      * @var string[]
      */
-    public $suffixes = array();
+    public $suffixes = [];
 
     /**
      * @see Document\Tag\TagInterface::getType
@@ -81,6 +83,7 @@ class Block extends Model\Document\Tag
     public function setDataFromResource($data)
     {
         $this->indices = \Pimcore\Tool\Serialize::unserialize($data);
+
         return $this;
     }
 
@@ -92,6 +95,7 @@ class Block extends Model\Document\Tag
     public function setDataFromEditmode($data)
     {
         $this->indices = $data;
+
         return $this;
     }
 
@@ -105,6 +109,7 @@ class Block extends Model\Document\Tag
                 $this->indices[$i] = $i + 1;
             }
         }
+
         return $this;
     }
 
@@ -137,11 +142,13 @@ class Block extends Model\Document\Tag
                 $this->blockConstruct();
                 $this->blockStart();
             }
+
             return true;
         } else {
             if (!$manual) {
                 $this->end();
             }
+
             return false;
         }
     }
@@ -173,14 +180,14 @@ class Block extends Model\Document\Tag
             $data = $this->getData();
         }
 
-        $options = array(
+        $options = [
             "options" => $this->getOptions(),
             "data" => $data,
             "name" => $this->getName(),
             "id" => "pimcore_editable_" . $this->getName(),
             "type" => $this->getType(),
             "inherited" => $this->getInherited()
-        );
+        ];
         $options = @\Zend_Json::encode($options);
         //$options = base64_encode($options);
 
@@ -294,19 +301,19 @@ class Block extends Model\Document\Tag
         if (\Zend_Registry::isRegistered("pimcore_tag_block_current")) {
             $current = \Zend_Registry::get("pimcore_tag_block_current");
             if (!is_array($current)) {
-                $current = array();
+                $current = [];
             }
         } else {
-            $current = array();
+            $current = [];
         }
 
         if (\Zend_Registry::isRegistered("pimcore_tag_block_numeration")) {
             $numeration = \Zend_Registry::get("pimcore_tag_block_numeration");
             if (!is_array($numeration)) {
-                $numeration = array();
+                $numeration = [];
             }
         } else {
-            $numeration = array();
+            $numeration = [];
         }
 
         \Zend_Registry::set("pimcore_tag_block_numeration", $numeration);
@@ -324,6 +331,7 @@ class Block extends Model\Document\Tag
         }
 
         $this->options = $options;
+
         return $this;
     }
 
@@ -381,7 +389,7 @@ class Block extends Model\Document\Tag
      * @param null $idMapper
      * @throws \Exception
      */
-    public function getFromWebserviceImport($wsElement, $document = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($wsElement, $document = null, $params = [], $idMapper = null)
     {
         $data = $wsElement->value;
         if (($data->indices === null or is_array($data->indices)) and ($data->current==null or is_numeric($data->current))) {
@@ -403,7 +411,7 @@ class Block extends Model\Document\Tag
         $suffixes = (array)$this->suffixes;
         $suffixes[] = $this->getName();
 
-        $list = array();
+        $list = [];
         foreach ($this->getData() as $index) {
             $list[] = new Block\Item($doc, $index, $suffixes);
         }

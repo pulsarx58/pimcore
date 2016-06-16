@@ -1,13 +1,15 @@
-<?php 
+<?php
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Controller\Plugin;
@@ -32,12 +34,12 @@ class Targeting extends \Zend_Controller_Plugin_Abstract
     /**
      * @var array
      */
-    protected $events = array();
+    protected $events = [];
 
     /**
      * @var array
      */
-    protected $personas = array();
+    protected $personas = [];
 
 
     /**
@@ -46,7 +48,7 @@ class Targeting extends \Zend_Controller_Plugin_Abstract
      */
     public function addEvent($key, $value)
     {
-        $this->events[] = array("key" => $key, "value" => $value);
+        $this->events[] = ["key" => $key, "value" => $value];
     }
 
     /**
@@ -84,6 +86,7 @@ class Targeting extends \Zend_Controller_Plugin_Abstract
     public function enable()
     {
         $this->enabled = true;
+
         return $this;
     }
 
@@ -93,6 +96,7 @@ class Targeting extends \Zend_Controller_Plugin_Abstract
     public function disable()
     {
         $this->enabled = false;
+
         return $this;
     }
 
@@ -106,12 +110,12 @@ class Targeting extends \Zend_Controller_Plugin_Abstract
         }
 
         if ($this->enabled) {
-            $targets = array();
-            $personas = array();
-            $dataPush = array(
+            $targets = [];
+            $personas = [];
+            $dataPush = [
                 "personas" => $this->personas,
                 "method" => strtolower($this->getRequest()->getMethod())
-            );
+            ];
 
             if (count($this->events) > 0) {
                 $dataPush["events"] = $this->events;
@@ -134,7 +138,7 @@ class Targeting extends \Zend_Controller_Plugin_Abstract
                 }
 
                 // check for persona specific variants of this page
-                $personaVariants = array();
+                $personaVariants = [];
                 foreach ($this->document->getElements() as $key => $tag) {
                     if (preg_match("/^persona_-([0-9]+)-_/", $key, $matches)) {
                         $id = (int) $matches[1];
@@ -152,7 +156,7 @@ class Targeting extends \Zend_Controller_Plugin_Abstract
 
             // no duplicates
             $dataPush["personas"] = array_unique($dataPush["personas"]);
-            $activePersonas = array();
+            $activePersonas = [];
             foreach ($dataPush["personas"] as $id) {
                 if (Model\Tool\Targeting\Persona::isIdActive($id)) {
                     $activePersonas[] = $id;
@@ -169,8 +173,8 @@ class Targeting extends \Zend_Controller_Plugin_Abstract
                 foreach ($list->load() as $target) {
                     $redirectUrl = $target->getActions()->getRedirectUrl();
                     if (is_numeric($redirectUrl)) {
-                        $doc = \Document::getById($redirectUrl);
-                        if ($doc instanceof \Document) {
+                        $doc = Document::getById($redirectUrl);
+                        if ($doc instanceof Document) {
                             $target->getActions()->redirectUrl = $doc->getFullPath();
                         }
                     }
@@ -235,6 +239,7 @@ class Targeting extends \Zend_Controller_Plugin_Abstract
                 }
             }
         }
+
         return false;
     }
 }

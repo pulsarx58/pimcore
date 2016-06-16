@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.object.tags.wysiwyg");
@@ -55,9 +57,14 @@ pimcore.object.tags.wysiwyg = Class.create(pimcore.object.tags.abstract, {
 
     getLayout: function () {
 
+        var iconCls = null;
+        if(this.fieldConfig.noteditable == false) {
+            iconCls = "pimcore_icon_droptarget";
+        }
+
         var html = '<div class="pimcore_tag_wysiwyg" id="' + this.editableDivId + '" contenteditable="true">' + this.data + '</div>';
         var pConf = {
-            iconCls: "pimcore_icon_droptarget",
+            iconCls: iconCls,
             title: this.fieldConfig.title,
             html: html,
             border: true,
@@ -86,6 +93,7 @@ pimcore.object.tags.wysiwyg = Class.create(pimcore.object.tags.abstract, {
         this.component.on("afterrender", function() {
             Ext.get(this.editableDivId).dom.setAttribute("contenteditable", "false");
         }.bind(this));
+        this.component.disable();
         return this.component;
     },
 
@@ -175,12 +183,6 @@ pimcore.object.tags.wysiwyg = Class.create(pimcore.object.tags.abstract, {
                     urlField.getParent().getParent().getParent().show();
                 }
             });
-
-            // HACK - clean all pasted html
-            this.ckeditor.on('paste', function(evt) {
-                evt.data.dataValue = '<!--class="Mso"-->' + evt.data.dataValue;
-            }, null, null, 1);
-
         } catch (e) {
             console.log(e);
         }

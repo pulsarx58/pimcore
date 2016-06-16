@@ -1,13 +1,15 @@
-<?php 
+<?php
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Image;
@@ -31,27 +33,10 @@ class HtmlToImage
      */
     public static function getWkhtmltoimageBinary()
     {
-        if (Config::getSystemConfig()->documents->wkhtmltoimage) {
-            if (@is_executable(Config::getSystemConfig()->documents->wkhtmltoimage)) {
-                return (string) Config::getSystemConfig()->documents->wkhtmltoimage;
-            } else {
-                \Logger::critical("wkhtmltoimage binary: " . Config::getSystemConfig()->documents->wkhtmltoimage . " is not executable");
-            }
-        }
-
-        $paths = array(
-            "/usr/bin/wkhtmltoimage-amd64",
-            "/usr/local/bin/wkhtmltoimage-amd64",
-            "/bin/wkhtmltoimage-amd64",
-            "/usr/bin/wkhtmltoimage",
-            "/usr/local/bin/wkhtmltoimage",
-            "/bin/wkhtmltoimage",
-            realpath(PIMCORE_DOCUMENT_ROOT . "/../wkhtmltox/wkhtmltoimage.exe") // for windows sample package (XAMPP)
-        );
-
-        foreach ($paths as $path) {
-            if (@is_executable($path)) {
-                return $path;
+        foreach (["wkhtmltoimage", "wkhtmltoimage-amd64"] as $app) {
+            $wk2img = \Pimcore\Tool\Console::getExecutable($app);
+            if ($wk2img) {
+                return $wk2img;
             }
         }
 
@@ -63,15 +48,7 @@ class HtmlToImage
      */
     public static function getXvfbBinary()
     {
-        $paths = array("/usr/bin/xvfb-run","/usr/local/bin/xvfb-run","/bin/xvfb-run");
-
-        foreach ($paths as $path) {
-            if (@is_executable($path)) {
-                return $path;
-            }
-        }
-
-        return false;
+        return \Pimcore\Tool\Console::getExecutable("xvfb-run");
     }
 
     /**
@@ -103,6 +80,7 @@ class HtmlToImage
         if (file_exists($outputFile) && filesize($outputFile) > 1000) {
             return true;
         }
+
         return false;
     }
 }

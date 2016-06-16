@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 
@@ -42,9 +44,6 @@ if (typeof console == "undefined") {
     };
 }
 
-var layoutDocumentTree = null;
-var layoutAssetTree = null;
-var layoutObjectTree = null;
 var xhrActive = 0; // number of active xhr requests
 
 Ext.Loader.setConfig({
@@ -169,6 +168,7 @@ Ext.onReady(function () {
     };
 
     Ext.QuickTips.init();
+    Ext.MessageBox.minPromptWidth = 500;
 
     Ext.Ajax.setDisableCaching(true);
     Ext.Ajax.setTimeout(900000);
@@ -318,9 +318,9 @@ Ext.onReady(function () {
     });
 
     pimcore.globalmanager.add("document_types_store", store);
-    pimcore.globalmanager.add("document_documenttype_store", ["page","snippet","email"]);
+    pimcore.globalmanager.add("document_documenttype_store", ["page","snippet","email","printpage","printcontainer"]);
 
-    //tranlsation admin keys
+    //translation admin keys
     pimcore.globalmanager.add("translations_admin_missing", new Array());
     pimcore.globalmanager.add("translations_admin_added", new Array());
     pimcore.globalmanager.add("translations_admin_translated_values", new Array());
@@ -377,6 +377,8 @@ Ext.onReady(function () {
     storeoc.load();
 
     pimcore.globalmanager.add("object_types_store_create", storeoc);
+
+    pimcore.globalmanager.add("perspective", new pimcore.perspective(pimcore.settings.perspective));
 
     // current user
     pimcore.globalmanager.add("user", new pimcore.user(pimcore.currentuser));
@@ -509,6 +511,7 @@ Ext.onReady(function () {
                                 layoutConfig:{
                                     animate:false
                                 },
+                                hidden: true,
                                 forceLayout:true,
                                 hideMode:"offsets",
                                 items:[]
@@ -527,6 +530,7 @@ Ext.onReady(function () {
                                     Ext.create('Ext.ux.TabCloseMenu', {
                                         pluginId: 'tabclosemenu',
                                         showCloseAll: false,
+                                        closeTabText: t("close_tab"),
                                         showCloseOthers: false,
                                         extraItemsTail: pimcore.helpers.getMainTabMenuItems()
                                     }),
@@ -558,24 +562,12 @@ Ext.onReady(function () {
                 }
             ],
             listeners:{
-                "afterrender":function () {
+                "afterrender":function (el) {
                     Ext.get("pimcore_navigation").show();
                     Ext.get("pimcore_avatar").show();
                     Ext.get("pimcore_logout").show();
 
-                    $("[data-menu-tooltip]").mouseenter(function (e) {
-                        $("#pimcore_menu_tooltip").show();
-                        $("#pimcore_menu_tooltip").html($(this).data("menu-tooltip"));
-
-                        var offset = $(e.target).offset();
-                        var top = offset.top;
-                        top = top + ($(e.target).height() / 2);
-
-                        $("#pimcore_menu_tooltip").css({top: top});
-                    });
-                    $("[data-menu-tooltip]").mouseleave(function () {
-                        $("#pimcore_menu_tooltip").hide();
-                    });
+                    pimcore.helpers.initMenuTooltips();
 
                     var loadMask = new Ext.LoadMask(
                         {
@@ -584,6 +576,16 @@ Ext.onReady(function () {
                         });
                     loadMask.enable();
                     pimcore.globalmanager.add("loadingmask", loadMask);
+
+
+                    // prevent dropping files / folder outside the asset tree
+                    var fn = function (e) {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'none';
+                    };
+
+                    el.getEl().dom.addEventListener("dragenter", fn, true);
+                    el.getEl().dom.addEventListener("dragover", fn, true);
                 }
             }
         });
@@ -600,46 +602,74 @@ Ext.onReady(function () {
         }
 
 
-        var treepanel = Ext.getCmp("pimcore_panel_tree_left");
+        var perspective = pimcore.globalmanager.get("perspective");
+        var elementTree = perspective.getElementTree();
 
-        //TODO comment in again
-        if (user.isAllowed("documents")) {
-            layoutDocumentTree = new pimcore.document.tree();
-            pimcore.globalmanager.add("layout_document_tree", layoutDocumentTree);
-        }
-        if (user.isAllowed("assets")) {
-            layoutAssetTree = new pimcore.asset.tree();
-            pimcore.globalmanager.add("layout_asset_tree", layoutAssetTree);
-        }
-        if (user.isAllowed("objects")) {
-            layoutObjectTree = new pimcore.object.tree();
-            pimcore.globalmanager.add("layout_object_tree", layoutObjectTree);
+        for(var i = 0; i < elementTree.length; i++) {
 
-            // add custom views
-            if (pimcore.settings.customviews) {
-                if (pimcore.settings.customviews.length > 0) {
-                    var cv;
-                    var cvTree;
-                    for (var cvs = 0; cvs < pimcore.settings.customviews.length; cvs++) {
-                        cv = pimcore.settings.customviews[cvs];
+            var treeConfig = elementTree[i];
+            var type = treeConfig["type"];
+            var side = treeConfig["position"] ? treeConfig["position"] : "left";
+            var expanded = treeConfig["expanded"];
+            var treepanel = null;
+            var tree = null;
 
-                        cvTree = new pimcore.object.customviews.tree({
-                            allowedClasses:cv.allowedClasses,
-                            rootId:cv.rootId,
-                            rootVisible:cv.showroot,
-                            treeId:"pimcore_panel_tree_customviews_" + cv.id,
-                            treeIconCls:"pimcore_object_customviews_icon_" + cv.id,
-                            treeTitle:ts(cv.name),
-                            parentPanel:Ext.getCmp("pimcore_panel_tree_left"),
-                            index:(cvs + 10),
-                            loaderBaseParams:{}
-                        });
-                        pimcore.globalmanager.add("layout_customviews_tree" + cv.id, cvTree);
+            switch (type) {
+                case "documents":
+                    if (user.isAllowed("documents") && !treeConfig.hidden) {
+                        tree = new pimcore.document.tree(null, treeConfig);
+                        pimcore.globalmanager.add("layout_document_tree", tree);
+                        treepanel = Ext.getCmp("pimcore_panel_tree_" + side);
+                        treepanel.setHidden(false);
                     }
-                }
+                    break;
+                case "assets":
+                    if (user.isAllowed("assets") && !treeConfig.hidden) {
+                        tree = new pimcore.asset.tree(null, treeConfig);
+                        pimcore.globalmanager.add("layout_asset_tree", tree);
+                        treepanel = Ext.getCmp("pimcore_panel_tree_" + side);
+                        treepanel.setHidden(false);
+                    }
+                    break;
+                case "objects":
+                    if (user.isAllowed("objects")) {
+                        if (!treeConfig.hidden) {
+                            treepanel = Ext.getCmp("pimcore_panel_tree_" + side);
+                            tree = new pimcore.object.tree(null, treeConfig);
+                            pimcore.globalmanager.add("layout_object_tree", tree);
+                            treepanel.setHidden(false);
+                        }
+                    }
+                    break;
+                case "customview":
+                    if (!treeConfig.hidden) {
+                        var treetype = treeConfig.treetype ? treeConfig.treetype : "object";
+                        if (user.isAllowed(treetype + "s")) {
+                            treepanel = Ext.getCmp("pimcore_panel_tree_" + side);
+
+                            var treepanel = Ext.getCmp("pimcore_panel_tree_" + side);
+                            var treeCls = window.pimcore[treetype].customviews.tree;
+
+                            tree = new treeCls({
+                                isCustomView: true,
+                                customViewId: treeConfig.id,
+                                allowedClasses: treeConfig.allowedClasses,
+                                rootId: treeConfig.rootId,
+                                rootVisible: treeConfig.showroot,
+                                treeId: "pimcore_panel_tree_" + treetype + "_" + treeConfig.id,
+                                treeIconCls: "pimcore_" + treetype + "_customview_icon_" + treeConfig.id,
+                                treeTitle: ts(treeConfig.name),
+                                parentPanel: treepanel,
+                                loaderBaseParams: {}
+                            }, treeConfig);
+                            pimcore.globalmanager.add("layout_" + treetype + "_tree_" + treeConfig.id, tree);
+
+                            treepanel.setHidden(false);
+                        }
+                    }
+                    break;
             }
         }
-
     }
     catch (e) {
         console.log(e);
@@ -658,7 +688,7 @@ Ext.onReady(function () {
     if (user.isAllowed("dashboards") && pimcore.globalmanager.get("user").welcomescreen) {
         window.setTimeout(function () {
             layoutPortal = new pimcore.layout.portal();
-            pimcore.globalmanager.add("layout_portal", layoutPortal);
+            pimcore.globalmanager.add("layout_portal_welcome", layoutPortal);
         }, 1000);
     }
 
@@ -694,10 +724,9 @@ pimcore["intervals"]["translations_admin_missing"] = window.setInterval(function
 
 // session renew
 pimcore["intervals"]["ping"] = window.setInterval(function () {
-
     Ext.Ajax.request({
-        url:"/admin/misc/ping",
-        success:function (response) {
+        url: "/admin/misc/ping",
+        success: function (response) {
 
             var data;
 
@@ -725,15 +754,14 @@ pimcore["intervals"]["ping"] = window.setInterval(function () {
                 // here comes the check for maintenance mode, ...
             }
         },
-        failure:function (response) {
+        failure: function (response) {
             if (response.status != 503) {
                 pimcore.settings.showCloseConfirmation = false;
                 window.location.href = "/admin/login/?session_expired=true&server_error=true";
             }
         }
     });
-}, 60000);
-
+}, (pimcore.settings.session_gc_maxlifetime-60)*1000);
 
 // refreshes the layout
 pimcore.registerNS("pimcore.layout.refresh");
@@ -744,7 +772,6 @@ pimcore.layout.refresh = function () {
     catch (e) {
     }
 };
-
 
 // garbage collector
 pimcore.helpers.unload = function () {

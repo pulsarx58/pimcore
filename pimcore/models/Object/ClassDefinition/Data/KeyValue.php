@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\ClassDefinition\Data;
@@ -129,7 +131,7 @@ class KeyValue extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return void
      */
-    public function classSaved($class, $params = array())
+    public function classSaved($class, $params = [])
     {
         // iterate over fieldDefinitions array and check if there is an item of type
         // object_Class_Data_KeyValue
@@ -152,7 +154,7 @@ class KeyValue extends Model\Object\ClassDefinition\Data
      * @param $object
      * @param array $params
      */
-    public function save($object, $params = array())
+    public function save($object, $params = [])
     {
         $pairs = $this->getDataFromObjectParam($object);
 
@@ -194,6 +196,7 @@ class KeyValue extends Model\Object\ClassDefinition\Data
     public function setKeyWidth($width)
     {
         $this->keyWidth = $this->getAsIntegerCast($width);
+
         return $this;
     }
 
@@ -204,6 +207,7 @@ class KeyValue extends Model\Object\ClassDefinition\Data
     public function setGroupWidth($width)
     {
         $this->groupWidth = $this->getAsIntegerCast($width);
+
         return $this;
     }
 
@@ -214,6 +218,7 @@ class KeyValue extends Model\Object\ClassDefinition\Data
     public function setGroupDescWidth($width)
     {
         $this->groupDescWidth = $this->getAsIntegerCast($width);
+
         return $this;
     }
 
@@ -224,6 +229,7 @@ class KeyValue extends Model\Object\ClassDefinition\Data
     public function setDescWidth($width)
     {
         $this->descWidth = $this->getAsIntegerCast($width);
+
         return $this;
     }
 
@@ -234,6 +240,7 @@ class KeyValue extends Model\Object\ClassDefinition\Data
     public function setUnitWidth($width)
     {
         $this->unitWidth = $this->getAsIntegerCast($width);
+
         return $this;
     }
 
@@ -252,6 +259,7 @@ class KeyValue extends Model\Object\ClassDefinition\Data
     public function setMaxheight($maxheight)
     {
         $this->maxheight = $this->getAsIntegerCast($maxheight);
+
         return $this;
     }
 
@@ -286,6 +294,7 @@ class KeyValue extends Model\Object\ClassDefinition\Data
     public function setValueWidth($width)
     {
         $this->valueWidth = $this->getAsIntegerCast($width);
+
         return $this;
     }
 
@@ -294,7 +303,7 @@ class KeyValue extends Model\Object\ClassDefinition\Data
      * @param array $params
      * @return Object\Data\KeyValue
      */
-    public function load($object, $params = array())
+    public function load($object, $params = [])
     {
         $pairs = new Object\Data\KeyValue();
         $pairs->setClass($object->getClass());
@@ -326,9 +335,9 @@ class KeyValue extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return tbd
      */
-    public function getDataForEditmode($data, $object = null, $params = array())
+    public function getDataForEditmode($data, $object = null, $params = [])
     {
-        $result = array();
+        $result = [];
         if (!$data) {
             return $result;
         }
@@ -355,6 +364,7 @@ class KeyValue extends Model\Object\ClassDefinition\Data
             $property["mandatory"] = $keyConfig->getMandatory();
             $result[] = $property;
         }
+
         return $result;
     }
 
@@ -364,12 +374,12 @@ class KeyValue extends Model\Object\ClassDefinition\Data
      * @return mixed|Object\Data\KeyValue
      * @throws \Exception
      */
-    public function getDataFromEditmode($data, $object = null, $params = array())
+    public function getDataFromEditmode($data, $object = null, $params = [])
     {
         $class = $object->getClass();
         $objectId = $object->getId();
 
-        $pairs = array();
+        $pairs = [];
         foreach ($data as $pair) {
             //            $key = $pair["key"];
             if ($pair["mandatory"]) {
@@ -417,7 +427,7 @@ class KeyValue extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return bool
      */
-    public function isDiffChangeAllowed($object, $params = array())
+    public function isDiffChangeAllowed($object, $params = [])
     {
         return true;
     }
@@ -429,9 +439,9 @@ class KeyValue extends Model\Object\ClassDefinition\Data
      * @return mixed|Object\Data\KeyValue
      * @throws \Exception
      */
-    public function getDiffDataFromEditmode($data, $object = null, $params = array())
+    public function getDiffDataFromEditmode($data, $object = null, $params = [])
     {
-        $result = array();
+        $result = [];
 
         // filter everything out that doesn't exist anymore
         foreach ($data as $pair) {
@@ -440,6 +450,7 @@ class KeyValue extends Model\Object\ClassDefinition\Data
             }
         }
         $dataFromEditMode = $this->getDataFromEditmode($result, $object, $params);
+
         return $dataFromEditMode;
     }
 
@@ -450,19 +461,19 @@ class KeyValue extends Model\Object\ClassDefinition\Data
      * @return array|null
      * @throws \Zend_Json_Exception
      */
-    public function getDiffDataForEditMode($data, $object = null, $params = array())
+    public function getDiffDataForEditMode($data, $object = null, $params = [])
     {
         if (!$data) {
-            return array();
+            return [];
         }
 
         $properties = $data->getProperties();
-        $result = array();
+        $result = [];
 
         foreach ($properties as $key => $property) {
             $key = $property["key"];
 
-            $diffdata = array();
+            $diffdata = [];
             $diffdata["field"] = $this->getName();
             $diffdata["key"] = $this->getName() . "~" . $key;
             $diffdata["type"] = $this->fieldtype;
@@ -512,20 +523,20 @@ class KeyValue extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return mixed
      */
-    public function getForWebserviceExport($object, $params = array())
+    public function getForWebserviceExport($object, $params = [])
     {
         $data = $this->getDataFromObjectParam($object, $params);
         if ($data) {
-            $result = array();
+            $result = [];
             foreach ($data->arr as $item) {
                 $keyConfig = Object\KeyValue\KeyConfig::getById($item["key"]);
                 $keyName = $keyConfig->getName();
-                $resultItem = array(
+                $resultItem = [
                     "id" => $item["key"],
                     "name" => $keyName,
                     "value" => $item["value"],
                     "metadata" => $item["metadata"]
-                );
+                ];
 
                 if ($keyConfig->getType() == "translated") {
                     $resultItem["translated"] = $item["translated"];
@@ -533,6 +544,7 @@ class KeyValue extends Model\Object\ClassDefinition\Data
 
                 $result[] = $resultItem;
             }
+
             return $result;
         }
     }
@@ -545,10 +557,10 @@ class KeyValue extends Model\Object\ClassDefinition\Data
      * @return mixed|Object\Data\KeyValue
      * @throws \Exception
      */
-    public function getFromWebserviceImport($value, $relatedObject = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($value, $relatedObject = null, $params = [], $idMapper = null)
     {
         if ($value) {
-            $pairs = array();
+            $pairs = [];
 
 
             foreach ($value as $property) {
@@ -579,6 +591,7 @@ class KeyValue extends Model\Object\ClassDefinition\Data
             $keyValueData->setProperties($pairs);
             $keyValueData->setClass($relatedObject->getClass());
             $keyValueData->setObjectId($relatedObject->getId());
+
             return ($keyValueData);
         }
     }

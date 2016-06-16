@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Asset
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Asset;
@@ -48,7 +50,7 @@ class Service extends Model\Element\Service
 
         // avoid recursion
         if (!$this->_copyRecursiveIds) {
-            $this->_copyRecursiveIds = array();
+            $this->_copyRecursiveIds = [];
         }
         if (in_array($source->getId(), $this->_copyRecursiveIds)) {
             return;
@@ -153,6 +155,7 @@ class Service extends Model\Element\Service
     public static function gridAssetData($asset)
     {
         $data = Element\Service::gridElementData($asset);
+
         return $data;
     }
 
@@ -170,6 +173,7 @@ class Service extends Model\Element\Service
 
             if (\Pimcore\Tool::isValidPath($path)) {
                 $asset->getDao()->getByPath($path);
+
                 return true;
             }
         } catch (\Exception $e) {
@@ -186,6 +190,7 @@ class Service extends Model\Element\Service
     public static function loadAllFields(Element\ElementInterface $element)
     {
         $element->getProperties();
+
         return $element;
     }
 
@@ -226,7 +231,7 @@ class Service extends Model\Element\Service
             return $metadata;
         }
 
-        $result = array();
+        $result = [];
         foreach ($metadata as $item) {
             $type = $item["type"];
             switch ($type) {
@@ -248,6 +253,7 @@ class Service extends Model\Element\Service
             }
             $result[] = $item;
         }
+
         return $result;
     }
 
@@ -261,7 +267,7 @@ class Service extends Model\Element\Service
             return $metadata;
         }
 
-        $result = array();
+        $result = [];
         foreach ($metadata as $item) {
             $type = $item["type"];
             switch ($type) {
@@ -274,7 +280,7 @@ class Service extends Model\Element\Service
                         $element = Element\Service::getElementById($type, $item["data"]);
                     }
                     if ($element instanceof Element\ElementInterface) {
-                        $item["data"] = $element->getFullPath();
+                        $item["data"] = $element->getRealFullPath();
                     } else {
                         $item["data"] = "";
                     }
@@ -293,6 +299,49 @@ class Service extends Model\Element\Service
 
             $result[] = $item;
         }
+
         return $result;
+    }
+
+    /**
+     * @param $item \Pimcore\Model\Asset
+     * @param int $nr
+     * @return string
+     * @throws \Exception
+     */
+    public static function getUniqueKey($item, $nr = 0)
+    {
+        $list = new Listing();
+        $key = \Pimcore\File::getValidFilename($item->getKey());
+        if (!$key) {
+            throw new \Exception("No item key set.");
+        }
+        if ($nr) {
+            if ($item->getType() == 'folder') {
+                $key = $key . '_' . $nr;
+            } else {
+                $keypart  = substr($key, 0, strrpos($key, '.'));
+                $extension = str_replace($keypart, '', $key);
+                $key = $keypart . '_' . $nr . $extension;
+            }
+        }
+
+        $parent = $item->getParent();
+        if (!$parent) {
+            throw new \Exception("You have to set a parent folder to determine a unique Key");
+        }
+
+        if (!$item->getId()) {
+            $list->setCondition('parentId = ? AND `filename` = ? ', [$parent->getId(), $key]);
+        } else {
+            $list->setCondition('parentId = ? AND `filename` = ? AND id != ? ', [$parent->getId(), $key, $item->getId()]);
+        }
+        $check = $list->loadIdList();
+        if (!empty($check)) {
+            $nr++;
+            $key = self::getUniqueKey($item, $nr);
+        }
+
+        return $key;
     }
 }

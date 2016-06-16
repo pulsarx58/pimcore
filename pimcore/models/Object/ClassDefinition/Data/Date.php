@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\ClassDefinition\Data;
@@ -46,7 +48,7 @@ class Date extends Model\Object\ClassDefinition\Data
      *
      * @var string
      */
-    public $phpdocType = "\\Pimcore\\Date";
+    public $phpdocType = "\\Carbon\\Carbon";
 
 
     /**
@@ -67,7 +69,7 @@ class Date extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return integer
      */
-    public function getDataForResource($data, $object = null, $params = array())
+    public function getDataForResource($data, $object = null, $params = [])
     {
         if ($data) {
             return $data->getTimestamp();
@@ -81,11 +83,12 @@ class Date extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return \Zend_Date|\DateTime
      */
-    public function getDataFromResource($data, $object = null, $params = array())
+    public function getDataFromResource($data, $object = null, $params = [])
     {
         if ($data) {
             return $this->getDateFromTimestamp($data);
         }
+
         return null;
     }
 
@@ -96,7 +99,7 @@ class Date extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return integer
      */
-    public function getDataForQueryResource($data, $object = null, $params = array())
+    public function getDataForQueryResource($data, $object = null, $params = [])
     {
         if ($data) {
             return $data->getTimestamp();
@@ -110,7 +113,7 @@ class Date extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataForEditmode($data, $object = null, $params = array())
+    public function getDataForEditmode($data, $object = null, $params = [])
     {
         if ($data) {
             return $data->getTimestamp();
@@ -126,7 +129,7 @@ class Date extends Model\Object\ClassDefinition\Data
         if (\Pimcore\Config::getFlag("useZendDate")) {
             $date = new \Pimcore\Date($timestamp);
         } else {
-            $date = new \DateTime();
+            $date = new \Carbon\Carbon();
             $date->setTimestamp($timestamp);
         }
 
@@ -140,11 +143,12 @@ class Date extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return \Zend_Date|\DateTime
      */
-    public function getDataFromEditmode($data, $object = null, $params = array())
+    public function getDataFromEditmode($data, $object = null, $params = [])
     {
         if ($data) {
             return $this->getDateFromTimestamp($data / 1000);
         }
+
         return false;
     }
 
@@ -154,7 +158,7 @@ class Date extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return int|null|string
      */
-    public function getDataForGrid($data, $object = null, $params = array())
+    public function getDataForGrid($data, $object = null, $params = [])
     {
         if ($data) {
             return $data->getTimestamp();
@@ -170,7 +174,7 @@ class Date extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getVersionPreview($data, $object = null, $params = array())
+    public function getVersionPreview($data, $object = null, $params = [])
     {
         if ($data instanceof \Zend_Date) {
             return $data->get(\Zend_Date::DATE_MEDIUM);
@@ -205,6 +209,7 @@ class Date extends Model\Object\ClassDefinition\Data
                 $this->defaultValue = strtotime($defaultValue);
             }
         }
+
         return $this;
     }
 
@@ -216,14 +221,15 @@ class Date extends Model\Object\ClassDefinition\Data
      * @param array $params
      * @return string
      */
-    public function getForCsvExport($object, $params = array())
+    public function getForCsvExport($object, $params = [])
     {
-        $data = $this->getDataFromObjectParam($object);
+        $data = $this->getDataFromObjectParam($object, $params);
         if ($data instanceof \Zend_Date) {
             return $data->toString("Y-m-d", "php");
         } elseif ($data instanceof \DateTime) {
             return $data->format("Y-m-d");
         }
+
         return null;
     }
 
@@ -233,7 +239,7 @@ class Date extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return null|\Pimcore\Date|Object\ClassDefinition\Data
      */
-    public function getFromCsvImport($importValue, $object = null, $params = array())
+    public function getFromCsvImport($importValue, $object = null, $params = [])
     {
         $timestamp = strtotime($importValue);
         if ($timestamp) {
@@ -249,7 +255,7 @@ class Date extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return mixed
      */
-    public function getForWebserviceExport($object, $params = array())
+    public function getForWebserviceExport($object, $params = [])
     {
         return $this->getForCsvExport($object, $params);
     }
@@ -262,7 +268,7 @@ class Date extends Model\Object\ClassDefinition\Data
      * @return mixed|void
      * @throws \Exception
      */
-    public function getFromWebserviceImport($value, $object = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($value, $object = null, $params = [], $idMapper = null)
     {
         $timestamp = strtotime($value);
         if (empty($value)) {
@@ -281,6 +287,7 @@ class Date extends Model\Object\ClassDefinition\Data
     public function setUseCurrentDate($useCurrentDate)
     {
         $this->useCurrentDate = (bool)$useCurrentDate;
+
         return $this;
     }
 
@@ -289,7 +296,7 @@ class Date extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return bool
      */
-    public function isDiffChangeAllowed($object, $params = array())
+    public function isDiffChangeAllowed($object, $params = [])
     {
         return true;
     }
@@ -300,7 +307,7 @@ class Date extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return null|\Pimcore\Date
      */
-    public function getDiffDataFromEditmode($data, $object = null, $params = array())
+    public function getDiffDataFromEditmode($data, $object = null, $params = [])
     {
         $thedata = $data[0]["data"];
         if ($thedata) {
@@ -316,15 +323,15 @@ class Date extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return array|null
      */
-    public function getDiffDataForEditMode($data, $object = null, $params = array())
+    public function getDiffDataForEditMode($data, $object = null, $params = [])
     {
-        $result = array();
+        $result = [];
 
         $thedata = null;
         if ($data) {
             $thedata = $data->getTimestamp();
         };
-        $diffdata = array();
+        $diffdata = [];
         $diffdata["field"] = $this->getName();
         $diffdata["key"] = $this->getName();
         $diffdata["type"] = $this->fieldtype;

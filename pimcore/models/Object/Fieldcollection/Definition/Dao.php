@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object\Fieldcollection
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Fieldcollection\Definition;
@@ -19,6 +21,7 @@ use Pimcore\Model\Object;
 
 class Dao extends Model\Dao\AbstractDao
 {
+    use Object\ClassDefinition\Helper\Dao;
 
     /**
      * @var null
@@ -53,7 +56,7 @@ class Dao extends Model\Dao\AbstractDao
         $this->db->query("CREATE TABLE IF NOT EXISTS `" . $table . "` (
 		  `o_id` int(11) NOT NULL default '0',
 		  `index` int(11) default '0',
-          `fieldname` varchar(255) default NULL,
+          `fieldname` varchar(255) default '',
           PRIMARY KEY (`o_id`,`index`,`fieldname`(255)),
           INDEX `o_id` (`o_id`),
           INDEX `index` (`index`),
@@ -62,9 +65,9 @@ class Dao extends Model\Dao\AbstractDao
 
         $existingColumns = $this->getValidTableColumns($table, false); // no caching of table definition
         $columnsToRemove = $existingColumns;
-        $protectedColums = array("o_id", "index","fieldname");
+        $protectedColums = ["o_id", "index", "fieldname"];
 
-        Object\ClassDefinition\Service::updateTableDefinitions($this->tableDefinitions, (array($table)));
+        Object\ClassDefinition\Service::updateTableDefinitions($this->tableDefinitions, ([$table]));
 
         foreach ($this->model->getFieldDefinitions() as $value) {
             $key = $value->getName();
@@ -87,106 +90,16 @@ class Dao extends Model\Dao\AbstractDao
 
             if ($value instanceof  Object\ClassDefinition\Data\Localizedfields) {
                 $value->classSaved($class,
-                    array(
-                        "context" => array(
+                    [
+                        "context" => [
                             "containerType" => "fieldcollection",
                             "containerKey" => $this->model->getKey()
-                        )
-                    ));
+                        ]
+                    ]);
             }
         }
 
         $this->removeUnusedColumns($table, $columnsToRemove, $protectedColums);
         $this->tableDefinitions = null;
-    }
-
-    /**
-     * @param $field
-     * @param $table
-     */
-    protected function addIndexToField($field, $table)
-    {
-        if ($field->getIndex()) {
-            if (is_array($field->getColumnType())) {
-                // multicolumn field
-                foreach ($field->getColumnType() as $fkey => $fvalue) {
-                    $columnName = $field->getName() . "__" . $fkey;
-                    try {
-                        $this->db->query("ALTER TABLE `" . $table . "` ADD INDEX `p_index_" . $columnName . "` (`" . $columnName . "`);");
-                    } catch (\Exception $e) {
-                    }
-                }
-            } else {
-                // single -column field
-                $columnName = $field->getName();
-                try {
-                    $this->db->query("ALTER TABLE `" . $table . "` ADD INDEX `p_index_" . $columnName . "` (`" . $columnName . "`);");
-                } catch (\Exception $e) {
-                }
-            }
-        } else {
-            if (is_array($field->getColumnType())) {
-                // multicolumn field
-                foreach ($field->getColumnType() as $fkey => $fvalue) {
-                    $columnName = $field->getName() . "__" . $fkey;
-                    try {
-                        $this->db->query("ALTER TABLE `" . $table . "` DROP INDEX `p_index_" . $columnName . "`;");
-                    } catch (\Exception $e) {
-                    }
-                }
-            } else {
-                // single -column field
-                $columnName = $field->getName();
-                try {
-                    $this->db->query("ALTER TABLE `" . $table . "` DROP INDEX `p_index_" . $columnName . "`;");
-                } catch (\Exception $e) {
-                }
-            }
-        }
-    }
-
-    /**
-     * @param $table
-     * @param $colName
-     * @param $type
-     * @param $default
-     * @param $null
-     */
-    protected function addModifyColumn($table, $colName, $type, $default, $null)
-    {
-        $existingColumns = $this->getValidTableColumns($table, false);
-
-        $existingColName = null;
-
-        // check for existing column case insensitive eg a rename from myInput to myinput
-        $matchingExisting = preg_grep('/^' . preg_quote($colName, '/') . '$/i', $existingColumns);
-        if (is_array($matchingExisting) && !empty($matchingExisting)) {
-            $existingColName = current($matchingExisting);
-        }
-        if ($existingColName === null) {
-            $this->db->query('ALTER TABLE `' . $table . '` ADD COLUMN `' . $colName . '` ' . $type . $default . ' ' . $null . ';');
-            $this->resetValidTableColumnsCache($table);
-        } else {
-            if (!Object\ClassDefinition\Service::skipColumn($this->tableDefinitions, $table, $colName, $type, $default, $null)) {
-                $this->db->query('ALTER TABLE `' . $table . '` CHANGE COLUMN `' . $existingColName . '` `' . $colName . '` ' . $type . $default . ' ' . $null . ';');
-            }
-        }
-    }
-
-    /**
-     * @param $table
-     * @param $columnsToRemove
-     * @param $protectedColumns
-     */
-    protected function removeUnusedColumns($table, $columnsToRemove, $protectedColumns)
-    {
-        if (is_array($columnsToRemove) && count($columnsToRemove) > 0) {
-            foreach ($columnsToRemove as $value) {
-                //if (!in_array($value, $protectedColumns)) {
-                if (!in_array(strtolower($value), array_map('strtolower', $protectedColumns))) {
-                    $this->db->query('ALTER TABLE `' . $table . '` DROP COLUMN `' . $value . '`;');
-                }
-            }
-        }
     }
 }

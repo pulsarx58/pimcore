@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.object.tags.quantityValue");
@@ -107,6 +109,34 @@ pimcore.object.tags.quantityValue = Class.create(pimcore.object.tags.abstract, {
         });
 
         return this.component;
+    },
+
+    getGridColumnConfig:function (field) {
+        var renderer = function (key, value, metaData, record) {
+            this.applyPermissionStyle(key, value, metaData, record);
+
+            if (record.data.inheritedFields[key] && record.data.inheritedFields[key].inherited == true) {
+                try {
+                    metaData.tdCls += " grid_value_inherited";
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+
+            if (value) {
+                return value.value + " " + value.unit;
+            } else {
+                return "";
+            }
+
+        }.bind(this, field.key);
+        
+        return {
+            header:ts(field.label),
+            sortable:true,
+            dataIndex:field.key,
+            renderer:renderer
+        };
     },
 
 

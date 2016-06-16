@@ -2,15 +2,20 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore;
+
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
 
 class Update
 {
@@ -65,15 +70,15 @@ class Update
         self::cleanup();
 
         if (PIMCORE_DEVMODE) {
-            $xmlRaw = Tool::getHttpData("http://" . self::$updateHost . "/v2/getUpdateInfo.php?devmode=1&revision=" . $currentRev);
+            $xmlRaw = Tool::getHttpData("https://" . self::$updateHost . "/v2/getUpdateInfo.php?devmode=1&revision=" . $currentRev);
         } else {
-            $xmlRaw = Tool::getHttpData("http://" . self::$updateHost . "/v2/getUpdateInfo.php?revision=" . $currentRev);
+            $xmlRaw = Tool::getHttpData("https://" . self::$updateHost . "/v2/getUpdateInfo.php?revision=" . $currentRev);
         }
 
         $xml = simplexml_load_string($xmlRaw, null, LIBXML_NOCDATA);
 
-        $revisions = array();
-        $releases = array();
+        $revisions = [];
+        $releases = [];
         if ($xml instanceof \SimpleXMLElement) {
             if (isset($xml->revision)) {
                 foreach ($xml->revision as $r) {
@@ -81,29 +86,29 @@ class Update
                     $date->setTimestamp((int) $r->date);
 
                     if (strlen(strval($r->version)) > 0) {
-                        $releases[] = array(
+                        $releases[] = [
                             "id" => strval($r->id),
                             "date" => strval($r->date),
                             "version" => strval($r->version),
                             "text" => strval($r->id) . " - " . $date->format("Y-m-d H:i")
-                        );
+                        ];
                     } else {
-                        $revisions[] = array(
+                        $revisions[] = [
                             "id" => strval($r->id),
                             "date" => strval($r->date),
                             "text" => strval($r->id) . " - " . $date->format("Y-m-d H:i")
-                        );
+                        ];
                     }
                 }
             }
         } else {
-            throw new \Exception("Unable to retrieve response from update server. Please ensure that your server is allowed to connect to update.pimcore.org:80");
+            throw new \Exception("Unable to retrieve response from update server. Please ensure that your server is allowed to connect to update.pimcore.org:443");
         }
 
-        return array(
+        return [
             "revisions" => $revisions,
             "releases" => $releases
-        );
+        ];
     }
 
     /**
@@ -117,24 +122,24 @@ class Update
             $currentRev = Version::$revision;
         }
 
-        $xmlRaw = Tool::getHttpData("http://" . self::$updateHost . "/v2/getDownloads.php?from=" . $currentRev . "&to=" . $toRevision);
+        $xmlRaw = Tool::getHttpData("https://" . self::$updateHost . "/v2/getDownloads.php?from=" . $currentRev . "&to=" . $toRevision);
         $xml = simplexml_load_string($xmlRaw, null, LIBXML_NOCDATA);
 
-        $jobs = array();
-        $updateScripts = array();
-        $revisions = array();
+        $jobs = [];
+        $updateScripts = [];
+        $revisions = [];
 
         if (isset($xml->download)) {
             foreach ($xml->download as $download) {
                 if ($download->type == "script") {
-                    $updateScripts[(string) $download->revision]["preupdate"] = array(
+                    $updateScripts[(string) $download->revision]["preupdate"] = [
                         "type" => "preupdate",
                         "revision" => (string) $download->revision
-                    );
-                    $updateScripts[(string) $download->revision]["postupdate"] = array(
+                    ];
+                    $updateScripts[(string) $download->revision]["postupdate"] = [
                         "type" => "postupdate",
                         "revision" => (string) $download->revision
-                    );
+                    ];
                 }
             }
         }
@@ -142,11 +147,11 @@ class Update
 
         if (isset($xml->download)) {
             foreach ($xml->download as $download) {
-                $jobs["parallel"][] = array(
+                $jobs["parallel"][] = [
                     "type" => "download",
                     "revision" => (string) $download->revision,
                     "url" => (string) $download->url
-                );
+                ];
 
                 $revisions[] = (int) $download->revision;
             }
@@ -159,10 +164,10 @@ class Update
                 $jobs["procedural"][] = $updateScripts[$revision]["preupdate"];
             }
 
-            $jobs["procedural"][] = array(
+            $jobs["procedural"][] = [
                 "type" => "files",
                 "revision" => $revision
-            );
+            ];
 
 
             if ($updateScripts[$revision]["postupdate"]) {
@@ -170,13 +175,17 @@ class Update
             }
         }
 
-        $jobs["procedural"][] = array(
+        $jobs["procedural"][] = [
             "type" => "clearcache"
-        );
+        ];
 
-        $jobs["procedural"][] = array(
+        $jobs["procedural"][] = [
             "type" => "cleanup"
-        );
+        ];
+
+        $jobs["procedural"][] = [
+            "type" => "composer-dump-autoload"
+        ];
 
         return $jobs;
     }
@@ -228,12 +237,12 @@ class Update
                         File::put($newFile, base64_decode((string) $file->content));
                     }
 
-                    $db->insert(self::$tmpTable, array(
+                    $db->insert(self::$tmpTable, [
                         "id" => $file->id,
                         "revision" => $revision,
                         "path" => (string) $file->path,
                         "action" => (string)$file->action
-                    ));
+                    ]);
                 } elseif ($file->type == "script") {
                     $newScript = $scriptsDir. $file->path;
                     File::put($newScript, base64_decode((string) $file->content));
@@ -312,6 +321,7 @@ class Update
         Cache::disable(); // it's important to disable the cache here eg. db-schemas, ...
 
         if (is_file($script)) {
+            $outputMessage = "";
             ob_start();
             try {
                 if (!self::$dryRun) {
@@ -319,16 +329,18 @@ class Update
                 }
             } catch (\Exception $e) {
                 \Logger::error($e);
+                $outputMessage .= "EXCEPTION: " . $e->getMessage();
+                $outputMessage .= "<br>For details please have a look into debug.log<br>";
             }
-            $outputMessage = ob_get_clean();
+            $outputMessage .= ob_get_clean();
         }
 
         self::clearOPCaches();
 
-        return array(
+        return [
             "message" => $outputMessage,
             "success" => true
-        );
+        ];
     }
 
     /**
@@ -346,7 +358,7 @@ class Update
         if ($existingContents && $newContents) {
             $mergeResult = array_replace_recursive($existingContents, $newContents);
             $newJson = json_encode($mergeResult);
-            $newJson = \Zend_Json::prettyPrint($newJson);
+            $newJson = \Pimcore\Helper\JsonFormatter::format($newJson, true, true);
             File::put($oldFile, $newJson);
         }
     }
@@ -375,6 +387,45 @@ class Update
         recursiveDelete(PIMCORE_SYSTEM_TEMP_DIRECTORY . "/update", true);
     }
 
+    /**
+     * @return array
+     */
+    public static function composerDumpAutoload()
+    {
+        $composerLock = PIMCORE_DOCUMENT_ROOT . "/composer.lock";
+        if (file_exists($composerLock)) {
+            @unlink($composerLock);
+        }
+
+        $outputMessage = "";
+
+        // dump autoload and regenerate composer.lock
+        try {
+            $composerPath = \Pimcore\Tool\Console::getExecutable("composer");
+            $process = new Process($composerPath . ' update nothing -d ' . PIMCORE_DOCUMENT_ROOT);
+            $process->setTimeout(60);
+            $process->mustRun();
+        } catch (\Exception $e) {
+            $outputMessage = "<b style='color:red;'>Important</b>: Failed running <pre>composer update nothing</pre> Please run it manually on commandline!";
+        }
+
+        return [
+            "message" => $outputMessage,
+            "success" => true
+        ];
+    }
+
+    /**
+     * @return bool
+     */
+    public static function isComposerAvailable()
+    {
+        return (bool) \Pimcore\Tool\Console::getExecutable("composer");
+    }
+
+    /**
+     *
+     */
     public static function updateMaxmindDb()
     {
         $downloadUrl = "http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz";

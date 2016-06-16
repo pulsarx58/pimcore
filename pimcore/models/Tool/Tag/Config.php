@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Tool
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Tool\Tag;
@@ -23,7 +25,7 @@ class Config extends Model\AbstractModel
     /**
      * @var array
      */
-    public $items = array();
+    public $items = [];
 
     /**
      * @var string
@@ -58,13 +60,13 @@ class Config extends Model\AbstractModel
     /**
      * @var array
      */
-    public $params = array(
-        array("name" => "", "value" => ""),
-        array("name" => "", "value" => ""),
-        array("name" => "", "value" => ""),
-        array("name" => "", "value" => ""),
-        array("name" => "", "value" => ""),
-    );
+    public $params = [
+        ["name" => "", "value" => ""],
+        ["name" => "", "value" => ""],
+        ["name" => "", "value" => ""],
+        ["name" => "", "value" => ""],
+        ["name" => "", "value" => ""],
+    ];
 
     /**
      * @var int
@@ -103,7 +105,7 @@ class Config extends Model\AbstractModel
         $this->getDao()->delete();
 
         // clear cache tags
-        Cache::clearTags(array("tagmanagement", "output"));
+        Cache::clearTags(["tagmanagement", "output"]);
     }
 
     /**
@@ -124,7 +126,7 @@ class Config extends Model\AbstractModel
      */
     public function addItemAt($position, $parameters)
     {
-        array_splice($this->items, $position, 0, array($parameters));
+        array_splice($this->items, $position, 0, [$parameters]);
 
         return true;
     }
@@ -135,7 +137,7 @@ class Config extends Model\AbstractModel
      */
     public function resetItems()
     {
-        $this->items = array();
+        $this->items = [];
     }
 
     /**
@@ -145,6 +147,7 @@ class Config extends Model\AbstractModel
     public function setDescription($description)
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -163,6 +166,7 @@ class Config extends Model\AbstractModel
     public function setItems($items)
     {
         $this->items = $items;
+
         return $this;
     }
 
@@ -181,6 +185,7 @@ class Config extends Model\AbstractModel
     public function setName($name)
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -199,6 +204,7 @@ class Config extends Model\AbstractModel
     public function setHttpMethod($httpMethod)
     {
         $this->httpMethod = $httpMethod;
+
         return $this;
     }
 
@@ -217,6 +223,7 @@ class Config extends Model\AbstractModel
     public function setUrlPattern($urlPattern)
     {
         $this->urlPattern = $urlPattern;
+
         return $this;
     }
 
@@ -251,6 +258,7 @@ class Config extends Model\AbstractModel
     public function setParams($params)
     {
         $this->params = $params;
+
         return $this;
     }
 
@@ -269,6 +277,7 @@ class Config extends Model\AbstractModel
     public function setTextPattern($textPattern)
     {
         $this->textPattern = $textPattern;
+
         return $this;
     }
 

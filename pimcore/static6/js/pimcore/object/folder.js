@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.object.folder");
@@ -25,7 +27,7 @@ pimcore.object.folder = Class.create(pimcore.object.abstract, {
 
     init: function () {
 
-        this.search = new pimcore.object.search(this);
+        this.search = new pimcore.object.search(this, "folder");
 
         if (this.isAllowed("properties")) {
             this.properties = new pimcore.element.properties(this, "object");
@@ -155,10 +157,25 @@ pimcore.object.folder = Class.create(pimcore.object.abstract, {
             });
 
             this.toolbarButtons.remove = new Ext.Button({
-                text: t('delete_folder'),
+                tooltip: t('delete_folder'),
                 iconCls: "pimcore_icon_delete",
                 scale: "medium",
                 handler: this.remove.bind(this)
+            });
+
+            this.toolbarButtons.rename = new Ext.Button({
+                tooltip: t('rename'),
+                iconCls: "pimcore_icon_key pimcore_icon_overlay_go",
+                scale: "medium",
+                handler: function () {
+                    var options = {
+                        elementType: "object",
+                        elementSubType: this.data.general.o_type,
+                        id: this.id,
+                        default: this.data.general.o_key
+                    }
+                    pimcore.elementservice.editElementKey(options);
+                }.bind(this)
             });
 
             var buttons = [];
@@ -167,37 +184,36 @@ pimcore.object.folder = Class.create(pimcore.object.abstract, {
                 buttons.push(this.toolbarButtons.publish);
             }
 
+            buttons.push("-");
+
             if(this.isAllowed("delete") && !this.data.general.o_locked && this.data.general.o_id != 1) {
                 buttons.push(this.toolbarButtons.remove);
             }
+            if(this.isAllowed("rename") && !this.data.general.o_locked && this.data.general.o_id != 1) {
+                buttons.push(this.toolbarButtons.rename);
+            }
 
-            buttons.push("-");
-
-            var moreButtons = [];
-
-            moreButtons.push({
-                text: t('reload'),
+            buttons.push({
+                tooltip: t('reload'),
                 iconCls: "pimcore_icon_reload",
+                scale: "medium",
                 handler: this.reload.bind(this)
             });
 
-            moreButtons.push({
-                text: t('show_in_tree'),
-                iconCls: "pimcore_icon_show_in_tree",
-                handler: this.selectInTree.bind(this, "folder")
-            });
-
-            moreButtons.push({
-                text: t("show_metainfo"),
-                iconCls: "pimcore_icon_info",
-                handler: this.showMetaInfo.bind(this)
-            });
+            if (pimcore.elementservice.showLocateInTreeButton("object")) {
+                buttons.push({
+                    tooltip: t('show_in_tree'),
+                    iconCls: "pimcore_icon_show_in_tree",
+                    scale: "medium",
+                    handler: this.selectInTree.bind(this, "folder")
+                });
+            }
 
             buttons.push({
-                text: t("more"),
-                iconCls: "pimcore_icon_more",
+                tooltip: t("show_metainfo"),
+                iconCls: "pimcore_icon_info",
                 scale: "medium",
-                menu: moreButtons
+                handler: this.showMetaInfo.bind(this)
             });
 
             buttons.push("-");
@@ -213,7 +229,7 @@ pimcore.object.folder = Class.create(pimcore.object.abstract, {
                 border: false,
                 cls: "main-toolbar",
                 items: buttons,
-                overflowHandler: 'menu'
+                overflowHandler: 'scroller'
             });
         }
 
@@ -282,13 +298,6 @@ pimcore.object.folder = Class.create(pimcore.object.abstract, {
         catch (e2) {
             //console.log(e2);
         }
-
-        try {
-            data.gridconfig = Ext.encode(this.search.getGridConfig());
-        } catch (e3) {
-            //console.log(e3);
-        }
-
         return data;
     },
 
@@ -330,7 +339,11 @@ pimcore.object.folder = Class.create(pimcore.object.abstract, {
 
 
     remove: function () {
-        pimcore.helpers.deleteObject(this.id);
+        var options = {
+            "elementType" : "object",
+            "id": this.id
+        };
+        pimcore.elementservice.deleteElement(options);
     },
 
     isAllowed : function (key) {

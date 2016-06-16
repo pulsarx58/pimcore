@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Webservice
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Webservice;
@@ -25,9 +27,9 @@ class Tool
     {
         $modelsDir = PIMCORE_PATH."/models/";
         $files = rscandir($modelsDir);
-        $includePatterns = array(
+        $includePatterns = [
             "/Webservice\/Data/"
-        );
+        ];
 
         foreach ($files as $file) {
             if (is_file($file)) {
@@ -56,26 +58,29 @@ class Tool
                 }
             }
         }
+
         return $classMap;
     }
     
     public static function keyValueReverseMapping($data)
     {
         if (is_array($data)) {
-            $values = array();
+            $values = [];
             foreach ($data as $k=>$d) {
                 $values[$k] = self::keyValueReverseMapping($d);
             }
+
             return $values;
         } elseif ($data instanceof \stdClass) {
             if ($data->key) {
-                return array($data->key => self::keyValueReverseMapping($data->value));
+                return [$data->key => self::keyValueReverseMapping($data->value)];
             }
             if ($data->item) {
-                $values = array();
+                $values = [];
                 foreach ($data->item as $item) {
                     $values = array_merge($values, self::keyValueReverseMapping($item));
                 }
+
                 return $values;
             }
         } else {

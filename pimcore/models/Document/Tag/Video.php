@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document\Tag;
@@ -20,9 +22,6 @@ use Pimcore\Model\Asset;
 
 class Video extends Model\Document\Tag
 {
-
-    public static $playerJsEmbedded = false;
-
     /**
      * contains depending on the type of the video the unique identifier eg. "http://www.youtube.com", "789", ...
      *
@@ -59,6 +58,7 @@ class Video extends Model\Document\Tag
     public function setTitle($title)
     {
         $this->title = $title;
+
         return $this;
     }
 
@@ -71,6 +71,7 @@ class Video extends Model\Document\Tag
             // default title for microformats
             return $this->getVideoAsset()->getFilename();
         }
+
         return $this->title;
     }
 
@@ -81,6 +82,7 @@ class Video extends Model\Document\Tag
     public function setDescription($description)
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -93,6 +95,7 @@ class Video extends Model\Document\Tag
             // default description for microformats
             return $this->getTitle();
         }
+
         return $this->description;
     }
 
@@ -118,14 +121,14 @@ class Video extends Model\Document\Tag
 
         $poster = Asset::getById($this->poster);
 
-        return array(
+        return [
             "id" => $this->id,
             "type" => $this->type,
             "title" => $this->title,
             "description" => $this->description,
             "path" => $path,
             "poster" => $poster ? $poster->getFullPath() : ""
-        );
+        ];
     }
 
     /**
@@ -133,13 +136,13 @@ class Video extends Model\Document\Tag
      */
     public function getDataForResource()
     {
-        return array(
+        return [
             "id" => $this->id,
             "type" => $this->type,
             "title" => $this->title,
             "description" => $this->description,
             "poster" => $this->poster
-        );
+        ];
     }
 
     /**
@@ -175,25 +178,25 @@ class Video extends Model\Document\Tag
      */
     public function resolveDependencies()
     {
-        $dependencies = array();
+        $dependencies = [];
 
         if ($this->type == "asset") {
             $asset = Asset::getById($this->id);
             if ($asset instanceof Asset) {
                 $key = "asset_" . $asset->getId();
-                $dependencies[$key] = array(
+                $dependencies[$key] = [
                     "id" => $asset->getId(),
                     "type" => "asset"
-                );
+                ];
             }
         }
 
         if ($poster = Asset::getById($this->poster)) {
             $key = "asset_" . $poster->getId();
-            $dependencies[$key] = array(
+            $dependencies[$key] = [
                 "id" => $poster->getId(),
                 "type" => "asset"
-            );
+            ];
         }
 
         return $dependencies;
@@ -256,6 +259,7 @@ class Video extends Model\Document\Tag
         $this->poster = $data["poster"];
         $this->title = $data["title"];
         $this->description = $data["description"];
+
         return $this;
     }
 
@@ -295,6 +299,7 @@ class Video extends Model\Document\Tag
         if ($poster instanceof Asset\Image) {
             $this->poster = $poster->getId();
         }
+
         return $this;
     }
 
@@ -302,18 +307,20 @@ class Video extends Model\Document\Tag
     public function getWidth()
     {
         $options = $this->getOptions();
-        if ($options["width"]) {
+        if (isset($options["width"]) && $options["width"]) {
             return $options["width"];
         }
+
         return "100%";
     }
 
     public function getHeight()
     {
         $options = $this->getOptions();
-        if ($options["height"]) {
+        if (isset($options["height"]) && $options["height"]) {
             return $options["height"];
         }
+
         return 300;
     }
 
@@ -326,7 +333,7 @@ class Video extends Model\Document\Tag
         // compatibility mode when FFMPEG is not present or no thumbnail config is given
         if (!\Pimcore\Video::isAvailable() || !$options["thumbnail"]) {
             if ($asset instanceof Asset && preg_match("/\.(f4v|flv|mp4)/", $asset->getFullPath())) {
-                return $this->getHtml5Code(array("mp4" => (string) $asset));
+                return $this->getHtml5Code(["mp4" => (string) $asset]);
             }
 
             return $this->getErrorCode("Asset is not a video, or missing thumbnail configuration");
@@ -352,20 +359,17 @@ class Video extends Model\Document\Tag
                     $image = $poster->getThumbnail($imageThumbnailConf);
                 } else {
                     if ($asset->getCustomSetting("image_thumbnail_asset")) {
-                        $image = $asset->getImageThumbnail($imageThumbnailConf);
+                        $image = (string) $asset->getImageThumbnail($imageThumbnailConf);
                     } else {
-                        if ($thumbnail["status"] == "finished" && (array_key_exists("animatedGifPreview", $options) && $options["animatedGifPreview"] !== false)) {
-                            $image = $asset->getPreviewAnimatedGif(null, null, $imageThumbnailConf);
-                        } else {
-                            $image = $asset->getImageThumbnail($imageThumbnailConf);
-                        }
+                        $image = (string) $asset->getImageThumbnail($imageThumbnailConf);
                     }
                 }
 
                 if ($inAdmin && isset($options["editmodeImagePreview"]) && $options["editmodeImagePreview"]) {
                     $code = '<div id="pimcore_video_' . $this->getName() . '" class="pimcore_tag_video">';
                     $code .= '<img width="' . $this->getWidth() . '" src="' . $image . '" />';
-                    $code .= '</div';
+                    $code .= '</div>';
+
                     return $code;
                 }
 
@@ -377,6 +381,7 @@ class Video extends Model\Document\Tag
                     $front->unregisterPlugin("Pimcore\\Controller\\Plugin\\Cache");
 
                     $progress = Asset\Video\Thumbnail\Processor::getProgress($thumbnail["processId"]);
+
                     return $this->getProgressCode($progress, $image);
                 } else {
                     return $this->getErrorCode("The video conversion failed, please see the debug.log for more details.");
@@ -391,7 +396,7 @@ class Video extends Model\Document\Tag
 
     public function getUrlCode()
     {
-        return $this->getHtml5Code(array("mp4" => (string) $this->id));
+        return $this->getHtml5Code(["mp4" => (string) $this->id]);
     }
 
     public function getErrorCode($message = "")
@@ -408,7 +413,7 @@ class Video extends Model\Document\Tag
 
         $code = '
         <div id="pimcore_video_' . $this->getName() . '" class="pimcore_tag_video">
-            <div class="pimcore_tag_video_error" style="text-align:center; width: ' . $width . '; height: ' . ($this->getHeight()-1) . 'px; border:1px solid #000; background: url(/pimcore/static/img/filetype-not-supported.png) no-repeat center center #fff;">
+            <div class="pimcore_tag_video_error" style="text-align:center; width: ' . $width . '; height: ' . ($this->getHeight()-1) . 'px; border:1px solid #000; background: url(/pimcore/static6/img/filetype-not-supported.png) no-repeat center center #fff;">
                 ' . $message . '
             </div>
         </div>';
@@ -461,7 +466,7 @@ class Video extends Model\Document\Tag
             $height = $options["height"];
         }
 
-        $valid_youtube_prams=array( "autohide",
+        $valid_youtube_prams=[ "autohide",
             "autoplay",
             "cc_load_policy",
             "color",
@@ -481,10 +486,10 @@ class Video extends Model\Document\Tag
             "rel",
             "showinfo",
             "start",
-            "theme");
+            "theme"];
         $additional_params="";
 
-        $clipConfig = array();
+        $clipConfig = [];
         if (is_array($options["config"]["clip"])) {
             $clipConfig = $options["config"]["clip"];
         }
@@ -512,7 +517,7 @@ class Video extends Model\Document\Tag
         }
 
         $code .= '<div id="pimcore_video_' . $this->getName() . '" class="pimcore_tag_video">
-            <iframe width="' . $width . '" height="' . $height . '" src="//www.youtube.com/embed/' . $youtubeId . '?wmode=transparent' . $additional_params .'" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+            <iframe width="' . $width . '" height="' . $height . '" src="//www.youtube-nocookie.com/embed/' . $youtubeId . '?wmode=transparent' . $additional_params .'" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
         </div>';
 
         return $code;
@@ -547,13 +552,13 @@ class Video extends Model\Document\Tag
                 $height = $options["height"];
             }
 
-            $valid_vimeo_prams=array(
+            $valid_vimeo_prams=[
                 "autoplay",
-                "loop");
+                "loop"];
 
             $additional_params="";
 
-            $clipConfig = array();
+            $clipConfig = [];
             if (is_array($options["config"]["clip"])) {
                 $clipConfig = $options["config"]["clip"];
             }
@@ -591,14 +596,14 @@ class Video extends Model\Document\Tag
         return $this->getEmptyCode();
     }
 
-    public function getHtml5Code($urls = array(), $thumbnail = null)
+    public function getHtml5Code($urls = [], $thumbnail = null)
     {
         $code = "";
         $video = $this->getVideoAsset();
         if ($video) {
             $duration = ceil($video->getDuration());
 
-            $durationParts = array("PT");
+            $durationParts = ["PT"];
 
             // hours
             if ($duration/3600 >= 1) {
@@ -634,7 +639,7 @@ class Video extends Model\Document\Tag
                 //"interactionCount" => "1234",
             ];
 
-            if ($thumbnail) {
+            if ($thumbnail && !preg_match("@https?://@", $thumbnail)) {
                 $jsonLd["thumbnailUrl"] = Tool::getHostUrl() . $thumbnail;
             }
 
@@ -642,13 +647,13 @@ class Video extends Model\Document\Tag
 
             // default attributes
             $attributesString = "";
-            $attributes = array(
+            $attributes = [
                 "width" => $this->getWidth(),
                 "height" => $this->getHeight(),
                 "poster" => $thumbnail,
                 "controls" => "controls",
                 "class" => "pimcore_video"
-            );
+            ];
 
             if (array_key_exists("attributes", $this->getOptions())) {
                 $attributes = array_merge($attributes, $this->getOptions()["attributes"]);
@@ -672,8 +677,6 @@ class Video extends Model\Document\Tag
             }
 
             $code .= '<video' . $attributesString . '>' . "\n";
-
-            $urls = array_reverse($urls); // use webm as the preferred format
 
             foreach ($urls as $type => $url) {
                 $code .= '<source type="video/' . $type . '" src="' . $url . '" />' . "\n";
@@ -725,22 +728,13 @@ class Video extends Model\Document\Tag
 
         $options = $this->getOptions();
 
-        if (!$this->editmode && !$options['disableProgressReload']) {
-            $code .= '
-                <script type="text/javascript">
-                    window.setTimeout(function() {
-                        location.reload();
-                    },6000);
-                </script>
-            ';
-        }
-
         return $code;
     }
 
     public function getEmptyCode()
     {
         $uid = "video_" . uniqid();
+
         return '<div id="pimcore_video_' . $this->getName() . '" class="pimcore_tag_video"><div class="pimcore_tag_video_empty" id="' . $uid . '" style="width: ' . $this->getWidth() . 'px; height: ' . $this->getHeight() . 'px;"></div></div>';
     }
 
@@ -752,6 +746,7 @@ class Video extends Model\Document\Tag
         if ($this->id) {
             return false;
         }
+
         return true;
     }
 
@@ -761,7 +756,7 @@ class Video extends Model\Document\Tag
      * @param null $idMapper
      * @throws \Exception
      */
-    public function getFromWebserviceImport($wsElement, $document = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($wsElement, $document = null, $params = [], $idMapper = null)
     {
         $data = $wsElement->value;
         if ($data->id) {
@@ -772,7 +767,7 @@ class Video extends Model\Document\Tag
                     throw new \Exception("Referencing unknown asset with id [ ".$data->id." ] in webservice import field [ ".$data->name." ]");
                 }
                 $this->type = $data->type;
-            } elseif (in_array($data->type, array("vimeo", "youtube", "url"))) {
+            } elseif (in_array($data->type, ["vimeo", "youtube", "url"])) {
                 $this->id = $data->id;
                 $this->type = $data->type;
             } else {
@@ -821,6 +816,7 @@ class Video extends Model\Document\Tag
         if ($this->getVideoAsset()) {
             return $this->getVideoAsset()->getImageThumbnail($config);
         }
+
         return "";
     }
 
@@ -833,7 +829,8 @@ class Video extends Model\Document\Tag
         if ($this->getVideoAsset()) {
             return $this->getVideoAsset()->getThumbnail($config);
         }
-        return array();
+
+        return [];
     }
 
     /**
@@ -843,6 +840,7 @@ class Video extends Model\Document\Tag
     public function setId($id)
     {
         $this->id = $id;
+
         return $this;
     }
 

@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 use Pimcore\Tool;
@@ -17,7 +19,6 @@ use Pimcore\Model\Object;
 
 class Reports_NewsletterController extends \Pimcore\Controller\Action\Admin\Reports
 {
-
     public function init()
     {
         parent::init();
@@ -33,10 +34,10 @@ class Reports_NewsletterController extends \Pimcore\Controller\Action\Admin\Repo
         $items = $list->load();
 
         foreach ($items as $item) {
-            $letters[] = array(
+            $letters[] = [
                 "id" => $item->getName(),
                 "text" => $item->getName()
-            );
+            ];
         }
 
         $this->_helper->json($letters);
@@ -56,7 +57,7 @@ class Reports_NewsletterController extends \Pimcore\Controller\Action\Admin\Repo
             $success = true;
         }
 
-        $this->_helper->json(array("success" => $success, "id" => $letter->getName()));
+        $this->_helper->json(["success" => $success, "id" => $letter->getName()]);
     }
 
     public function deleteAction()
@@ -64,7 +65,7 @@ class Reports_NewsletterController extends \Pimcore\Controller\Action\Admin\Repo
         $letter = Newsletter\Config::getByName($this->getParam("name"));
         $letter->delete();
 
-        $this->_helper->json(array("success" => true));
+        $this->_helper->json(["success" => true]);
     }
 
 
@@ -79,7 +80,7 @@ class Reports_NewsletterController extends \Pimcore\Controller\Action\Admin\Repo
         // get available classes
         $classList = new Object\ClassDefinition\Listing();
 
-        $availableClasses = array();
+        $availableClasses = [];
         foreach ($classList->load() as $class) {
             $fieldCount = 0;
             foreach ($class->getFieldDefinitions() as $fd) {
@@ -91,7 +92,7 @@ class Reports_NewsletterController extends \Pimcore\Controller\Action\Admin\Repo
             }
 
             if ($fieldCount >= 3) {
-                $availableClasses[] = array($class->getName(), $class->getName());
+                $availableClasses[] = [$class->getName(), $class->getName()];
             }
         }
 
@@ -120,7 +121,7 @@ class Reports_NewsletterController extends \Pimcore\Controller\Action\Admin\Repo
 
         $letter->save();
 
-        $this->_helper->json(array("success" => true));
+        $this->_helper->json(["success" => true]);
     }
 
     public function checksqlAction()
@@ -131,7 +132,7 @@ class Reports_NewsletterController extends \Pimcore\Controller\Action\Admin\Repo
             $className = "\\Pimcore\\Model\\Object\\" . ucfirst($this->getParam("class")) . "\\Listing";
             $list = new $className();
 
-            $conditions = array("(newsletterActive = 1 AND newsletterConfirmed = 1)");
+            $conditions = ["(newsletterActive = 1 AND newsletterConfirmed = 1)"];
             if ($this->getParam("objectFilterSQL")) {
                 $conditions[] = $this->getParam("objectFilterSQL");
             }
@@ -142,10 +143,10 @@ class Reports_NewsletterController extends \Pimcore\Controller\Action\Admin\Repo
         } catch (\Exception $e) {
         }
 
-        $this->_helper->json(array(
+        $this->_helper->json([
             "count" => $count,
             "success" => $success
-        ));
+        ]);
     }
 
     public function getSendStatusAction()
@@ -156,10 +157,10 @@ class Reports_NewsletterController extends \Pimcore\Controller\Action\Admin\Repo
             $data = Tool\Serialize::unserialize(file_get_contents($letter->getPidFile()));
         }
 
-        $this->_helper->json(array(
+        $this->_helper->json([
             "data" => $data,
             "success" => true
-        ));
+        ]);
     }
 
     public function stopSendAction()
@@ -169,20 +170,19 @@ class Reports_NewsletterController extends \Pimcore\Controller\Action\Admin\Repo
             @unlink($letter->getPidFile());
         }
 
-        $this->_helper->json(array(
+        $this->_helper->json([
             "success" => true
-        ));
+        ]);
     }
 
     public function sendAction()
     {
         $letter = Newsletter\Config::getByName($this->getParam("name"));
         if ($letter) {
-            $cmd = Tool\Console::getPhpCli() . " " . realpath(PIMCORE_PATH . DIRECTORY_SEPARATOR . "cli" . DIRECTORY_SEPARATOR . "console.php"). " internal:newsletter-send " . escapeshellarg($letter->getName()) . " " . escapeshellarg(Tool::getHostUrl());
-            Tool\Console::execInBackground($cmd, PIMCORE_LOG_DIRECTORY . "/newsletter--" . $letter->getName() . ".log");
+            Tool\Console::runPhpScriptInBackground(realpath(PIMCORE_PATH . DIRECTORY_SEPARATOR . "cli" . DIRECTORY_SEPARATOR . "console.php"), "internal:newsletter-send " . escapeshellarg($letter->getName()) . " " . escapeshellarg(Tool::getHostUrl()));
         }
 
-        $this->_helper->json(array("success" => true));
+        $this->_helper->json(["success" => true]);
     }
 
     public function sendTestAction()
@@ -212,6 +212,6 @@ class Reports_NewsletterController extends \Pimcore\Controller\Action\Admin\Repo
 
         Tool\Newsletter::sendMail($letter, $object, $letter->getTestEmailAddress());
 
-        $this->_helper->json(array("success" => true));
+        $this->_helper->json(["success" => true]);
     }
 }

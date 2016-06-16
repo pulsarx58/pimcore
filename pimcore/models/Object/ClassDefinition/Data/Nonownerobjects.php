@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object\ClassDefinition
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\ClassDefinition\Data;
@@ -93,6 +95,7 @@ class Nonownerobjects extends Model\Object\ClassDefinition\Data\Objects
     public function setOwnerClassName($ownerClassName)
     {
         $this->ownerClassName = $ownerClassName;
+
         return $this;
     }
 
@@ -110,6 +113,7 @@ class Nonownerobjects extends Model\Object\ClassDefinition\Data\Objects
                 \Logger::error($e->getMessage());
             }
         }
+
         return $this->ownerClassName;
     }
     
@@ -126,6 +130,7 @@ class Nonownerobjects extends Model\Object\ClassDefinition\Data\Objects
                 \Logger::error($e->getMessage());
             }
         }
+
         return $this->ownerClassId;
     }
 
@@ -144,6 +149,7 @@ class Nonownerobjects extends Model\Object\ClassDefinition\Data\Objects
     public function setOwnerFieldName($fieldName)
     {
         $this->ownerFieldName = $fieldName;
+
         return $this;
     }
 
@@ -155,7 +161,7 @@ class Nonownerobjects extends Model\Object\ClassDefinition\Data\Objects
      * @param mixed $params
      * @return array
      */
-    public function getDataForResource($data, $object = null, $params = array())
+    public function getDataForResource($data, $object = null, $params = [])
     {
         return null;
     }
@@ -167,7 +173,7 @@ class Nonownerobjects extends Model\Object\ClassDefinition\Data\Objects
      * @param mixed $params
      * @return string
      */
-    public function getDataForQueryResource($data, $object = null, $params = array())
+    public function getDataForQueryResource($data, $object = null, $params = [])
     {
         return null;
     }
@@ -204,14 +210,14 @@ class Nonownerobjects extends Model\Object\ClassDefinition\Data\Objects
     {
         //TODO
         if (!$omitMandatoryCheck and $this->getMandatory() and empty($data)) {
-            throw new \Exception("Empty mandatory field [ ".$this->getName()." ]");
+            throw new Model\Element\ValidationException("Empty mandatory field [ ".$this->getName()." ]");
         }
 
         if (is_array($data)) {
             foreach ($data as $o) {
                 $allowClass = $this->allowObjectRelation($o);
                 if (!$allowClass or!($o instanceof Object\Concrete)) {
-                    throw new \Exception("Invalid non owner object relation to object [".$o->getId()."]", null, null);
+                    throw new Model\Element\ValidationException("Invalid non owner object relation to object [".$o->getId()."]", null, null);
                 }
             }
         }
@@ -224,7 +230,7 @@ class Nonownerobjects extends Model\Object\ClassDefinition\Data\Objects
      * @param array $params
      * @return string
      */
-    public function getForCsvExport($object, $params = array())
+    public function getForCsvExport($object, $params = [])
     {
         return "";
     }
@@ -237,7 +243,7 @@ class Nonownerobjects extends Model\Object\ClassDefinition\Data\Objects
      * @param mixed $params
      * @return Object\ClassDefinition\Data
      */
-    public function getFromCsvImport($importValue, $object = null, $params = array())
+    public function getFromCsvImport($importValue, $object = null, $params = [])
     {
         return null;
     }
@@ -249,7 +255,7 @@ class Nonownerobjects extends Model\Object\ClassDefinition\Data\Objects
      * @param array $tags
      * @return array
      */
-    public function getCacheTags($data, $tags = array())
+    public function getCacheTags($data, $tags = [])
     {
         return $tags;
     }
@@ -260,7 +266,7 @@ class Nonownerobjects extends Model\Object\ClassDefinition\Data\Objects
      */
     public function resolveDependencies($data)
     {
-        return array();
+        return [];
     }
 
     /**
@@ -268,7 +274,7 @@ class Nonownerobjects extends Model\Object\ClassDefinition\Data\Objects
      * @param mixed $params
      * @return array|null
      */
-    public function getForWebserviceExport($object, $params = array())
+    public function getForWebserviceExport($object, $params = [])
     {
         return null;
     }
@@ -280,7 +286,7 @@ class Nonownerobjects extends Model\Object\ClassDefinition\Data\Objects
      * @param mixed $params
      * @return mixed
      */
-    public function getFromWebserviceImport($value, $object = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($value, $object = null, $params = [], $idMapper = null)
     {
         return null;
     }

@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Dependency
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model;
@@ -36,14 +38,14 @@ class Dependency extends AbstractModel
      *
      * @var integer
      */
-    public $requires = array();
+    public $requires = [];
 
     /**
      * Contains the ID/type of objects that need the given source object (sourceId/sourceType)
      *
      * @var integer
      */
-    public $requiredBy = array();
+    public $requiredBy = [];
 
 
     /**
@@ -59,6 +61,7 @@ class Dependency extends AbstractModel
         $d->setSourceId($id);
         $d->setSourceType($type);
         $d->getDao()->getBySourceId();
+
         return $d;
     }
 
@@ -71,10 +74,10 @@ class Dependency extends AbstractModel
      */
     public function addRequirement($id, $type)
     {
-        $this->requires[] = array(
+        $this->requires[] = [
             "type" => $type,
             "id" => $id
-        );
+        ];
     }
 
     /**
@@ -93,7 +96,7 @@ class Dependency extends AbstractModel
      */
     public function clean()
     {
-        $this->requires = array();
+        $this->requires = [];
         $this->getDao()->clear();
     }
 
@@ -128,6 +131,7 @@ class Dependency extends AbstractModel
     public function setSourceId($sourceId)
     {
         $this->sourceId = (int) $sourceId;
+
         return $this;
     }
 
@@ -138,6 +142,7 @@ class Dependency extends AbstractModel
     public function setRequires($requires)
     {
         $this->requires = $requires;
+
         return $this;
     }
 
@@ -148,6 +153,7 @@ class Dependency extends AbstractModel
     public function setRequiredBy($requiredBy)
     {
         $this->requiredBy = $requiredBy;
+
         return $this;
     }
 
@@ -166,6 +172,7 @@ class Dependency extends AbstractModel
     public function setSourceType($sourceType)
     {
         $this->sourceType = $sourceType;
+
         return $this;
     }
 
@@ -179,6 +186,7 @@ class Dependency extends AbstractModel
         if (is_array($this->getRequiredBy()) && count($this->getRequiredBy()) > 0) {
             return true;
         }
+
         return false;
     }
 }

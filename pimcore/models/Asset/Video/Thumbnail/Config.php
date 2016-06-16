@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Asset
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Asset\Video\Thumbnail;
@@ -34,7 +36,7 @@ class Config extends Model\AbstractModel
      *
      * @var array
      */
-    public $items = array();
+    public $items = [];
 
     /**
      * @var string
@@ -103,15 +105,15 @@ class Config extends Model\AbstractModel
         $config->setAudioBitrate(128);
         $config->setVideoBitrate(700);
 
-        $config->setItems(array(
-            array(
+        $config->setItems([
+            [
                 "method" => "scaleByWidth",
                 "arguments" =>
-                array(
+                [
                     "width" => 500
-                )
-            )
-        ));
+                ]
+            ]
+        ]);
 
         return $config;
     }
@@ -123,10 +125,10 @@ class Config extends Model\AbstractModel
      */
     public function addItem($name, $parameters)
     {
-        $this->items[] = array(
+        $this->items[] = [
             "method" => $name,
             "arguments" => $parameters
-        );
+        ];
 
         return true;
     }
@@ -138,10 +140,10 @@ class Config extends Model\AbstractModel
      */
     public function addItemAt($position, $name, $parameters)
     {
-        array_splice($this->items, $position, 0, array(array(
+        array_splice($this->items, $position, 0, [[
             "method" => $name,
             "arguments" => $parameters
-        )));
+        ]]);
 
         return true;
     }
@@ -152,7 +154,7 @@ class Config extends Model\AbstractModel
      */
     public function resetItems()
     {
-        $this->items = array();
+        $this->items = [];
     }
 
     /**
@@ -162,6 +164,7 @@ class Config extends Model\AbstractModel
     public function setDescription($description)
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -180,6 +183,7 @@ class Config extends Model\AbstractModel
     public function setItems($items)
     {
         $this->items = $items;
+
         return $this;
     }
 
@@ -198,6 +202,7 @@ class Config extends Model\AbstractModel
     public function setName($name)
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -216,6 +221,7 @@ class Config extends Model\AbstractModel
     public function setAudioBitrate($audioBitrate)
     {
         $this->audioBitrate = (int) $audioBitrate;
+
         return $this;
     }
 
@@ -234,6 +240,7 @@ class Config extends Model\AbstractModel
     public function setVideoBitrate($videoBitrate)
     {
         $this->videoBitrate = (int) $videoBitrate;
+
         return $this;
     }
 
@@ -250,7 +257,7 @@ class Config extends Model\AbstractModel
      */
     public function getEstimatedDimensions()
     {
-        $dimensions = array();
+        $dimensions = [];
         $transformations = $this->getItems();
         if (is_array($transformations) && count($transformations) > 0) {
             foreach ($transformations as $transformation) {

@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 use Pimcore\Model\Tool\Qrcode;
@@ -15,12 +17,11 @@ use Pimcore\Model\Document;
 
 class Reports_QrcodeController extends \Pimcore\Controller\Action\Admin\Reports
 {
-
     public function init()
     {
         parent::init();
 
-        $notRestrictedActions = array("code");
+        $notRestrictedActions = ["code"];
         if (!in_array($this->getParam("action"), $notRestrictedActions)) {
             $this->checkPermission("qr_codes");
         }
@@ -34,10 +35,10 @@ class Reports_QrcodeController extends \Pimcore\Controller\Action\Admin\Reports
         $items = $list->load();
 
         foreach ($items as $item) {
-            $codes[] = array(
+            $codes[] = [
                 "id" => $item->getName(),
                 "text" => $item->getName()
-            );
+            ];
         }
 
         $this->_helper->json($codes);
@@ -57,7 +58,7 @@ class Reports_QrcodeController extends \Pimcore\Controller\Action\Admin\Reports
             $success = true;
         }
 
-        $this->_helper->json(array("success" => $success, "id" => $code->getName()));
+        $this->_helper->json(["success" => $success, "id" => $code->getName()]);
     }
 
     public function deleteAction()
@@ -65,7 +66,7 @@ class Reports_QrcodeController extends \Pimcore\Controller\Action\Admin\Reports
         $code = Qrcode\Config::getByName($this->getParam("name"));
         $code->delete();
 
-        $this->_helper->json(array("success" => true));
+        $this->_helper->json(["success" => true]);
     }
 
 
@@ -90,7 +91,7 @@ class Reports_QrcodeController extends \Pimcore\Controller\Action\Admin\Reports
 
         $code->save();
 
-        $this->_helper->json(array("success" => true));
+        $this->_helper->json(["success" => true]);
     }
 
     public function codeAction()
@@ -115,6 +116,7 @@ class Reports_QrcodeController extends \Pimcore\Controller\Action\Admin\Reports
 
         $hexToRGBA = function ($hex) {
             list($r, $g, $b) = sscanf($hex, "#%02x%02x%02x");
+
             return ["r" => $r, "g" => $g, "b" => $b, "a" => 0];
         };
 

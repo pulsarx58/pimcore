@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.asset.asset");
@@ -146,9 +148,12 @@ pimcore.asset.asset = Class.create(pimcore.element.abstract, {
                 buttons.push(this.toolbarButtons.publish);
             }
 
+            buttons.push("-");
+
+
             if (this.isAllowed("delete") && !this.data.locked) {
                 this.toolbarButtons.remove = new Ext.Button({
-                    text: t('delete'),
+                    tooltip: t('delete'),
                     iconCls: "pimcore_icon_delete",
                     scale: "medium",
                     handler: this.remove.bind(this)
@@ -156,11 +161,27 @@ pimcore.asset.asset = Class.create(pimcore.element.abstract, {
                 buttons.push(this.toolbarButtons.remove);
             }
 
-            buttons.push("-");
+            if (this.isAllowed("rename") && !this.data.locked) {
+                this.toolbarButtons.rename = new Ext.Button({
+                    tooltip: t('rename'),
+                    iconCls: "pimcore_icon_key pimcore_icon_overlay_go",
+                    scale: "medium",
+                    handler: function () {
+                        var options = {
+                            elementType: "asset",
+                            elementSubType: this.getType(),
+                            id: this.id,
+                            default: this.data.filename
+                        }
+                        pimcore.elementservice.editElementKey(options);
+                    }.bind(this)
+                });
+                buttons.push(this.toolbarButtons.rename);
+            }
 
             if (this.isAllowed("publish")) {
                 this.toolbarButtons.upload = new Ext.Button({
-                    text: t("upload"),
+                    tooltip: t("upload"),
                     iconCls: "pimcore_icon_upload",
                     scale: "medium",
                     handler: this.upload.bind(this)
@@ -169,7 +190,7 @@ pimcore.asset.asset = Class.create(pimcore.element.abstract, {
             }
 
             buttons.push({
-                text: t("download"),
+                tooltip: t("download"),
                 iconCls: "pimcore_icon_download",
                 scale: "medium",
                 handler: function () {
@@ -177,33 +198,35 @@ pimcore.asset.asset = Class.create(pimcore.element.abstract, {
                 }.bind(this)
             });
 
-            buttons.push("-");
-
-            var moreButtons = [];
-
-            moreButtons.push({
-                text: t('reload'),
+            buttons.push({
+                tooltip: t('reload'),
                 iconCls: "pimcore_icon_reload",
+                scale: "medium",
                 handler: this.reload.bind(this)
             });
 
-            moreButtons.push({
-                text: t('show_in_tree'),
-                iconCls: "pimcore_icon_show_in_tree",
-                handler: this.selectInTree.bind(this)
-            });
+            if (pimcore.elementservice.showLocateInTreeButton("asset")) {
+                buttons.push({
+                    tooltip: t('show_in_tree'),
+                    iconCls: "pimcore_icon_show_in_tree",
+                    scale: "medium",
+                    handler: this.selectInTree.bind(this)
+                });
+            }
 
-            moreButtons.push({
-                text: t("show_metainfo"),
+            buttons.push({
+                tooltip: t("show_metainfo"),
                 iconCls: "pimcore_icon_info",
+                scale: "medium",
                 handler: this.showMetaInfo.bind(this)
             });
 
             // only for videos and images
             if (this.isAllowed("publish") && in_array(this.data.type,["image","video"])) {
-                moreButtons.push({
-                    text: t("clear_thumbnails"),
+                buttons.push({
+                    tooltip: t("clear_thumbnails"),
                     iconCls: "pimcore_icon_menu_clear_thumbnails",
+                    scale: "medium",
                     handler: function () {
                         Ext.Ajax.request({
                             url: "/admin/asset/clear-thumbnail",
@@ -214,13 +237,6 @@ pimcore.asset.asset = Class.create(pimcore.element.abstract, {
                     }.bind(this)
                 });
             }
-
-            buttons.push({
-                text: t("more"),
-                iconCls: "pimcore_icon_more",
-                scale: "medium",
-                menu: moreButtons
-            });
 
             buttons.push("-");
             buttons.push({
@@ -236,7 +252,7 @@ pimcore.asset.asset = Class.create(pimcore.element.abstract, {
                 border: false,
                 cls: "main-toolbar",
                 items: buttons,
-                overflowHandler: 'menu'
+                overflowHandler: 'scroller'
             });
         }
 
@@ -304,6 +320,9 @@ pimcore.asset.asset = Class.create(pimcore.element.abstract, {
         }
 
         this.tab.mask();
+
+        pimcore.plugin.broker.fireEvent("preSaveAsset", this.id);
+
         Ext.Ajax.request({
             url: '/admin/asset/save/',
             method: "post",
@@ -313,9 +332,11 @@ pimcore.asset.asset = Class.create(pimcore.element.abstract, {
                     if (rdata && rdata.success) {
                         pimcore.helpers.showNotification(t("save"), t("successful_saved_asset"), "success");
                         this.resetChanges();
+                        pimcore.plugin.broker.fireEvent("postSaveAsset", this.id);
                     }
                     else {
-                        pimcore.helpers.showNotification(t("error"), t("error_saving_asset"), "error",t(rdata.message));
+                        pimcore.helpers.showPrettyError(rdata.type, t("error"), t("error_saving_asset"),
+                            rdata.message, rdata.stack, rdata.code);
                     }
                 } catch(e){
                     pimcore.helpers.showNotification(t("error"), t("error_saving_asset"), "error");
@@ -348,7 +369,11 @@ pimcore.asset.asset = Class.create(pimcore.element.abstract, {
     },
 
     remove: function () {
-        pimcore.helpers.deleteAsset(this.id);
+        var options = {
+            "elementType" : "asset",
+            "id": this.id
+        };
+        pimcore.elementservice.deleteElement(options);
     },
 
     upload: function () {

@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.element.selector.object");
@@ -263,8 +265,7 @@ pimcore.element.selector.object = Class.create(pimcore.element.selector.abstract
 
         var gridHelper = new pimcore.object.helpers.grid(selectedClass, fields, "/admin/search/search/find", null, true);
         this.store = gridHelper.getStore();
-        this.store.setPageSize(50);
-        this.store.getProxy().extraParams.limit = 50;
+        this.store.setPageSize(pimcore.helpers.grid.getDefaultPageSize());
         var gridColumns = gridHelper.getGridColumns();
         var gridfilters = gridHelper.getGridFilters();
 
@@ -282,7 +283,7 @@ pimcore.element.selector.object = Class.create(pimcore.element.selector.abstract
         this.store = new Ext.data.Store({
             autoDestroy: true,
             remoteSort: true,
-            pageSize: 50,
+            pageSize: pimcore.helpers.grid.getDefaultPageSize(),
             proxy : {
                 type: 'ajax',
                 url: "/admin/search/search/find",
@@ -398,10 +399,12 @@ pimcore.element.selector.object = Class.create(pimcore.element.selector.abstract
             classid: classId,
             selectedGridColumns: visibleColumns
         };
-        var dialog = new pimcore.object.helpers.gridConfigDialog(columnConfig, function(data) {
-            this.gridLanguage = data.language;
-            this.initClassStore(selectedClass, data.columns);
-        }.bind(this) );
+        var dialog = new pimcore.object.helpers.gridConfigDialog(columnConfig,
+            function(data) {
+                this.gridLanguage = data.language;
+                this.initClassStore(selectedClass, data.columns);
+            }.bind(this), null
+        );
     },
 
     getGridConfig : function () {

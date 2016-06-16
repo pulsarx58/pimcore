@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\ClassDefinition\Data;
@@ -76,6 +78,7 @@ class Video extends Model\Object\ClassDefinition\Data
     public function setWidth($width)
     {
         $this->width = $this->getAsIntegerCast($width);
+
         return $this;
     }
 
@@ -94,6 +97,7 @@ class Video extends Model\Object\ClassDefinition\Data
     public function setHeight($height)
     {
         $this->height = $this->getAsIntegerCast($height);
+
         return $this;
     }
 
@@ -104,7 +108,7 @@ class Video extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return integer|null
      */
-    public function getDataForResource($data, $object = null, $params = array())
+    public function getDataForResource($data, $object = null, $params = [])
     {
         if ($data) {
             $data = clone $data;
@@ -116,8 +120,10 @@ class Video extends Model\Object\ClassDefinition\Data
             }
 
             $data = object2array($data);
+
             return serialize($data);
         }
+
         return null;
     }
 
@@ -128,7 +134,7 @@ class Video extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return Asset
      */
-    public function getDataFromResource($data, $object = null, $params = array())
+    public function getDataFromResource($data, $object = null, $params = [])
     {
         if ($data) {
             $raw = unserialize($data);
@@ -152,9 +158,11 @@ class Video extends Model\Object\ClassDefinition\Data
                 $video->setPoster($raw["poster"]);
                 $video->setTitle($raw["title"]);
                 $video->setDescription($raw["description"]);
+
                 return $video;
             }
         }
+
         return null;
     }
 
@@ -165,7 +173,7 @@ class Video extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return integer|null
      */
-    public function getDataForQueryResource($data, $object = null, $params = array())
+    public function getDataForQueryResource($data, $object = null, $params = [])
     {
         return $this->getDataForResource($data, $object, $params);
     }
@@ -177,7 +185,7 @@ class Video extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return integer
      */
-    public function getDataForEditmode($data, $object = null, $params = array())
+    public function getDataForEditmode($data, $object = null, $params = [])
     {
         if ($data) {
             $data = clone $data;
@@ -200,7 +208,7 @@ class Video extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return Asset
      */
-    public function getDataFromEditmode($data, $object = null, $params = array())
+    public function getDataFromEditmode($data, $object = null, $params = [])
     {
         $video = null;
 
@@ -238,7 +246,7 @@ class Video extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return mixed
      */
-    public function getDataForGrid($data, $object = null, $params = array())
+    public function getDataForGrid($data, $object = null, $params = [])
     {
         if ($data && $data->getType() == "asset" && $data->getData() instanceof Asset) {
             return $data->getData()->getId();
@@ -252,7 +260,7 @@ class Video extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getVersionPreview($data, $object = null, $params = array())
+    public function getVersionPreview($data, $object = null, $params = [])
     {
         if ($data && $data->getType() == "asset" && $data->getData() instanceof Asset) {
             return '<img src="/admin/asset/get-video-thumbnail/id/' . $data->getData()->getId() . '/width/100/height/100/aspectratio/true" />';
@@ -268,14 +276,15 @@ class Video extends Model\Object\ClassDefinition\Data
      * @param array $params
      * @return string
      */
-    public function getForCsvExport($object, $params = array())
+    public function getForCsvExport($object, $params = [])
     {
-        $data = $this->getDataFromObjectParam($object);
+        $data = $this->getDataFromObjectParam($object, $params);
         if ($data) {
             $value = $data->getData();
             if ($value instanceof Asset) {
                 $value = $value->getId();
             }
+
             return $data->getType() . "~" . $value;
         } else {
             return null;
@@ -288,7 +297,7 @@ class Video extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return mixed|null
      */
-    public function getFromCsvImport($importValue, $object = null, $params = array())
+    public function getFromCsvImport($importValue, $object = null, $params = [])
     {
         $value = null;
 
@@ -319,9 +328,9 @@ class Video extends Model\Object\ClassDefinition\Data
      * @param array $tags
      * @return array
      */
-    public function getCacheTags($data, $tags = array())
+    public function getCacheTags($data, $tags = [])
     {
-        $tags = is_array($tags) ? $tags : array();
+        $tags = is_array($tags) ? $tags : [];
 
         if ($data && $data->getData() instanceof Asset) {
             if (!array_key_exists($data->getData()->getCacheTag(), $tags)) {
@@ -344,20 +353,20 @@ class Video extends Model\Object\ClassDefinition\Data
      */
     public function resolveDependencies($data)
     {
-        $dependencies = array();
+        $dependencies = [];
 
         if ($data && $data->getData() instanceof Asset) {
-            $dependencies["asset_" . $data->getData()->getId()] = array(
+            $dependencies["asset_" . $data->getData()->getId()] = [
                 "id" => $data->getData()->getId(),
                 "type" => "asset"
-            );
+            ];
         }
 
         if ($data && $data->getPoster() instanceof Asset) {
-            $dependencies["asset_" . $data->getPoster()->getId()] = array(
+            $dependencies["asset_" . $data->getPoster()->getId()] = [
                 "id" => $data->getPoster()->getId(),
                 "type" => "asset"
-            );
+            ];
         }
 
         return $dependencies;
@@ -370,7 +379,7 @@ class Video extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return mixed
      */
-    public function getForWebserviceExport($object, $params = array())
+    public function getForWebserviceExport($object, $params = [])
     {
         $data = $this->getDataFromObjectParam($object, $params);
         if ($data) {
@@ -386,7 +395,7 @@ class Video extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return mixed
      */
-    public function getFromWebserviceImport($value, $relatedObject = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($value, $relatedObject = null, $params = [], $idMapper = null)
     {
 
         // @TODO
@@ -398,7 +407,7 @@ class Video extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return bool
      */
-    public function isDiffChangeAllowed($object, $params = array())
+    public function isDiffChangeAllowed($object, $params = [])
     {
         return false;
     }
@@ -410,7 +419,7 @@ class Video extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return array|string
      */
-    public function getDiffVersionPreview($data, $object = null, $params = array())
+    public function getDiffVersionPreview($data, $object = null, $params = [])
     {
         $versionPreview = null;
 
@@ -419,9 +428,10 @@ class Video extends Model\Object\ClassDefinition\Data
         }
 
         if ($versionPreview) {
-            $value = array();
+            $value = [];
             $value["src"] = $versionPreview;
             $value["type"] = "img";
+
             return $value;
         }
 
@@ -434,7 +444,7 @@ class Video extends Model\Object\ClassDefinition\Data
      * @param array $params
      * @return mixed
      */
-    public function rewriteIds($object, $idMapping, $params = array())
+    public function rewriteIds($object, $idMapping, $params = [])
     {
         $data = $this->getDataFromObjectParam($object, $params);
 

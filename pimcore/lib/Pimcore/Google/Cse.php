@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Google;
@@ -28,7 +30,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
      * @param null $facet
      * @return Cse
      */
-    public static function search($query, $offset = 0, $perPage = 10, array $config = array(), $facet = null)
+    public static function search($query, $offset = 0, $perPage = 10, array $config = [], $facet = null)
     {
         $list = new self();
         $list->setConfig($config);
@@ -91,7 +93,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
                 } else {
                     if (!$result = Cache::load($cacheKey)) {
                         $result = $search->cse->listCse($query, $config);
-                        Cache::save($result, $cacheKey, array("google_cse"), 3600, 999);
+                        Cache::save($result, $cacheKey, ["google_cse"], 3600, 999);
                         \Zend_Registry::set($cacheKey, $result);
                     }
                 }
@@ -101,7 +103,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
                 return $this->getResults(false);
             }
 
-            return array();
+            return [];
         } else {
             throw new \Exception("Google Simple API Key is not configured in System-Settings.");
         }
@@ -110,7 +112,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
     /**
      * @var array
      */
-    public $results = array();
+    public $results = [];
 
     /**
      * @var int
@@ -130,7 +132,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
     /**
      * @var array
      */
-    public $config = array();
+    public $config = [];
 
     /**
      * @var string
@@ -140,12 +142,12 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
     /**
      * @var array
      */
-    public $raw = array();
+    public $raw = [];
 
     /**
      * @var array
      */
-    public $facets = array();
+    public $facets = [];
 
 
     /**
@@ -169,7 +171,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
         // available factes
         if (array_key_exists("context", $googleResponse) && is_array($googleResponse["context"])) {
             if (array_key_exists("facets", $googleResponse["context"]) && is_array($googleResponse["context"]["facets"])) {
-                $facets = array();
+                $facets = [];
                 foreach ($googleResponse["context"]["facets"] as $facet) {
                     $facets[$facet[0]["label"]] = $facet[0]["anchor"];
                 }
@@ -178,7 +180,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
         }
 
         // results incl. promotions, search results, ...
-        $items = array();
+        $items = [];
 
         // set promotions
         if (array_key_exists("promotions", $googleResponse) && is_array($googleResponse["promotions"])) {
@@ -249,6 +251,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
     public function setOffset($offset)
     {
         $this->offset = $offset;
+
         return $this;
     }
 
@@ -267,6 +270,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
     public function setRaw($raw)
     {
         $this->raw = $raw;
+
         return $this;
     }
 
@@ -285,6 +289,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
     public function setTotal($total)
     {
         $this->total = $total;
+
         return $this;
     }
 
@@ -303,6 +308,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
     public function setPerPage($perPage)
     {
         $this->perPage = $perPage;
+
         return $this;
     }
 
@@ -321,6 +327,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
     public function setConfig($config)
     {
         $this->config = $config;
+
         return $this;
     }
 
@@ -339,6 +346,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
     public function setQuery($query)
     {
         $this->query = $query;
+
         return $this;
     }
 
@@ -357,6 +365,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
     public function setResults($results)
     {
         $this->results = $results;
+
         return $this;
     }
 
@@ -368,6 +377,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
         if (empty($this->results) && $retry) {
             $this->load();
         }
+
         return $this->results;
     }
 
@@ -378,6 +388,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
     public function setFacets($facets)
     {
         $this->facets = $facets;
+
         return $this;
     }
 
@@ -400,6 +411,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
     public function count()
     {
         $this->getResults();
+
         return $this->getTotal();
     }
 
@@ -441,6 +453,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
     {
         $this->getResults();
         $var = current($this->results);
+
         return $var;
     }
 
@@ -448,6 +461,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
     {
         $this->getResults();
         $var = key($this->results);
+
         return $var;
     }
 
@@ -455,6 +469,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
     {
         $this->getResults();
         $var = next($this->results);
+
         return $var;
     }
 
@@ -462,6 +477,7 @@ class Cse implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterA
     {
         $this->getResults();
         $var = $this->current() !== false;
+
         return $var;
     }
 }

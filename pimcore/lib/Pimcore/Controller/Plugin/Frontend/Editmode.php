@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Controller\Plugin\Frontend;
@@ -43,19 +45,20 @@ class Editmode extends \Zend_Controller_Plugin_Abstract
         // add scripts to editmode
 
         if (\Pimcore\Tool\Admin::isExtJS6()) {
-            $editmodeLibraries = array(
+            $editmodeLibraries = [
                 "/pimcore/static6/js/pimcore/namespace.js",
                 "/pimcore/static6/js/lib/prototype-light.js",
                 "/pimcore/static6/js/lib/jquery.min.js",
                 "/pimcore/static6/js/lib/ext/ext-all.js",
                 "/pimcore/static6/js/lib/ckeditor/ckeditor.js"
-            );
+            ];
 
-            $editmodeScripts = array(
+            $editmodeScripts = [
                 "/pimcore/static6/js/pimcore/functions.js",
                 "/pimcore/static6/js/pimcore/element/tag/imagehotspotmarkereditor.js",
                 "/pimcore/static6/js/pimcore/element/tag/imagecropper.js",
                 "/pimcore/static6/js/pimcore/document/edit/helper.js",
+                "/pimcore/static6/js/pimcore/elementservice.js",
                 "/pimcore/static6/js/pimcore/document/edit/dnd.js",
                 "/pimcore/static6/js/pimcore/document/tag.js",
                 "/pimcore/static6/js/pimcore/document/tags/block.js",
@@ -78,15 +81,16 @@ class Editmode extends \Zend_Controller_Plugin_Abstract
                 "/pimcore/static6/js/pimcore/document/tags/areablock.js",
                 "/pimcore/static6/js/pimcore/document/tags/area.js",
                 "/pimcore/static6/js/pimcore/document/tags/pdf.js",
+                "/pimcore/static6/js/pimcore/document/tags/embed.js",
                 "/pimcore/static6/js/pimcore/document/edit/helper.js"
-            );
+            ];
 
-            $editmodeStylesheets = array(
+            $editmodeStylesheets = [
                 "/pimcore/static6/css/icons.css",
                 "/pimcore/static6/css/editmode.css?_dc=" . time()
-            );
+            ];
         } else {
-            $editmodeLibraries = array(
+            $editmodeLibraries = [
                 "/pimcore/static/js/pimcore/namespace.js",
 
                 "/pimcore/static/js/lib/prototype-light.js",
@@ -100,9 +104,9 @@ class Editmode extends \Zend_Controller_Plugin_Abstract
                 "/pimcore/static/js/lib/ext-plugins/GridRowOrder/roworder.js",
                 "/pimcore/static/js/lib/ckeditor/ckeditor.js",
                 "/pimcore/static/js/pimcore/libfixes.js"
-            );
+            ];
 
-            $editmodeScripts = array(
+            $editmodeScripts = [
                 "/pimcore/static/js/pimcore/functions.js",
                 "/pimcore/static/js/pimcore/element/tag/imagehotspotmarkereditor.js",
                 "/pimcore/static/js/pimcore/element/tag/imagecropper.js",
@@ -130,9 +134,9 @@ class Editmode extends \Zend_Controller_Plugin_Abstract
                 "/pimcore/static/js/pimcore/document/tags/area.js",
                 "/pimcore/static/js/pimcore/document/tags/pdf.js",
                 "/pimcore/static/js/pimcore/document/edit/helper.js"
-            );
+            ];
 
-            $editmodeStylesheets = array(
+            $editmodeStylesheets = [
                 /*"/pimcore/static/js/lib/ext/resources/css/ext-all.css",
                 "/pimcore/static/js/lib/ext/resources/css/xtheme-gray.css",
                 "/pimcore/static/js/lib/ext-plugins/ux/css/Spinner.css",
@@ -140,19 +144,19 @@ class Editmode extends \Zend_Controller_Plugin_Abstract
                 "/pimcore/static/css/ext-admin-overwrite.css",*/
                 "/pimcore/static/css/icons.css",
                 "/pimcore/static/css/editmode.css?asd=" . time(),
-            );
+            ];
         }
 
         //add plugin editmode JS and CSS
         try {
             $pluginConfigs = ExtensionManager::getPluginConfigs();
-            $jsPaths = array();
-            $cssPaths = array();
+            $jsPaths = [];
+            $cssPaths = [];
 
             if (!empty($pluginConfigs)) {
                 //registering plugins
                 foreach ($pluginConfigs as $p) {
-                    $pluginJsPaths = array();
+                    $pluginJsPaths = [];
 
                     $pluginVersions = [""];
                     if (\Pimcore\Tool\Admin::isExtJS6()) {
@@ -183,7 +187,7 @@ class Editmode extends \Zend_Controller_Plugin_Abstract
                     }
 
 
-                    $pluginCssPaths = array();
+                    $pluginCssPaths = [];
                     foreach ($pluginVersions as $pluginVersion) {
                         if (array_key_exists("pluginDocumentEditmodeCssPaths".$pluginVersion, $p['plugin'])
                             && is_array($p['plugin']['pluginDocumentEditmodeCssPaths'.$pluginVersion])
@@ -218,6 +222,8 @@ class Editmode extends \Zend_Controller_Plugin_Abstract
         }
 
         $editmodeHeadHtml = "\n\n\n<!-- pimcore editmode -->\n";
+        $editmodeHeadHtml .= '<meta name="google" value="notranslate">';
+        $editmodeHeadHtml .= "\n\n";
 
         // include stylesheets
         foreach ($editmodeStylesheets as $sheet) {
@@ -307,9 +313,6 @@ class Editmode extends \Zend_Controller_Plugin_Abstract
                 }
             }
         }
-
-        // IE compatibility
-        //$this->getResponse()->setHeader("X-UA-Compatible", "IE=8; IE=9", true);
     }
 
     /**

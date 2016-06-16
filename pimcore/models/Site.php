@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Site
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model;
@@ -113,7 +115,7 @@ class Site extends AbstractModel
                 $site = "failed";
             }
             
-            \Pimcore\Cache::save($site, $cacheKey, array("system", "site"));
+            \Pimcore\Cache::save($site, $cacheKey, ["system", "site"]);
         }
         
         if ($site == "failed" || !$site) {
@@ -151,6 +153,7 @@ class Site extends AbstractModel
     {
         $site = new self();
         $site->setValues($data);
+
         return $site;
     }
 
@@ -176,6 +179,7 @@ class Site extends AbstractModel
     {
         if (\Zend_Registry::isRegistered("pimcore_site")) {
             $site = \Zend_Registry::get("pimcore_site");
+
             return $site;
         } else {
             throw new \Exception("This request/process is not inside a subsite");
@@ -221,6 +225,7 @@ class Site extends AbstractModel
     public function setId($id)
     {
         $this->id = (int) $id;
+
         return $this;
     }
 
@@ -234,6 +239,7 @@ class Site extends AbstractModel
             $domains = \Pimcore\Tool\Serialize::unserialize($domains);
         }
         $this->domains = $domains;
+
         return $this;
     }
 
@@ -247,6 +253,7 @@ class Site extends AbstractModel
 
         $rd = Document::getById($this->rootId);
         $this->setRootDocument($rd);
+
         return $this;
     }
 
@@ -257,6 +264,7 @@ class Site extends AbstractModel
     public function setRootDocument($rootDocument)
     {
         $this->rootDocument = $rootDocument;
+
         return $this;
     }
 
@@ -267,6 +275,7 @@ class Site extends AbstractModel
     public function setRootPath($path)
     {
         $this->rootPath = $path;
+
         return $this;
     }
 
@@ -278,6 +287,7 @@ class Site extends AbstractModel
         if (!$this->rootPath && $this->getRootDocument()) {
             return $this->getRootDocument()->getRealFullPath();
         }
+
         return $this->rootPath;
     }
 
@@ -350,6 +360,7 @@ class Site extends AbstractModel
     public function setModificationDate($modificationDate)
     {
         $this->modificationDate = (int) $modificationDate;
+
         return $this;
     }
 
@@ -368,6 +379,7 @@ class Site extends AbstractModel
     public function setCreationDate($creationDate)
     {
         $this->creationDate = (int) $creationDate;
+
         return $this;
     }
 

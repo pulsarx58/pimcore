@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document;
@@ -49,7 +51,7 @@ class Service extends Model\Element\Service
      * @param bool $useLayout
      * @return string
      */
-    public static function render(Document $document, $params = array(), $useLayout = false)
+    public static function render(Document $document, $params = [], $useLayout = false)
     {
         $layout = null;
         $existingActionHelper = null;
@@ -58,7 +60,7 @@ class Service extends Model\Element\Service
             $existingActionHelper = \Zend_Controller_Action_HelperBroker::getExistingHelper("layout");
         }
         $layoutInCurrentAction = (\Zend_Layout::getMvcInstance() instanceof \Zend_Layout) ? \Zend_Layout::getMvcInstance()->getLayout() : false;
-        
+
         $viewHelper = \Zend_Controller_Action_HelperBroker::getExistingHelper("ViewRenderer");
         if ($viewHelper) {
             if ($viewHelper->view === null) {
@@ -201,7 +203,7 @@ class Service extends Model\Element\Service
 
         // avoid recursion
         if (!$this->_copyRecursiveIds) {
-            $this->_copyRecursiveIds = array();
+            $this->_copyRecursiveIds = [];
         }
         if (in_array($source->getId(), $this->_copyRecursiveIds)) {
             return;
@@ -279,7 +281,7 @@ class Service extends Model\Element\Service
         }
 
         if ($enableInheritance && ($new instanceof Document\PageSnippet)) {
-            $new->setElements(array());
+            $new->setElements([]);
             $new->setContentMasterDocumentId($source->getId());
         }
 
@@ -314,7 +316,6 @@ class Service extends Model\Element\Service
             if ($source instanceof Document\Page) {
                 $target->setTitle($source->getTitle());
                 $target->setDescription($source->getDescription());
-                $target->setKeywords($source->getKeywords());
             }
         } elseif ($source instanceof Document\Link) {
             $target->setInternalType($source->getInternalType());
@@ -348,11 +349,9 @@ class Service extends Model\Element\Service
         if ($document instanceof Document\Page) {
             $data["title"] = $document->getTitle();
             $data["description"] = $document->getDescription();
-            $data["keywords"] = $document->getKeywords();
         } else {
             $data["title"] = "";
             $data["description"] = "";
-            $data["keywords"] = "";
             $data["name"] = "";
         }
 
@@ -393,6 +392,7 @@ class Service extends Model\Element\Service
             // validate path
             if (\Pimcore\Tool::isValidPath($path)) {
                 $document->getDao()->getByPath($path);
+
                 return true;
             }
         } catch (\Exception $e) {
@@ -424,14 +424,14 @@ class Service extends Model\Element\Service
      * @param $rewriteConfig
      * @return Document
      */
-    public static function rewriteIds($document, $rewriteConfig, $params = array())
+    public static function rewriteIds($document, $rewriteConfig, $params = [])
     {
 
         // rewriting elements only for snippets and pages
         if ($document instanceof Document\PageSnippet) {
             if (array_key_exists("enableInheritance", $params) && $params["enableInheritance"]) {
                 $elements = $document->getElements();
-                $changedElements = array();
+                $changedElements = [];
                 $contentMaster = $document->getContentMasterDocument();
                 if ($contentMaster instanceof Document\PageSnippet) {
                     $contentMasterElements = $contentMaster->getElements();
@@ -506,5 +506,36 @@ class Service extends Model\Element\Service
         }
 
         return $document;
+    }
+
+    public static function getUniqueKey($item, $nr = 0)
+    {
+        $list = new Listing();
+        $list->setUnpublished(true);
+        $key = \Pimcore\File::getValidFilename($item->getKey());
+        if (!$key) {
+            throw new \Exception("No item key set.");
+        }
+        if ($nr) {
+            $key = $key . '_' . $nr;
+        }
+
+        $parent = $item->getParent();
+        if (!$parent) {
+            throw new \Exception("You have to set a parent document to determine a unique Key");
+        }
+
+        if (!$item->getId()) {
+            $list->setCondition('parentId = ? AND `key` = ? ', [$parent->getId(), $key]);
+        } else {
+            $list->setCondition('parentId = ? AND `key` = ? AND id != ? ', [$parent->getId(), $key, $item->getId()]);
+        }
+        $check = $list->loadIdList();
+        if (!empty($check)) {
+            $nr++;
+            $key = self::getUniqueKey($item, $nr);
+        }
+
+        return $key;
     }
 }

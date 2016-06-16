@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Tool\Email;
@@ -132,6 +134,7 @@ class Log extends Model\AbstractModel
     public function setDocumentId($id)
     {
         $this->documentId = $id;
+
         return $this;
     }
 
@@ -142,6 +145,7 @@ class Log extends Model\AbstractModel
     public function setRequestUri($requestUri)
     {
         $this->requestUri = $requestUri;
+
         return $this;
     }
 
@@ -172,6 +176,7 @@ class Log extends Model\AbstractModel
     public function setId($id)
     {
         $this->id = (int)$id;
+
         return $this;
     }
 
@@ -182,6 +187,7 @@ class Log extends Model\AbstractModel
     public function setSubject($subject)
     {
         $this->subject = $subject;
+
         return $this;
     }
 
@@ -213,6 +219,7 @@ class Log extends Model\AbstractModel
         $emailLog->getDao()->getById($id);
         $emailLog->setEmailLogExistsHtml();
         $emailLog->setEmailLogExistsText();
+
         return $emailLog;
     }
 
@@ -233,6 +240,7 @@ class Log extends Model\AbstractModel
     public function setParams($params)
     {
         $this->params = $params;
+
         return $this;
     }
 
@@ -255,6 +263,7 @@ class Log extends Model\AbstractModel
     public function setModificationDate($modificationDate)
     {
         $this->modificationDate = $modificationDate;
+
         return $this;
     }
 
@@ -277,6 +286,7 @@ class Log extends Model\AbstractModel
     public function setSentDate($sentDate)
     {
         $this->sentDate = $sentDate;
+
         return $this;
     }
 
@@ -297,6 +307,7 @@ class Log extends Model\AbstractModel
     {
         $file = PIMCORE_LOG_MAIL_PERMANENT . '/email-' . $this->getId() . '-html.log';
         $this->emailLogExistsHtml = (is_file($file) && is_readable($file)) ? 1 : 0;
+
         return $this;
     }
 
@@ -317,6 +328,7 @@ class Log extends Model\AbstractModel
     {
         $file = PIMCORE_LOG_MAIL_PERMANENT . '/email-' . $this->getId() . '-text.log';
         $this->emailLogExistsText = (is_file($file) && is_readable($file)) ? 1 : 0;
+
         return $this;
     }
 
@@ -374,6 +386,7 @@ class Log extends Model\AbstractModel
     public function setCreationDate($creationDate)
     {
         $this->creationDate = $creationDate;
+
         return $this;
     }
 
@@ -429,6 +442,7 @@ class Log extends Model\AbstractModel
     public function setTo($to)
     {
         $this->to = $to;
+
         return $this;
     }
 
@@ -459,6 +473,7 @@ class Log extends Model\AbstractModel
     public function setCc($cc)
     {
         $this->cc = $cc;
+
         return $this;
     }
 
@@ -489,6 +504,7 @@ class Log extends Model\AbstractModel
     public function setBcc($bcc)
     {
         $this->bcc = $bcc;
+
         return $this;
     }
 
@@ -519,6 +535,7 @@ class Log extends Model\AbstractModel
     public function setFrom($from)
     {
         $this->from = $from;
+
         return $this;
     }
 
@@ -539,6 +556,7 @@ class Log extends Model\AbstractModel
     public function setBodyHtml($html)
     {
         $this->bodyHtml = $html;
+
         return $this;
     }
 
@@ -559,6 +577,7 @@ class Log extends Model\AbstractModel
     public function setBodyText($text)
     {
         $this->bodyText = $text;
+
         return $this;
     }
 
@@ -577,16 +596,17 @@ class Log extends Model\AbstractModel
      */
     protected function buildArray($data)
     {
-        $dataArray = array();
+        $dataArray = [];
         $tmp = explode(',', trim($data));
 
         foreach ($tmp as $entry) {
             $entry  = trim($entry);
             $tmp2   = explode(' ', $entry);
-            $dataArray[] = array('email' => trim($tmp2[0]),
-                                 'name' => str_replace(array('(', ')'), '', $tmp2[1])
-            );
+            $dataArray[] = ['email' => trim($tmp2[0]),
+                                 'name' => str_replace(['(', ')'], '', $tmp2[1])
+            ];
         }
+
         return $dataArray;
     }
 }

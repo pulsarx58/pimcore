@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Navigation\Page;
@@ -60,6 +62,7 @@ class Uri extends \Zend_Navigation_Page_Uri
     public function setTabindex($tabindex)
     {
         $this->_tabindex = $tabindex;
+
         return $this;
     }
 
@@ -78,6 +81,7 @@ class Uri extends \Zend_Navigation_Page_Uri
     public function setAccesskey($character = null)
     {
         $this->_accesskey = $character;
+
         return $this;
     }
 
@@ -96,6 +100,7 @@ class Uri extends \Zend_Navigation_Page_Uri
     public function setRelation($relation)
     {
         $this->_relation = $relation;
+
         return $this;
     }
 
@@ -122,6 +127,7 @@ class Uri extends \Zend_Navigation_Page_Uri
             $this->setDocumentType($document->getType());
             $this->setRealFullPath($document->getRealFullPath());
         }
+
         return $this;
     }
 
@@ -136,6 +142,7 @@ class Uri extends \Zend_Navigation_Page_Uri
             if ($doc instanceof Document\Hardlink) {
                 $doc = Document\Hardlink\Service::wrap($doc);
             }
+
             return $doc;
         }
 
@@ -198,6 +205,7 @@ class Uri extends \Zend_Navigation_Page_Uri
     public function setCustomSetting($name, $value)
     {
         $this->customSettings[$name] = $value;
+
         return $this;
     }
 

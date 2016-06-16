@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Google\Cse;
@@ -89,13 +91,14 @@ class Item
      * @param array $data
      * @return $this
      */
-    public function setValues($data = array())
+    public function setValues($data = [])
     {
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $key => $value) {
                 $this->setValue($key, $value);
             }
         }
+
         return $this;
     }
 
@@ -110,6 +113,7 @@ class Item
         if (method_exists($this, $method)) {
             $this->$method($value);
         }
+
         return $this;
     }
 
@@ -120,6 +124,7 @@ class Item
     public function setDisplayLink($displayLink)
     {
         $this->displayLink = $displayLink;
+
         return $this;
     }
 
@@ -138,6 +143,7 @@ class Item
     public function setDocument($document)
     {
         $this->document = $document;
+
         return $this;
     }
 
@@ -156,6 +162,7 @@ class Item
     public function setFormattedUrl($formattedUrl)
     {
         $this->formattedUrl = $formattedUrl;
+
         return $this;
     }
 
@@ -174,6 +181,7 @@ class Item
     public function setHtmlFormattedUrl($htmlFormattedUrl)
     {
         $this->htmlFormattedUrl = $htmlFormattedUrl;
+
         return $this;
     }
 
@@ -192,6 +200,7 @@ class Item
     public function setHtmlSnippet($htmlSnippet)
     {
         $this->htmlSnippet = $htmlSnippet;
+
         return $this;
     }
 
@@ -210,6 +219,7 @@ class Item
     public function setHtmlTitle($htmlTitle)
     {
         $this->htmlTitle = $htmlTitle;
+
         return $this;
     }
 
@@ -228,6 +238,7 @@ class Item
     public function setImage($image)
     {
         $this->image = $image;
+
         return $this;
     }
 
@@ -246,6 +257,7 @@ class Item
     public function setLink($link)
     {
         $this->link = $link;
+
         return $this;
     }
 
@@ -264,6 +276,7 @@ class Item
     public function setRaw($raw)
     {
         $this->raw = $raw;
+
         return $this;
     }
 
@@ -282,6 +295,7 @@ class Item
     public function setSnippet($snippet)
     {
         $this->snippet = $snippet;
+
         return $this;
     }
 
@@ -300,6 +314,7 @@ class Item
     public function setTitle($title)
     {
         $this->title = $title;
+
         return $this;
     }
 
@@ -318,6 +333,7 @@ class Item
     public function setType($type)
     {
         $this->type = $type;
+
         return $this;
     }
 

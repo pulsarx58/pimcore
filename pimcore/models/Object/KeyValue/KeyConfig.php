@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\KeyValue;
@@ -22,7 +24,7 @@ class KeyConfig extends Model\AbstractModel
     /**
      * @var array
      */
-    public static $cache = array();
+    public static $cache = [];
 
     /**
      * @var bool
@@ -107,6 +109,7 @@ class KeyConfig extends Model\AbstractModel
     public function setUnit($unit)
     {
         $this->unit = $unit;
+
         return $this;
     }
 
@@ -125,6 +128,7 @@ class KeyConfig extends Model\AbstractModel
     public function setPossibleValues($values)
     {
         $this->possiblevalues = $values;
+
         return $this;
     }
 
@@ -143,6 +147,7 @@ class KeyConfig extends Model\AbstractModel
     public function setType($type)
     {
         $this->type = $type;
+
         return $this;
     }
 
@@ -161,6 +166,7 @@ class KeyConfig extends Model\AbstractModel
     public function setGroup($group)
     {
         $this->group = $group;
+
         return $this;
     }
 
@@ -202,7 +208,7 @@ class KeyConfig extends Model\AbstractModel
     {
         self::$cacheEnabled = $cacheEnabled;
         if (!$cacheEnabled) {
-            self::$cache = array();
+            self::$cache = [];
         }
     }
 
@@ -251,6 +257,7 @@ class KeyConfig extends Model\AbstractModel
     public function setId($id)
     {
         $this->id = (int) $id;
+
         return $this;
     }
 
@@ -269,6 +276,7 @@ class KeyConfig extends Model\AbstractModel
     public function setName($name)
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -295,6 +303,7 @@ class KeyConfig extends Model\AbstractModel
     public function setDescription($description)
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -334,6 +343,7 @@ class KeyConfig extends Model\AbstractModel
         } else {
             \Pimcore::getEventManager()->trigger("object.keyValue.keyConfig.postAdd", $this);
         }
+
         return $model;
     }
 
@@ -344,6 +354,7 @@ class KeyConfig extends Model\AbstractModel
     public function setCreationDate($creationDate)
     {
         $this->creationDate = (int) $creationDate;
+
         return $this;
     }
 
@@ -362,6 +373,7 @@ class KeyConfig extends Model\AbstractModel
     public function setModificationDate($modificationDate)
     {
         $this->modificationDate = (int) $modificationDate;
+
         return $this;
     }
 

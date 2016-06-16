@@ -1,15 +1,17 @@
-<?php 
+<?php
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\ClassDefinition\Data;
@@ -22,7 +24,6 @@ use Pimcore\Model\Element;
 
 class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
 {
-
     use Model\Object\ClassDefinition\Data\Extension\Relation;
 
     /**
@@ -46,16 +47,16 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      * @var bool
      */
     public $relationType = true;
-    
+
     /**
      * Type for the column to query
      *
      * @var array
      */
-    public $queryColumnType = array(
+    public $queryColumnType = [
         "id" => "int(11)",
         "type" => "enum('document','asset','object')"
-    );
+    ];
 
     /**
      * Type for the generated phpdoc
@@ -63,7 +64,7 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      * @var string
      */
     public $phpdocType = "\\Pimcore\\Model\\Document\\Page | \\Pimcore\\Model\\Document\\Snippet | \\Pimcore\\Model\\Document | \\Pimcore\\Model\\Asset | \\Pimcore\\Model\\Object\\AbstractObject";
-    
+
     /**
      *
      * @var boolean
@@ -112,9 +113,10 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
     public function setObjectsAllowed($objectsAllowed)
     {
         $this->objectsAllowed = $objectsAllowed;
+
         return $this;
     }
-    
+
     /**
      * @return boolean
      */
@@ -130,6 +132,7 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
     public function setDocumentsAllowed($documentsAllowed)
     {
         $this->documentsAllowed = $documentsAllowed;
+
         return $this;
     }
 
@@ -148,21 +151,8 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      */
     public function setDocumentTypes($documentTypes)
     {
+        $this->documentTypes = Element\Service::fixAllowedTypes($documentTypes, "documentTypes");
 
-        // this is the new method with Ext.form.MultiSelect
-        if ((is_string($documentTypes) && !empty($documentTypes)) || (\Pimcore\Tool\Admin::isExtJS6() && is_array($documentTypes))) {
-            if (!\Pimcore\Tool\Admin::isExtJS6()) {
-                $parts = explode(",", $documentTypes);
-            } else {
-                $parts = $documentTypes;
-            }
-            $documentTypes = array();
-            foreach ($parts as $type) {
-                $documentTypes[] = array("documentTypes" => $type);
-            }
-        }
-
-        $this->documentTypes = $documentTypes;
         return $this;
     }
 
@@ -183,6 +173,7 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
     public function setAssetsAllowed($assetsAllowed)
     {
         $this->assetsAllowed = $assetsAllowed;
+
         return $this;
     }
 
@@ -200,21 +191,8 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      */
     public function setAssetTypes($assetTypes)
     {
+        $this->assetTypes = Element\Service::fixAllowedTypes($assetTypes, "assetTypes");
 
-        // this is the new method with Ext.form.MultiSelect
-        if ((is_string($assetTypes) && !empty($assetTypes)) || (\Pimcore\Tool\Admin::isExtJS6() && is_array($assetTypes))) {
-            if (!\Pimcore\Tool\Admin::isExtJS6()) {
-                $parts = explode(",", $assetTypes);
-            } else {
-                $parts = $assetTypes;
-            }
-            $assetTypes = array();
-            foreach ($parts as $type) {
-                $assetTypes[] = array("assetTypes" => $type);
-            }
-        }
-
-        $this->assetTypes = $assetTypes;
         return $this;
     }
 
@@ -225,17 +203,17 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      * @param mixed $params
      * @return array
      */
-    public function getDataForResource($data, $object = null, $params = array())
+    public function getDataForResource($data, $object = null, $params = [])
     {
         if ($data instanceof Element\ElementInterface) {
             $type =  Element\Service::getType($data);
             $id = $data->getId();
 
-            return array(array(
+            return [[
                 "dest_id" => $id,
                 "type" => $type,
                 "fieldname" => $this->getName()
-            ));
+            ]];
         } else {
             return null;
         }
@@ -248,10 +226,10 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      * @param mixed $params
      * @return Asset|Document|Object\AbstractObject
      */
-    public function getDataFromResource($data, $object = null, $params = array(), $notRelationTable = false)
+    public function getDataFromResource($data, $object = null, $params = [], $notRelationTable = false)
     {
         // data from relation table
-        $data = is_array($data) ? $data : array();
+        $data = is_array($data) ? $data : [];
         $data = current($data);
 
         if ($data["dest_id"] && $data["type"]) {
@@ -268,11 +246,11 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      * @param mixed $params
      * @return array
      */
-    public function getDataForQueryResource($data, $object = null, $params = array())
+    public function getDataForQueryResource($data, $object = null, $params = [])
     {
         $rData = $this->getDataForResource($data, $object, $params);
 
-        $return = array();
+        $return = [];
         $return[$this->getName() . "__id"] = $rData[0]["dest_id"];
         $return[$this->getName() . "__type"] = $rData[0]["type"];
 
@@ -286,17 +264,19 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      * @param mixed $params
      * @return array
      */
-    public function getDataForEditmode($data, $object = null, $params = array())
+    public function getDataForEditmode($data, $object = null, $params = [])
     {
         if ($data instanceof Element\ElementInterface) {
-            $r = array(
+            $r = [
                 "id" => $data->getId(),
-                "path" => $data->getFullPath(),
+                "path" => $data->getRealFullPath(),
                 "subtype" => $data->getType(),
                 "type" => Element\Service::getElementType($data)
-            );
+            ];
+
             return $r;
         }
+
         return;
     }
 
@@ -307,7 +287,7 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      * @param mixed $params
      * @return Asset|Document|Object\AbstractObject
      */
-    public function getDataFromEditmode($data, $object = null, $params = array())
+    public function getDataFromEditmode($data, $object = null, $params = [])
     {
         if ($data["id"] && $data["type"]) {
             return Element\Service::getElementById($data["type"], $data["id"]);
@@ -317,10 +297,10 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
     }
 
 
-    public function getDataForGrid($data, $object = null, $params = array())
+    public function getDataForGrid($data, $object = null, $params = [])
     {
         if ($data instanceof Element\ElementInterface) {
-            return $data->getFullPath();
+            return $data->getRealFullPath();
         }
     }
 
@@ -331,10 +311,10 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      * @param mixed $params
      * @return string
      */
-    public function getVersionPreview($data, $object = null, $params = array())
+    public function getVersionPreview($data, $object = null, $params = [])
     {
         if ($data instanceof Element\ElementInterface) {
-            return $data->getFullPath();
+            return $data->getRealFullPath();
         }
     }
 
@@ -353,6 +333,7 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
     public function setWidth($width)
     {
         $this->width = $this->getAsIntegerCast($width);
+
         return $this;
     }
 
@@ -366,10 +347,10 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
     public function checkValidity($data, $omitMandatoryCheck = false)
     {
         if (!$omitMandatoryCheck and $this->getMandatory() and empty($data)) {
-            throw new \Exception("Empty mandatory field [ ".$this->getName()." ]");
+            throw new Element\ValidationException("Empty mandatory field [ ".$this->getName()." ]");
         }
 
-        
+
         if ($data instanceof Document) {
             $allow = $this->allowDocumentRelation($data);
         } elseif ($data instanceof Asset) {
@@ -395,11 +376,11 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      * @param array $params
      * @return string
      */
-    public function getForCsvExport($object, $params = array())
+    public function getForCsvExport($object, $params = [])
     {
-        $data = $this->getDataFromObjectParam($object);
+        $data = $this->getDataFromObjectParam($object, $params);
         if ($data instanceof Element\ElementInterface) {
-            return Element\Service::getType($data).":".$data->getFullPath();
+            return Element\Service::getType($data).":".$data->getRealFullPath();
         } else {
             return null;
         }
@@ -411,7 +392,7 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      * @param mixed $params
      * @return mixed|null|Asset|Document|Element\ElementInterface
      */
-    public function getFromCsvImport($importValue, $object = null, $params = array())
+    public function getFromCsvImport($importValue, $object = null, $params = [])
     {
         $value = null;
 
@@ -441,9 +422,9 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      * @param array $tags
      * @return array
      */
-    public function getCacheTags($data, $tags = array())
+    public function getCacheTags($data, $tags = [])
     {
-        $tags = is_array($tags) ? $tags : array();
+        $tags = is_array($tags) ? $tags : [];
 
         if ($data instanceof Element\ElementInterface) {
             if (!array_key_exists($data->getCacheTag(), $tags)) {
@@ -460,16 +441,16 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      */
     public function resolveDependencies($data)
     {
-        $dependencies = array();
-        
+        $dependencies = [];
+
         if ($data instanceof Element\ElementInterface) {
             $elementType = Element\Service::getElementType($data);
-            $dependencies[$elementType . "_" . $data->getId()] = array(
+            $dependencies[$elementType . "_" . $data->getId()] = [
                 "id" => $data->getId(),
                 "type" => $elementType
-            );
+            ];
         }
-        
+
         return $dependencies;
     }
 
@@ -479,15 +460,15 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      * @param mixed $params
      * @return mixed
      */
-    public function getForWebserviceExport($object, $params = array())
+    public function getForWebserviceExport($object, $params = [])
     {
         $data = $this->getDataFromObjectParam($object, $params);
         if ($data instanceof Element\ElementInterface) {
-            return array(
+            return [
                 "type" => Element\Service::getType($data),
                 "subtype" => $data->getType(),
                 "id" => $data->getId()
-            );
+            ];
         } else {
             return null;
         }
@@ -501,7 +482,7 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      * @return mixed|void
      * @throws \Exception
      */
-    public function getFromWebserviceImport($value, $relatedObject = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($value, $relatedObject = null, $params = [], $idMapper = null)
     {
         if (empty($value)) {
             return null;
@@ -523,7 +504,7 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
                     return $el;
                 } else {
                     if ($idMapper && $idMapper->ignoreMappingFailures()) {
-                        $idMapper->recordMappingFailure("object", $relatedObject->getId(), $type,  $value["id"]);
+                        $idMapper->recordMappingFailure("object", $relatedObject->getId(), $type, $value["id"]);
                     } else {
                         throw new \Exception("cannot get values from web service import - invalid href relation");
                     }
@@ -539,14 +520,14 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      * @param array $params
      * @return null|AbstractData|Object\Concrete|Object\Objectbrick\Data\
      */
-    public function preGetData($object, $params = array())
+    public function preGetData($object, $params = [])
     {
         $data = null;
         if ($object instanceof Object\Concrete) {
             $data = $object->{$this->getName()};
 
             if ($this->getLazyLoading() and !in_array($this->getName(), $object->getO__loadedLazyFields())) {
-                $data = $this->load($object, array("force" => true));
+                $data = $this->load($object, ["force" => true]);
 
                 $setter = "set" . ucfirst($this->getName());
                 if (method_exists($object, $setter)) {
@@ -576,7 +557,7 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      * @param array $params
      * @return mixed
      */
-    public function preSetData($object, $data, $params = array())
+    public function preSetData($object, $data, $params = [])
     {
         if ($object instanceof Object\Concrete) {
             if ($this->getLazyLoading() and !in_array($this->getName(), $object->getO__loadedLazyFields())) {
@@ -594,6 +575,7 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
     public function setAssetUploadPath($assetUploadPath)
     {
         $this->assetUploadPath = $assetUploadPath;
+
         return $this;
     }
 
@@ -610,7 +592,7 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      * @param mixed $params
      * @return bool
      */
-    public function isDiffChangeAllowed($object, $params = array())
+    public function isDiffChangeAllowed($object, $params = [])
     {
         return true;
     }
@@ -630,13 +612,14 @@ class Href extends Model\Object\ClassDefinition\Data\Relations\AbstractRelations
      * @param array $params
      * @return Element\ElementInterface
      */
-    public function rewriteIds($object, $idMapping, $params = array())
+    public function rewriteIds($object, $idMapping, $params = [])
     {
         $data = $this->getDataFromObjectParam($object, $params);
         if ($data) {
-            $data = $this->rewriteIdsService(array($data), $idMapping);
+            $data = $this->rewriteIdsService([$data], $idMapping);
             $data = $data[0]; //get the first element
         }
+
         return $data;
     }
 

@@ -195,6 +195,14 @@ section img {
     margin-top: 30px;
 }
 
+.area-embed .embed > *, .area-embed .embed iframe {
+    width: 100%;
+}
+
+.area-embed .embed {
+    padding-bottom: 20px;
+}
+
 /*
  * Side navigation
  *

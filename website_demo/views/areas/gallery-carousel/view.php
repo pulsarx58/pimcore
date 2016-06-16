@@ -15,7 +15,7 @@
                 <?= $this->select("slides",[
                     "store" => $selectStore,
                     "reload" => true,
-                    "width" => 60
+                    "width" => 70
                 ]); ?>
             </div>
             <div class="col-xs-6">
@@ -58,7 +58,8 @@
                 <div class="item <?= ($i==0 ? "active" : "") ?> <?= $id . "-" . $i ?>">
                     <?= $this->image("image_" . $i, [
                         "thumbnail" => "galleryCarousel",
-                        "dropClass" => $id . "-" . $i
+                        "dropClass" => $id . "-" . $i,
+                        "defaultHeight" => 200
                     ]) ?>
                     <div class="carousel-caption">
                         <?php if($this->editmode || !$this->input("caption-title-" . $i)->isEmpty()) { ?>

@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Tool;
@@ -33,6 +35,7 @@ class Admin
         if (!is_file($languageFile)) {
             $languageFile =  PIMCORE_PATH . "/config/texts/" . $language . ".json";
         }
+
         return $languageFile;
     }
 
@@ -44,8 +47,8 @@ class Admin
      */
     public static function getLanguages()
     {
-        $languages = array();
-        $languageDirs = array(PIMCORE_PATH . "/config/texts/",PIMCORE_CONFIGURATION_DIRECTORY . "/texts/");
+        $languages = [];
+        $languageDirs = [PIMCORE_PATH . "/config/texts/", PIMCORE_CONFIGURATION_DIRECTORY . "/texts/"];
         foreach ($languageDirs as $filesDir) {
             if (is_dir($filesDir)) {
                 $files = scandir($filesDir);
@@ -61,6 +64,7 @@ class Admin
                 }
             }
         }
+
         return $languages;
     }
 
@@ -74,7 +78,6 @@ class Admin
         $scriptPath = PIMCORE_TEMPORARY_DIRECTORY."/minified_javascript_core_".md5($scriptContent).".js";
 
         if (!is_file($scriptPath)) {
-            //$scriptContent = JSMin::minify($scriptContent); // temp. disabled until we have a better library - just combine for now
             File::put($scriptPath, $scriptContent);
         }
 
@@ -90,9 +93,6 @@ class Admin
         $stylesheetPath = PIMCORE_TEMPORARY_DIRECTORY."/minified_css_core_".md5($stylesheetContent).".css";
 
         if (!is_file($stylesheetPath)) {
-            //$stylesheetContent = Minify_CSS::minify($stylesheetContent); // temp. disabled until we have a better library - just combine for now
-
-            // put minified contents into one single file
             File::put($stylesheetPath, $stylesheetContent);
         }
 
@@ -122,7 +122,7 @@ class Admin
         }
 
         // validity check
-        if (!in_array($dialect->delimiter, array(";", ",", "\t", "|", ":"))) {
+        if (!in_array($dialect->delimiter, [";", ",", "\t", "|", ":"])) {
             $dialect->delimiter = ";";
         }
 
@@ -159,6 +159,8 @@ class Admin
         ]));
 
         @chmod(self::getMaintenanceModeFile(), 0777); // so it can be removed also via FTP, ...
+
+        \Pimcore::getEventManager()->trigger("system.maintenance.activate");
     }
 
     /**
@@ -168,6 +170,8 @@ class Admin
     public static function deactivateMaintenanceMode()
     {
         @unlink(self::getMaintenanceModeFile());
+
+        \Pimcore::getEventManager()->trigger("system.maintenance.deactivate");
     }
 
     /**
@@ -198,6 +202,7 @@ class Admin
     {
         if (\Zend_Registry::isRegistered("pimcore_admin_user")) {
             $user = \Zend_Registry::get("pimcore_admin_user");
+
             return $user;
         }
 
@@ -235,7 +240,7 @@ class Admin
         return false;
     }
 
-    public static function reorderWebsiteLanguages($user, $languages)
+    public static function reorderWebsiteLanguages($user, $languages, $returnLanguageArray = false)
     {
         if (!is_array($languages)) {
             $languages = explode(",", $languages);
@@ -247,6 +252,10 @@ class Admin
             $newLanguages = array_diff($languages, $contentLanguages);
             $languages = array_merge($contentLanguages, $newLanguages);
         }
+        if ($returnLanguageArray) {
+            return $languages;
+        }
+
         return implode(",", $languages);
     }
 }

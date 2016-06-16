@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Classificationstore;
@@ -72,7 +74,7 @@ class Dao extends Model\Dao\AbstractDao
                     $value = $fd->marshal($value, $object);
                     $collectionId = $collectionMapping[$groupId];
 
-                    $data = array(
+                    $data = [
                         "o_id" => $objectId,
                         "collectionId" => $collectionId,
                         "groupId" => $groupId,
@@ -82,7 +84,7 @@ class Dao extends Model\Dao\AbstractDao
                         "fieldname" => $fieldname,
                         "language" => $language,
                         "type" => $keyConfig->getType()
-                    );
+                    ];
 
                     $this->db->insertOrUpdate($dataTable, $data);
                 }
@@ -100,11 +102,11 @@ class Dao extends Model\Dao\AbstractDao
         if (is_array($activeGroups)) {
             foreach ($activeGroups as $activeGroupId => $enabled) {
                 if ($enabled) {
-                    $data = array(
+                    $data = [
                         "o_id" => $objectId,
                         "groupId" => $activeGroupId,
                         "fieldname" => $fieldname
-                    );
+                    ];
                     $this->db->insertOrUpdate($groupsTable, $data);
                 }
             }
@@ -144,7 +146,7 @@ class Dao extends Model\Dao\AbstractDao
 
         $data = $this->db->fetchAll($query);
 
-        $groupCollectionMapping = array();
+        $groupCollectionMapping = [];
 
         foreach ($data as $item) {
             $groupId = $item["groupId"];
@@ -152,10 +154,10 @@ class Dao extends Model\Dao\AbstractDao
             $collectionId = $item["collectionId"];
             $groupCollectionMapping[$groupId] = $collectionId;
 
-            $value = array(
+            $value = [
                 "value" => $item["value"],
                 "value2" => $item["value2"]
-            );
+            ];
 
             $keyConfig = DefinitionCache::get($keyId);
             if (!$keyConfig) {
@@ -178,7 +180,7 @@ class Dao extends Model\Dao\AbstractDao
         $query = "SELECT * FROM " . $groupsTableName . " WHERE o_id = " . $this->db->quote($objectId) . " AND fieldname = " . $this->db->quote($fieldname);
 
         $data = $this->db->fetchAll($query);
-        $list = array();
+        $list = [];
 
         foreach ($data as $item) {
             $list[$item["groupId"]] = true;

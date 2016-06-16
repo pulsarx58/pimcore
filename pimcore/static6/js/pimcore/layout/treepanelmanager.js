@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.layout.treepanelmanager");
@@ -102,28 +104,18 @@ pimcore.layout.treepanelmanager = {
             target.expand();
         }
 
-        tree.collapse();
-
-        //target.items.each(function (item, index, length) {
-        //    item.collapse();
-        //});
-
         target.suspendLayouts();
         source.remove(tree, false);
         target.add(tree);
-        var layout = target.getLayout();
+        tree.expand(false);
         target.resumeLayouts();
-        tree.expand();
 
         if(source.items.getCount() < 1) {
             source.collapse();
             source.hide();
-        } else if(!source.getLayout().activeItem) {
-            //source.items.first().expand();
         }
         source.updateLayout();
 
-        //target.updateLayout();
         pimcore.layout.refresh();
     }
 };

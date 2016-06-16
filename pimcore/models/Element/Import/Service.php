@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Element
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Element\Import;
@@ -44,7 +46,7 @@ class Service
     public function __construct($user)
     {
         $this->webService = new Webservice\Service();
-        $this->importInfo = array();
+        $this->importInfo = [];
         $this->user = $user;
     }
 
@@ -78,7 +80,7 @@ class Service
 
         //correct relative path
         if (strpos($path, "/") !== 0) {
-            $path = $rootElement->getFullPath() . "/" . $path;
+            $path = $rootElement->getRealFullPath() . "/" . $path;
         }
 
         $type = $apiElement->type;
@@ -112,6 +114,7 @@ class Service
         $existingElement = $className::getByPath($fullPath);
         if ($overwrite && $existingElement) {
             $apiElement->parentId = $existingElement->getParentId();
+
             return $existingElement;
         }
 
@@ -150,7 +153,7 @@ class Service
         if (Element\Service::getType($rootElement) == $maintype and $parent) {
             $element->setParentId($parent->getId());
             $apiElement->parentId = $parent->getId();
-            $existingElement = $parentClassName::getByPath($parent->getFullPath() . "/" . $element->getKey());
+            $existingElement = $parentClassName::getByPath($parent->getRealFullPath() . "/" . $element->getKey());
             if ($existingElement) {
                 //set dummy key to avoid duplicate paths
                 if ($element instanceof Asset) {
@@ -173,7 +176,7 @@ class Service
             if ($potentialParent) {
                 $element->setParentId($potentialParent->getId());
                 //set actual id and path for second run
-                $apiElements[$apiKey]["path"] = $potentialParent->getFullPath();
+                $apiElements[$apiKey]["path"] = $potentialParent->getRealFullPath();
                 $apiElement->parentId = $potentialParent->getId();
             } else {
                 $element->setParentId(1);
@@ -184,7 +187,7 @@ class Service
         } else {
             $element->setParentId($rootElement->getId());
             //set actual id and path for second run
-            $apiElements[$apiKey]["path"] = $rootElement->getFullPath();
+            $apiElements[$apiKey]["path"] = $rootElement->getRealFullPath();
             $apiElement->parentId = $rootElement->getId();
 
             //set dummy key to avoid duplicate paths
@@ -207,7 +210,7 @@ class Service
         $element->save();
 
         //todo save type and id for later rollback
-        $this->importInfo[Element\Service::getType($element) . "_" . $element->getId()] = array("id" => $element->getId(), "type" => Element\Service::getType($element), "fullpath" => $element->getFullPath());
+        $this->importInfo[Element\Service::getType($element) . "_" . $element->getId()] = ["id" => $element->getId(), "type" => Element\Service::getType($element), "fullpath" => $element->getRealFullPath()];
 
 
         return $element;
@@ -228,7 +231,7 @@ class Service
         //correct properties
         if ($apiElement->properties) {
             foreach ($apiElement->properties as $property) {
-                if (in_array($property->type, array("asset", "object", "document"))) {
+                if (in_array($property->type, ["asset", "object", "document"])) {
                     $property->data = $idMapping[$property->type][$property->data];
                 }
             }
@@ -305,7 +308,7 @@ class Service
                                     } elseif ($collectionItem->type == "href" and $collectionItem->value["id"]) {
                                         $collectionItem->value["id"] = $idMapping[$collectionItem->value["type"]][$collectionItem->value["id"]];
                                     } elseif (($collectionItem->type == "objects" or $collectionItem->type == "multihref") and is_array($collectionItem->value) and count($collectionItem->value)>0) {
-                                        for ($i=0; $i < count($collectionItem->value);$i++) {
+                                        for ($i=0; $i < count($collectionItem->value); $i++) {
                                             if ($collectionItem->value[$i]["id"]) {
                                                 $collectionItem->value[$i]["id"] = $idMapping[$collectionItem->value[$i]["type"]][$collectionItem->value[$i]["id"]];
                                             }
@@ -349,6 +352,7 @@ class Service
         }
         $element->setUserModification($user->getId());
         $element->setModificationDate(time());
+
         return $this;
     }
 }

@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 use Pimcore\Model\Document;
@@ -15,15 +17,14 @@ use Pimcore\Model\Element;
 
 class Admin_HardlinkController extends \Pimcore\Controller\Action\Admin\Document
 {
-
     public function getDataByIdAction()
     {
 
         // check for lock
         if (Element\Editlock::isLocked($this->getParam("id"), "document")) {
-            $this->_helper->json(array(
+            $this->_helper->json([
                 "editlock" => Element\Editlock::getByElement($this->getParam("id"), "document")
-            ));
+            ]);
         }
         Element\Editlock::lock($this->getParam("id"), "document");
 
@@ -36,7 +37,7 @@ class Admin_HardlinkController extends \Pimcore\Controller\Action\Admin\Document
         $link->setParent(null);
 
         if ($link->getSourceDocument()) {
-            $link->sourcePath = $link->getSourceDocument()->getFullpath();
+            $link->sourcePath = $link->getSourceDocument()->getRealFullPath();
         }
 
         $this->addTranslationsData($link);
@@ -51,26 +52,34 @@ class Admin_HardlinkController extends \Pimcore\Controller\Action\Admin\Document
 
     public function saveAction()
     {
-        if ($this->getParam("id")) {
-            $link = Document\Hardlink::getById($this->getParam("id"));
-            $this->setValuesToDocument($link);
+        try {
+            if ($this->getParam("id")) {
+                $link = Document\Hardlink::getById($this->getParam("id"));
+                $this->setValuesToDocument($link);
 
-            $link->setModificationDate(time());
-            $link->setUserModification($this->getUser()->getId());
+                $link->setModificationDate(time());
+                $link->setUserModification($this->getUser()->getId());
 
-            if ($this->getParam("task") == "unpublish") {
-                $link->setPublished(false);
+                if ($this->getParam("task") == "unpublish") {
+                    $link->setPublished(false);
+                }
+                if ($this->getParam("task") == "publish") {
+                    $link->setPublished(true);
+                }
+
+                // only save when publish or unpublish
+                if (($this->getParam("task") == "publish" && $link->isAllowed("publish")) || ($this->getParam("task") == "unpublish" && $link->isAllowed("unpublish"))) {
+                    $link->save();
+
+                    $this->_helper->json(["success" => true]);
+                }
             }
-            if ($this->getParam("task") == "publish") {
-                $link->setPublished(true);
+        } catch (\Exception $e) {
+            \Logger::log($e);
+            if (\Pimcore\Tool\Admin::isExtJS6() && $e instanceof Element\ValidationException) {
+                $this->_helper->json(["success" => false, "type" => "ValidationException", "message" => $e->getMessage(), "stack" => $e->getTraceAsString(), "code" => $e->getCode()]);
             }
-
-            // only save when publish or unpublish
-            if (($this->getParam("task") == "publish" && $link->isAllowed("publish")) || ($this->getParam("task") == "unpublish" && $link->isAllowed("unpublish"))) {
-                $link->save();
-
-                $this->_helper->json(array("success" => true));
-            }
+            throw $e;
         }
 
         $this->_helper->json(false);
@@ -80,15 +89,17 @@ class Admin_HardlinkController extends \Pimcore\Controller\Action\Admin\Document
     {
 
         // data
-        $data = \Zend_Json::decode($this->getParam("data"));
+        if ($this->getParam("data")) {
+            $data = \Zend_Json::decode($this->getParam("data"));
 
-        $sourceId = null;
-        if ($sourceDocument = Document::getByPath($data["sourcePath"])) {
-            $sourceId = $sourceDocument->getId();
+            $sourceId = null;
+            if ($sourceDocument = Document::getByPath($data["sourcePath"])) {
+                $sourceId = $sourceDocument->getId();
+            }
+            $link->setSourceId($sourceId);
+            $link->setValues($data);
         }
-        $link->setSourceId($sourceId);
 
-        $link->setValues($data);
         $this->addPropertiesToDocument($link);
     }
 }

@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Console\Command;
@@ -61,12 +63,12 @@ class BackupCommand extends AbstractCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         // defaults
-        $config = array(
+        $config = [
             "filename" => "backup_" . date("m-d-Y_H-i"),
             "directory" => PIMCORE_BACKUP_DIRECTORY,
             "overwrite" => false,
             "cleanup" => 7,
-        );
+        ];
 
         $tmpConfig = $config;
         foreach ($config as $key => $value) {
@@ -105,7 +107,7 @@ class BackupCommand extends AbstractCommand
         $this->verboseMessage("------------------------------------------------");
         $this->verboseMessage("------------------------------------------------");
         $this->verboseMessage("starting backup into file: " . $backupFile);
-        $options = array();
+        $options = [];
         if ($mysqlTables = $input->getOption("mysql-tables")) {
             $options["mysql-tables"] = $mysqlTables;
         }
@@ -116,13 +118,13 @@ class BackupCommand extends AbstractCommand
         $backup = new \Pimcore\Backup($backupFile);
         $initInfo = $backup->init($options);
 
-        $stepMethodMapping = array(
+        $stepMethodMapping = [
             "mysql-tables" => "mysqlTables",
             "mysql" => "mysqlData",
             "mysql-complete" => "mysqlComplete",
             "files" => "fileStep",
             "complete" => "complete"
-        );
+        ];
 
         if (empty($initInfo["errors"])) {
             $progress = new ProgressBar($output, count($initInfo["steps"]));
@@ -132,12 +134,12 @@ class BackupCommand extends AbstractCommand
 
             foreach ($initInfo["steps"] as $step) {
                 if (!is_array($step[1])) {
-                    $step[1] = array();
+                    $step[1] = [];
                 }
 
                 $message = $step[0] . ": " . implode(",", $step[1]);
 
-                $return = call_user_func_array(array($backup, $stepMethodMapping[$step[0]]), $step[1]);
+                $return = call_user_func_array([$backup, $stepMethodMapping[$step[0]]], $step[1]);
                 if ($return["filesize"]) {
                     $message .= " - " . $return["filesize"];
                 }

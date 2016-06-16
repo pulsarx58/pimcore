@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Concrete;
@@ -63,11 +65,12 @@ class Dao extends Model\Object\AbstractObject\Dao
      */
     public function getRelationIds($fieldName)
     {
-        $relations = array();
-        $allRelations = $this->db->fetchAll("SELECT * FROM object_relations_" . $this->model->getClassId() . " WHERE fieldname = ? AND src_id = ? AND ownertype = 'object' ORDER BY `index` ASC", array($fieldName, $this->model->getId()));
+        $relations = [];
+        $allRelations = $this->db->fetchAll("SELECT * FROM object_relations_" . $this->model->getClassId() . " WHERE fieldname = ? AND src_id = ? AND ownertype = 'object' ORDER BY `index` ASC", [$fieldName, $this->model->getId()]);
         foreach ($allRelations as $relation) {
             $relations[] = $relation["dest_id"];
         }
+
         return $relations;
     }
 
@@ -85,7 +88,7 @@ class Dao extends Model\Object\AbstractObject\Dao
         }
 
 
-        $params = array($field, $id, $field, $id, $field, $id);
+        $params = [$field, $id, $field, $id, $field, $id];
 
         $dest = "dest_id";
         $src = "src_id";
@@ -123,7 +126,7 @@ class Dao extends Model\Object\AbstractObject\Dao
         if (is_array($relations) and count($relations) > 0) {
             return $relations;
         } else {
-            return array();
+            return [];
         }
     }
 
@@ -147,7 +150,7 @@ class Dao extends Model\Object\AbstractObject\Dao
             } else {
                 // if a datafield requires more than one field
                 if (is_array($value->getColumnType())) {
-                    $multidata = array();
+                    $multidata = [];
                     foreach ($value->getColumnType() as $fkey => $fvalue) {
                         $multidata[$key . "__" . $fkey] = $data[$key . "__" . $fkey];
                     }
@@ -170,7 +173,7 @@ class Dao extends Model\Object\AbstractObject\Dao
 
         // get fields which shouldn't be updated
         $fieldDefinitions = $this->model->getClass()->getFieldDefinitions();
-        $untouchable = array();
+        $untouchable = [];
         foreach ($fieldDefinitions as $key => $fd) {
             if (method_exists($fd, "getLazyLoading") && $fd->getLazyLoading()) {
                 if (!in_array($key, $this->model->getLazyLoadedFields())) {
@@ -179,20 +182,20 @@ class Dao extends Model\Object\AbstractObject\Dao
                 }
             }
         }
-        
+
         // empty relation table except the untouchable fields (eg. lazy loading fields)
         if (count($untouchable) > 0) {
             $untouchables = "'" . implode("','", $untouchable) . "'";
             $this->db->delete("object_relations_" . $this->model->getClassId(), $this->db->quoteInto("src_id = ? AND fieldname not in (" . $untouchables . ") AND ownertype = 'object'", $this->model->getId()));
         } else {
-            $this->db->delete("object_relations_" . $this->model->getClassId(), $this->db->quoteInto("src_id = ? AND ownertype = 'object'",  $this->model->getId()));
+            $this->db->delete("object_relations_" . $this->model->getClassId(), $this->db->quoteInto("src_id = ? AND ownertype = 'object'", $this->model->getId()));
         }
 
-        
+
         $inheritedValues = Object\AbstractObject::doGetInheritedValues();
         Object\AbstractObject::setGetInheritedValues(false);
 
-        $data = array();
+        $data = [];
         $data["oo_id"] = $this->model->getId();
         foreach ($fieldDefinitions as $key => $fd) {
             $getter = "get" . ucfirst($key);
@@ -218,7 +221,7 @@ class Dao extends Model\Object\AbstractObject\Dao
 
 
         // get data for query table
-        $data = array();
+        $data = [];
         $this->inheritanceHelper->resetFieldsToCheck();
         $oldData = $this->db->fetchRow("SELECT * FROM object_query_" . $this->model->getClassId() . " WHERE oo_id = ?", $this->model->getId());
 
@@ -258,6 +261,11 @@ class Dao extends Model\Object\AbstractObject\Dao
                         foreach ($columnNames as $columnName) {
                             if (array_key_exists($columnName, $parentData)) {
                                 $data[$columnName] = $parentData[$columnName];
+                                if (is_array($insertData)) {
+                                    $insertData[$columnName] = $parentData[$columnName];
+                                } else {
+                                    $insertData = $parentData[$columnName];
+                                }
                             }
                         }
                     }
@@ -356,7 +364,7 @@ class Dao extends Model\Object\AbstractObject\Dao
     {
         $versionIds = $this->db->fetchCol("SELECT id FROM versions WHERE cid = ? AND ctype='object' ORDER BY `id` DESC", $this->model->getId());
 
-        $versions = array();
+        $versions = [];
         foreach ($versionIds as $versionId) {
             $versions[] = Model\Version::getById($versionId);
         }
@@ -377,8 +385,10 @@ class Dao extends Model\Object\AbstractObject\Dao
 
         if (($versionData["id"] && $versionData["date"] > $this->model->getModificationDate()) || $force) {
             $version = Model\Version::getById($versionData["id"]);
+
             return $version;
         }
+
         return;
     }
 

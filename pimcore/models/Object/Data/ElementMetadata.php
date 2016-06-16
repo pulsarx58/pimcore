@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Data;
@@ -33,12 +35,12 @@ class ElementMetadata extends Model\AbstractModel
     /**
      * @var array
      */
-    protected $columns = array();
+    protected $columns = [];
 
     /**
      * @var array
      */
-    protected $data = array();
+    protected $data = [];
 
     /**
      * @param $fieldname
@@ -46,7 +48,7 @@ class ElementMetadata extends Model\AbstractModel
      * @param null $element
      * @throws \Exception
      */
-    public function __construct($fieldname, $columns = array(), $element = null)
+    public function __construct($fieldname, $columns = [], $element = null)
     {
         $this->fieldname = $fieldname;
         $this->element = $element;
@@ -115,6 +117,7 @@ class ElementMetadata extends Model\AbstractModel
     public function setFieldname($fieldname)
     {
         $this->fieldname = $fieldname;
+
         return $this;
     }
 
@@ -133,6 +136,7 @@ class ElementMetadata extends Model\AbstractModel
     public function setElement($element)
     {
         $this->element = $element;
+
         return $this;
     }
 
@@ -151,6 +155,7 @@ class ElementMetadata extends Model\AbstractModel
     public function setColumns($columns)
     {
         $this->columns = $columns;
+
         return $this;
     }
 

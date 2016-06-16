@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Metadata
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Metadata\Predefined;
@@ -63,6 +65,7 @@ class Dao extends Model\Dao\PhpArrayTable
             if ($language && $row["language"] != $language) {
                 $return = false;
             }
+
             return $return;
         });
 
@@ -87,8 +90,8 @@ class Dao extends Model\Dao\PhpArrayTable
         try {
             $dataRaw = get_object_vars($this->model);
             $data = [];
-            $allowedProperties = ["id","name","description","language","type","data",
-                "targetSubtype","config","creationDate","modificationDate"];
+            $allowedProperties = ["id", "name", "description", "language", "type", "data",
+                "targetSubtype", "config", "creationDate", "modificationDate"];
 
             foreach ($dataRaw as $key => $value) {
                 if (in_array($key, $allowedProperties)) {

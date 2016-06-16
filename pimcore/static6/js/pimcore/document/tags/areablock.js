@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.document.tags.areablock");
@@ -320,6 +322,10 @@ pimcore.document.tags.areablock = Class.create(pimcore.document.tag, {
 
     createDropZones: function () {
 
+        if(this.inherited) {
+            return;
+        }
+
         //Ext.get(this.id).addClass("pimcore_tag_areablock_hide_buttons");
 
         if(this.elements.length > 0) {
@@ -432,6 +438,8 @@ pimcore.document.tags.areablock = Class.create(pimcore.document.tag, {
             }
         });
         optionsButton.render(optionsEl);
+
+        Ext.get(this.id).addCls("pimcore_block_buttons");
     },
     
     getTypeMenu: function (scope, element) {
@@ -780,6 +788,28 @@ pimcore.document.tags.areablock = Class.create(pimcore.document.tag, {
                 x = Ext.getBody().getWidth()-areaBlockToolbarSettings["x"]-areaBlockToolbarSettings["width"];
             }
 
+            var tbId = this.toolbarGlobalVar,
+                toolbarPosition = localStorage.getItem("pimcore_toolbar_position");
+
+            if(!toolbarPosition) {
+                toolbarPosition = {};
+            } else {
+                toolbarPosition = JSON.parse(toolbarPosition);
+            }
+
+            if( !toolbarPosition[tbId] ) {
+                toolbarPosition[tbId] = { x : x, y : areaBlockToolbarSettings["y"], closed : false }
+            }
+
+            //now check if xPos is not out of view.
+            if( toolbarPosition[tbId].x > Ext.getBody().getWidth() ) {
+                toolbarPosition[tbId].x =  Ext.getBody().getWidth()-areaBlockToolbarSettings["width"] - 20
+            }
+
+            var storeToolbarState = function() {
+                localStorage.setItem("pimcore_toolbar_position", JSON.stringify(toolbarPosition));
+            };
+
             var toolbar = new Ext.Window({
                 title: areaBlockToolbarSettings.title,
                 width: areaBlockToolbarSettings.width,
@@ -789,12 +819,31 @@ pimcore.document.tags.areablock = Class.create(pimcore.document.tag, {
                 autoHeight: true,
                 style: "position:fixed;",
                 collapsible: true,
+                expandOnShow : !toolbarPosition[tbId].closed,
+                collapsed: toolbarPosition[tbId].closed,
                 cls: "pimcore_areablock_toolbar",
                 closable: false,
-                x: x,
-                y: areaBlockToolbarSettings["y"],
-                items: buttons
+                x: toolbarPosition[tbId].x,
+                y: toolbarPosition[tbId].y,
+                items: buttons,
+                listeners: {
+                    collapse: function(p, eOpts) {
+                        toolbarPosition[tbId].closed = true;
+                        storeToolbarState();
+                    },
+                    expand: function(p, eOpts) {
+                        toolbarPosition[tbId].closed = false;
+                        storeToolbarState();
+                    },
+                    move: function (win, x, y) {
+                        toolbarPosition[tbId].x = Math.max( 20, x );
+                        toolbarPosition[tbId].y = Math.max( 20, y );
+                        storeToolbarState();
+                    }
+                }
             });
+
+            storeToolbarState();
 
             toolbar.show();
 

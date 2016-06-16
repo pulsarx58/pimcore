@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object\Fieldcollection
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object;
@@ -22,7 +24,7 @@ class Fieldcollection extends Model\AbstractModel implements \Iterator
     /**
      * @var array
      */
-    public $items = array();
+    public $items = [];
 
     /**
      * @var
@@ -33,7 +35,7 @@ class Fieldcollection extends Model\AbstractModel implements \Iterator
      * @param array $items
      * @param null $fieldname
      */
-    public function __construct($items = array(), $fieldname = null)
+    public function __construct($items = [], $fieldname = null)
     {
         if (!empty($items)) {
             $this->setItems($items);
@@ -58,6 +60,7 @@ class Fieldcollection extends Model\AbstractModel implements \Iterator
     public function setItems($items)
     {
         $this->items = $items;
+
         return $this;
     }
 
@@ -76,6 +79,7 @@ class Fieldcollection extends Model\AbstractModel implements \Iterator
     public function setFieldname($fieldname)
     {
         $this->fieldname = $fieldname;
+
         return $this;
     }
 
@@ -84,7 +88,7 @@ class Fieldcollection extends Model\AbstractModel implements \Iterator
      */
     public function getItemDefinitions()
     {
-        $definitions = array();
+        $definitions = [];
         foreach ($this->getItems() as $item) {
             $definitions[$item->getType()] = $item->getDefinition();
         }
@@ -130,6 +134,7 @@ class Fieldcollection extends Model\AbstractModel implements \Iterator
         if (count($this->getItems()) < 1) {
             return true;
         }
+
         return false;
     }
 
@@ -155,7 +160,7 @@ class Fieldcollection extends Model\AbstractModel implements \Iterator
 
     /**
      * @param $index
-     * @return 
+     * @return
      */
     public function get($index)
     {
@@ -192,6 +197,7 @@ class Fieldcollection extends Model\AbstractModel implements \Iterator
     public function current()
     {
         $var = current($this->items);
+
         return $var;
     }
 
@@ -201,6 +207,7 @@ class Fieldcollection extends Model\AbstractModel implements \Iterator
     public function key()
     {
         $var = key($this->items);
+
         return $var;
     }
 
@@ -210,6 +217,7 @@ class Fieldcollection extends Model\AbstractModel implements \Iterator
     public function next()
     {
         $var = next($this->items);
+
         return $var;
     }
 
@@ -219,6 +227,7 @@ class Fieldcollection extends Model\AbstractModel implements \Iterator
     public function valid()
     {
         $var = $this->current() !== false;
+
         return $var;
     }
 }

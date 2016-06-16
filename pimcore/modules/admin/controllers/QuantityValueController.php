@@ -2,19 +2,20 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 class Admin_QuantityValueController extends Pimcore_Controller_Action_Admin
 {
-
     public function unitProxyAction()
     {
         if ($this->getParam("data")) {
@@ -24,7 +25,7 @@ class Admin_QuantityValueController extends Pimcore_Controller_Action_Admin
                 $unit = \Pimcore\Model\Object\QuantityValue\Unit::getById($id);
                 if (!empty($unit)) {
                     $unit->delete();
-                    $this->_helper->json(array("data" => array(), "success" => true));
+                    $this->_helper->json(["data" => [], "success" => true]);
                 } else {
                     throw new \Exception("Unit with id " . $id . " not found.");
                 }
@@ -34,7 +35,7 @@ class Admin_QuantityValueController extends Pimcore_Controller_Action_Admin
                 if (!empty($unit)) {
                     $unit->setValues($data);
                     $unit->save();
-                    $this->_helper->json(array("data" => get_object_vars($unit), "success" => true));
+                    $this->_helper->json(["data" => get_object_vars($unit), "success" => true]);
                 } else {
                     throw new \Exception("Unit with id " . $data['id'] . " not found.");
                 }
@@ -44,7 +45,7 @@ class Admin_QuantityValueController extends Pimcore_Controller_Action_Admin
                 $unit = new Pimcore\Model\Object\QuantityValue\Unit();
                 $unit->setValues($data);
                 $unit->save();
-                $this->_helper->json(array("data" => get_object_vars($unit), "success" => true));
+                $this->_helper->json(["data" => get_object_vars($unit), "success" => true]);
             }
         } else {
             $list = new Pimcore\Model\Object\QuantityValue\Unit\Listing();
@@ -85,22 +86,22 @@ class Admin_QuantityValueController extends Pimcore_Controller_Action_Admin
             }
             $list->load();
 
-            $units = array();
+            $units = [];
             foreach ($list->getUnits() as $u) {
                 $units[] = get_object_vars($u);
             }
 
-            $this->_helper->json(array("data" => $units, "success" => true, "total" => $list->getTotalCount()));
+            $this->_helper->json(["data" => $units, "success" => true, "total" => $list->getTotalCount()]);
         }
     }
 
     private function getOperator($comparison)
     {
-        $mapper = array(
+        $mapper = [
             "lt" => "<",
             "gt" => ">",
             "eq" => "="
-        );
+        ];
 
         return $mapper[$comparison];
     }
@@ -113,7 +114,7 @@ class Admin_QuantityValueController extends Pimcore_Controller_Action_Admin
         $list->setOrder("ASC");
         if ($this->getParam("filter")) {
             $array = explode(",", $this->getParam("filter"));
-            $quotedArray = array();
+            $quotedArray = [];
             $db = \Pimcore\Db::get();
             foreach ($array as $a) {
                 $quotedArray[] = $db->quote($a);
@@ -123,6 +124,6 @@ class Admin_QuantityValueController extends Pimcore_Controller_Action_Admin
         }
 
         $units = $list->getUnits();
-        $this->_helper->json(array("data" => $units, "success" => true, "total" => $list->getTotalCount()));
+        $this->_helper->json(["data" => $units, "success" => true, "total" => $list->getTotalCount()]);
     }
 }

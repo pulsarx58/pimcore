@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document\Tag;
@@ -75,6 +77,7 @@ class Wysiwyg extends Model\Document\Tag
     public function setDataFromResource($data)
     {
         $this->text = $data;
+
         return $this;
     }
 
@@ -87,6 +90,7 @@ class Wysiwyg extends Model\Document\Tag
     public function setDataFromEditmode($data)
     {
         $this->text = $data;
+
         return $this;
     }
 
@@ -105,7 +109,7 @@ class Wysiwyg extends Model\Document\Tag
      * @param null $idMapper
      * @throws \Exception
      */
-    public function getFromWebserviceImport($wsElement, $document = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($wsElement, $document = null, $params = [], $idMapper = null)
     {
         $data = $wsElement->value;
         if ($data->text === null or is_string($data->text)) {
@@ -129,7 +133,7 @@ class Wysiwyg extends Model\Document\Tag
      * @param array $blockedTags
      * @return array
      */
-    public function getCacheTags($ownerDocument, $blockedTags = array())
+    public function getCacheTags($ownerDocument, $blockedTags = [])
     {
         return Text::getCacheTagsOfWysiwygText($this->text, $blockedTags);
     }

@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\ClassDefinition\Data;
@@ -36,14 +38,14 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
      *
      * @var string
      */
-    public $queryColumnType = array("image" => "int(11)","hotspots" => "text");
+    public $queryColumnType = ["image" => "int(11)", "hotspots" => "text"];
 
     /**
      * Type for the column
      *
      * @var string
      */
-    public $columnType = array("image" => "int(11)","hotspots" => "text");
+    public $columnType = ["image" => "int(11)", "hotspots" => "text"];
 
     /**
      * Type for the generated phpdoc
@@ -102,7 +104,7 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
      * @param mixed $params
      * @return integer|null
      */
-    public function getDataForResource($data, $object = null, $params = array())
+    public function getDataForResource($data, $object = null, $params = [])
     {
         if ($data instanceof Object\Data\Hotspotimage) {
             $imageId = null;
@@ -110,23 +112,24 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
                 $imageId = $data->getImage()->getId();
             }
 
-            $metaData = array(
+            $metaData = [
                 "hotspots" => $data->getHotspots(),
                 "marker" => $data->getMarker(),
                 "crop" => $data->getCrop()
-            );
+            ];
 
             $metaData = Serialize::serialize($metaData);
 
-            return array(
+            return [
                 $this->getName() . "__image" => $imageId,
                 $this->getName() . "__hotspots" => $metaData
-            );
+            ];
         }
-        return array(
+
+        return [
             $this->getName() . "__image" => null,
             $this->getName() . "__hotspots" => null
-        );
+        ];
     }
 
     /**
@@ -136,7 +139,7 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
      * @param mixed $params
      * @return Asset
      */
-    public function getDataFromResource($data, $object = null, $params = array())
+    public function getDataFromResource($data, $object = null, $params = [])
     {
         $imageId = $data[$this->getName() . "__image"];
         $image = Asset::getById($imageId);
@@ -158,9 +161,8 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
             $crop = empty($md["crop"]) ? null : $md["crop"];
 
             $rewritePath = function ($data) {
-
                 if (!is_array($data)) {
-                    return array();
+                    return [];
                 }
 
                 foreach ($data as &$element) {
@@ -173,6 +175,7 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
                         }
                     }
                 }
+
                 return $data;
             };
 
@@ -180,8 +183,10 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
             $marker = $rewritePath($marker);
 
             $value = new Object\Data\Hotspotimage($imageId, $hotspots, $marker, $crop);
+
             return $value;
         }
+
         return null;
     }
 
@@ -192,7 +197,7 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
      * @param mixed $params
      * @return integer|null
      */
-    public function getDataForQueryResource($data, $object = null, $params = array())
+    public function getDataForQueryResource($data, $object = null, $params = [])
     {
         return $this->getDataForResource($data, $object, $params);
     }
@@ -204,7 +209,7 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
      * @param mixed $params
      * @return integer
      */
-    public function getDataForEditmode($data, $object = null, $params = array())
+    public function getDataForEditmode($data, $object = null, $params = [])
     {
         if ($data instanceof Object\Data\Hotspotimage) {
             $imageId = null;
@@ -213,20 +218,20 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
             }
 
             $rewritePath = function ($data) {
-
                 if (!is_array($data)) {
-                    return array();
+                    return [];
                 }
 
                 foreach ($data as &$element) {
                     if (array_key_exists("data", $element) && is_array($element["data"]) && count($element["data"]) > 0) {
                         foreach ($element["data"] as &$metaData) {
                             if ($metaData["value"] instanceof Element\ElementInterface) {
-                                $metaData["value"] = $metaData["value"]->getFullPath();
+                                $metaData["value"] = $metaData["value"]->getRealFullPath();
                             }
                         }
                     }
                 }
+
                 return $data;
             };
 
@@ -236,13 +241,14 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
             $marker = object2array($marker);
             $hotspots = object2array($hotspots);
 
-            return array(
+            return [
                 "image" => $imageId,
                 "hotspots" => $hotspots,
                 "marker" => $marker,
                 "crop" => $data->getCrop()
-            );
+            ];
         }
+
         return null;
     }
 
@@ -253,25 +259,25 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
      * @param mixed $params
      * @return Asset
      */
-    public function getDataFromEditmode($data, $object = null, $params = array())
+    public function getDataFromEditmode($data, $object = null, $params = [])
     {
         $rewritePath = function ($data) {
-
             if (!is_array($data)) {
-                return array();
+                return [];
             }
 
             foreach ($data as &$element) {
                 if (array_key_exists("data", $element) && is_array($element["data"]) && count($element["data"]) > 0) {
                     foreach ($element["data"] as &$metaData) {
                         $metaData = new Element\Data\MarkerHotspotItem($metaData);
-                        if (in_array($metaData["type"], array("object", "asset", "document"))) {
+                        if (in_array($metaData["type"], ["object", "asset", "document"])) {
                             $el = Element\Service::getElementByPath($metaData["type"], $metaData->getValue());
                             $metaData["value"] = $el;
                         }
                     }
                 }
             }
+
             return $data;
         };
 
@@ -294,7 +300,7 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
      * @param mixed $params
      * @return string
      */
-    public function getVersionPreview($data, $object = null, $params = array())
+    public function getVersionPreview($data, $object = null, $params = [])
     {
         if ($data instanceof Object\Data\Hotspotimage && $data->getImage() instanceof Asset\Image) {
             return '<img src="/admin/asset/get-image-thumbnail/id/' . $data->getImage()->getId() . '/width/100/height/100/aspectratio/true" />';
@@ -308,9 +314,9 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
      * @param array $params
      * @return string
      */
-    public function getForCsvExport($object, $params = array())
+    public function getForCsvExport($object, $params = [])
     {
-        $data = $this->getDataFromObjectParam($object);
+        $data = $this->getDataFromObjectParam($object, $params);
         if ($data instanceof Object\Data\Hotspotimage) {
             return base64_encode(Serialize::serialize($data));
         } else {
@@ -324,7 +330,7 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
      * @param mixed $params
      * @return mixed|null|Object\ClassDefinition\Data
      */
-    public function getFromCsvImport($importValue, $object = null, $params = array())
+    public function getFromCsvImport($importValue, $object = null, $params = [])
     {
         $value = null;
         $value = Serialize::unserialize(base64_decode($importValue));
@@ -342,9 +348,9 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
      * @param array $tags
      * @return array
      */
-    public function getCacheTags($data, $tags = array())
+    public function getCacheTags($data, $tags = [])
     {
-        $tags = is_array($tags) ? $tags : array();
+        $tags = is_array($tags) ? $tags : [];
 
         if ($data instanceof Object\Data\Hotspotimage && $data->getImage() instanceof Asset\Image) {
             if (!array_key_exists($data->getImage()->getCacheTag(), $tags)) {
@@ -353,7 +359,6 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
 
 
             $getMetaDataCacheTags = function ($d, $tags) {
-
                 if (!is_array($d)) {
                     return $tags;
                 }
@@ -369,6 +374,7 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
                         }
                     }
                 }
+
                 return $tags;
             };
 
@@ -388,16 +394,15 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
      */
     public function resolveDependencies($data)
     {
-        $dependencies = array();
+        $dependencies = [];
 
         if ($data instanceof Object\Data\Hotspotimage && $data->getImage() instanceof Asset\Image) {
-            $dependencies["asset_" . $data->getImage()->getId()] = array(
+            $dependencies["asset_" . $data->getImage()->getId()] = [
                 "id" => $data->getImage()->getId(),
                 "type" => "asset"
-            );
+            ];
 
             $getMetaDataDependencies = function ($data, $dependencies) {
-
                 if (!is_array($data)) {
                     return $dependencies;
                 }
@@ -406,14 +411,15 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
                     if (array_key_exists("data", $element) && is_array($element["data"]) && count($element["data"]) > 0) {
                         foreach ($element["data"] as $metaData) {
                             if ($metaData["value"] instanceof Element\ElementInterface) {
-                                $dependencies[$metaData["type"] . "_" . $metaData["value"]->getId()] = array(
+                                $dependencies[$metaData["type"] . "_" . $metaData["value"]->getId()] = [
                                     "id" => $metaData["value"]->getId(),
                                     "type" => $metaData["type"]
-                                );
+                                ];
                             }
                         }
                     }
                 }
+
                 return $dependencies;
             };
 
@@ -431,7 +437,7 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
      * @param mixed $params
      * @return mixed
      */
-    public function getForWebserviceExport($object, $params = array())
+    public function getForWebserviceExport($object, $params = [])
     {
         return $this->getForCsvExport($object, $params);
     }
@@ -445,7 +451,7 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
      * @return mixed|void
      * @throws \Exception
      */
-    public function getFromWebserviceImport($value, $relatedObject = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($value, $relatedObject = null, $params = [], $idMapper = null)
     {
         $hotspotImage = $this->getFromCsvImport($value, $relatedObject, $params);
         /** @var $hotspotImage Object\Data\Hotspotimage */
@@ -472,6 +478,7 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
             return null;
         } elseif (is_numeric($id) and $asset instanceof Asset) {
             $hotspotImage->setImage($asset);
+
             return $hotspotImage;
         } else {
             if (!$idMapper || !$idMapper->ignoreMappingFailures()) {
@@ -488,7 +495,7 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
      * @param mixed $params
      * @return null
      */
-    public function getDataForGrid($data, $object = null, $params = array())
+    public function getDataForGrid($data, $object = null, $params = [])
     {
         if ($data instanceof Object\Data\Hotspotimage && $data->getImage() instanceof Asset) {
             return $data->getImage();
@@ -512,7 +519,7 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
      * @param array $params
      * @return Element\ElementInterface
      */
-    public function rewriteIds($object, $idMapping, $params = array())
+    public function rewriteIds($object, $idMapping, $params = [])
     {
         $data = $this->getDataFromObjectParam($object, $params);
         if ($data instanceof Object\Data\Hotspotimage && $data->getImage()) {
@@ -545,11 +552,11 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
      */
     private function rewriteIdsInDataEntries($dataArray, $idMapping)
     {
-        $newDataArray = array();
+        $newDataArray = [];
         if ($dataArray) {
             foreach ($dataArray as $dataArrayEntry) {
                 if ($dataArrayEntry['data']) {
-                    $newData = array();
+                    $newData = [];
                     foreach ($dataArrayEntry['data'] as $dataEntry) {
                         //rewrite objects
                         if ($dataEntry['type'] == 'object' && $dataEntry['value']) {
@@ -579,6 +586,7 @@ class Hotspotimage extends Model\Object\ClassDefinition\Data\Image
                 $newDataArray[] = $dataArrayEntry;
             }
         }
+
         return $newDataArray;
     }
 }

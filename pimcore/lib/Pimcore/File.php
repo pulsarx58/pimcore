@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore;
@@ -23,7 +25,12 @@ class File
     /**
      * @var array
      */
-    private static $isIncludeableCache = array();
+    private static $isIncludeableCache = [];
+
+    /**
+     * @var null|resource
+     */
+    protected static $context = null;
 
     /**
      * @static
@@ -38,6 +45,7 @@ class File
         if (count($parts) > 1) {
             return strtolower($parts[count($parts) - 1]);
         }
+
         return "";
     }
 
@@ -123,8 +131,9 @@ class File
             self::mkdir(dirname($path));
         }
 
-        $return = file_put_contents($path, $data);
+        $return = file_put_contents($path, $data, null, File::getContext());
         @chmod($path, self::$defaultMode);
+
         return $return;
     }
 
@@ -153,8 +162,48 @@ class File
             $mode = self::$defaultMode;
         }
 
-        $return = @mkdir($path, 0777, $recursive);
-        @chmod($path, $mode);
+        $return = @mkdir($path, $mode, $recursive, self::getContext());
+
         return $return;
+    }
+
+    /**
+     * @param $oldPath
+     * @param $newPath
+     * @return bool
+     */
+    public static function rename($oldPath, $newPath)
+    {
+        if (stream_is_local($oldPath) && stream_is_local($newPath)) {
+            // rename is only possible if both stream wrapper are the same
+            // unfortunately it seems that there's no other alternative for stream_is_local() although it isn't
+            // absolutely correct it solves the problem temporary
+            $return = rename($oldPath, $newPath, self::getContext());
+        } else {
+            $return = recursiveCopy($oldPath, $newPath);
+            recursiveDelete($oldPath);
+        }
+
+        return $return;
+    }
+
+    /**
+     * @return null|resource
+     */
+    public static function getContext()
+    {
+        if (!self::$context) {
+            self::$context = stream_context_create([]);
+        }
+
+        return self::$context;
+    }
+
+    /**
+     * @param resource $context
+     */
+    public static function setContext($context)
+    {
+        self::$context = $context;
     }
 }

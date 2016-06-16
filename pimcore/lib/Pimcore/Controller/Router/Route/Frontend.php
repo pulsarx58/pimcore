@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Controller\Router\Route;
@@ -26,7 +28,7 @@ class Frontend extends \Zend_Controller_Router_Route_Abstract
     /**
      * @var array
      */
-    public static $directRouteTypes = array("page", "snippet", "email");
+    public static $directRouteTypes = ["page", "snippet", "email", "printpage", "printcontainer"];
 
     /**
      * @param $type
@@ -49,12 +51,12 @@ class Frontend extends \Zend_Controller_Router_Route_Abstract
     /**
      * @var array
      */
-    protected $redirects = array();
+    protected $redirects = [];
 
     /**
      * @var array
      */
-    public $_defaults = array();
+    public $_defaults = [];
 
     /**
      * @var string
@@ -107,10 +109,10 @@ class Frontend extends \Zend_Controller_Router_Route_Abstract
             $username = $config->general->http_auth->username;
             $password = $config->general->http_auth->password;
             if ($username && $password) {
-                $adapter = new \Zend_Auth_Adapter_Http(array(
+                $adapter = new \Zend_Auth_Adapter_Http([
                     "accept_schemes" => "basic",
                     "realm" => Tool::getHostname()
-                ));
+                ]);
 
                 $basicResolver = new \Pimcore\Helper\Auth\Adapter\Http\ResolverStatic($username, $password);
                 $adapter->setBasicResolver($basicResolver);
@@ -323,6 +325,7 @@ class Frontend extends \Zend_Controller_Router_Route_Abstract
                     if ($a["priority"] == $b["priority"]) {
                         return 0;
                     }
+
                     return ($a["priority"] < $b["priority"]) ? 1 : -1;
                 });
                 $routes = $list->load();
@@ -334,7 +337,7 @@ class Frontend extends \Zend_Controller_Router_Route_Abstract
                             $params = $routeParams;
 
                             // try to get nearest document to the route
-                            $document = $this->getNearestDocumentByPath($path, false, array("page", "snippet", "hardlink"));
+                            $document = $this->getNearestDocumentByPath($path, false, ["page", "snippet", "hardlink"]);
                             if ($document instanceof Document\Hardlink) {
                                 $document = Document\Hardlink\Service::wrap($document);
                             }
@@ -382,16 +385,16 @@ class Frontend extends \Zend_Controller_Router_Route_Abstract
      * @param array $types
      * @return Document|Document\PageSnippet|null|string
      */
-    protected function getNearestDocumentByPath($path, $ignoreHardlinks = false, $types = array())
+    protected function getNearestDocumentByPath($path, $ignoreHardlinks = false, $types = [])
     {
         if ($this->nearestDocumentByPath instanceof Document) {
             $document = $this->nearestDocumentByPath;
         } else {
-            $pathes = array();
+            $pathes = [];
 
             $pathes[] = "/";
             $pathParts = explode("/", $path);
-            $tmpPathes = array();
+            $tmpPathes = [];
             foreach ($pathParts as $pathPart) {
                 $tmpPathes[] = $pathPart;
                 $t = implode("/", $tmpPathes);
@@ -438,6 +441,7 @@ class Frontend extends \Zend_Controller_Router_Route_Abstract
                     }
                 }
             }
+
             return $document;
         }
 
@@ -471,16 +475,16 @@ class Frontend extends \Zend_Controller_Router_Route_Abstract
             $cacheKey = "system_route_redirect";
             if (empty($this->redirects) && !($this->redirects = Cache::load($cacheKey))) {
                 $list = new Redirect\Listing();
+                $list->setCondition("active = 1");
                 $list->setOrder("DESC");
                 $list->setOrderKey("priority");
                 $this->redirects = $list->load();
 
-                Cache::save($this->redirects, $cacheKey, array("system", "redirect", "route"), null, 998);
+                Cache::save($this->redirects, $cacheKey, ["system", "redirect", "route"], null, 998);
             }
 
-            $requestScheme = ($_SERVER['HTTPS'] == 'on') ? \Zend_Controller_Request_Http::SCHEME_HTTPS : \Zend_Controller_Request_Http::SCHEME_HTTP;
             $matchRequestUri = $_SERVER["REQUEST_URI"];
-            $matchUrl = $requestScheme . "://" . $_SERVER["HTTP_HOST"] . $matchRequestUri;
+            $matchUrl = Tool::getHostUrl() . $matchRequestUri;
 
             foreach ($this->redirects as $redirect) {
                 $matchAgainst = $matchRequestUri;
@@ -565,7 +569,7 @@ class Frontend extends \Zend_Controller_Router_Route_Abstract
      * @param bool $partial
      * @return string
      */
-    public function assemble($data = array(), $reset = false, $encode = true, $partial = false)
+    public function assemble($data = [], $reset = false, $encode = true, $partial = false)
     {
         $pathPrefix = "";
         $hasPath = false;

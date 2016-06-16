@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 
@@ -71,7 +73,7 @@ pimcore.object.helpers.edit = {
                 forceLayout: true,
                 monitorResize: true,
                 bodyStyle: "padding: 10px",
-                border: false,
+                border: true,
                 defaults: {
                     width: "auto"
                 },
@@ -89,7 +91,10 @@ pimcore.object.helpers.edit = {
             tabpanel: {
                 xtype: "tabpanel",
                 activeTab: 0,
+                monitorResize: true,
                 deferredRender: true,
+                border: true,
+                bodyStyle: "padding: 10px",
                 forceLayout: true,
                 hideMode: "offsets",
                 enableTabScroll: true,
@@ -260,7 +265,7 @@ pimcore.object.helpers.edit = {
 
 
                 try {
-                    dLayout.on("render", function (metaData) {
+                    dLayout.on("afterrender", function (metaData) {
                         if(metaData && metaData.inherited) {
                             this.markInherited(metaData);
                         }

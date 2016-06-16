@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Listing;
@@ -85,6 +87,7 @@ abstract class Concrete extends Model\Object\Listing
     public function setClassId($classId)
     {
         $this->classId = $classId;
+
         return $this;
     }
 
@@ -95,6 +98,7 @@ abstract class Concrete extends Model\Object\Listing
     public function setClassName($className)
     {
         $this->className = $className;
+
         return $this;
     }
 
@@ -104,6 +108,7 @@ abstract class Concrete extends Model\Object\Listing
     public function getClass()
     {
         $class = Object\ClassDefinition::getById($this->getClassId());
+
         return $class;
     }
 
@@ -114,6 +119,7 @@ abstract class Concrete extends Model\Object\Listing
     public function setLocale($locale)
     {
         $this->locale = $locale;
+
         return $this;
     }
 
@@ -132,6 +138,7 @@ abstract class Concrete extends Model\Object\Listing
     public function setIgnoreLocalizedFields($ignoreLocalizedFields)
     {
         $this->ignoreLocalizedFields = $ignoreLocalizedFields;
+
         return $this;
     }
 
@@ -148,7 +155,7 @@ abstract class Concrete extends Model\Object\Listing
      * field collection queries
      * @var array
      */
-    private $fieldCollectionConfigs = array();
+    private $fieldCollectionConfigs = [];
 
     /**
      * @param $type
@@ -162,7 +169,7 @@ abstract class Concrete extends Model\Object\Listing
         }
 
         Object\Fieldcollection\Definition::getByKey($type);
-        $this->fieldCollectionConfigs[] = array("type" => $type, "fieldname" => $fieldname);
+        $this->fieldCollectionConfigs[] = ["type" => $type, "fieldname" => $fieldname];
         ;
     }
 
@@ -176,6 +183,7 @@ abstract class Concrete extends Model\Object\Listing
         foreach ($fieldCollections as $fc) {
             $this->addFieldCollection($fc['type'], $fc['fieldname']);
         }
+
         return $this;
     }
 
@@ -192,7 +200,7 @@ abstract class Concrete extends Model\Object\Listing
      * object brick queries
      * @var array
      */
-    private $objectBrickConfigs = array();
+    private $objectBrickConfigs = [];
 
     /**
      * @param $type
@@ -222,6 +230,7 @@ abstract class Concrete extends Model\Object\Listing
                 $this->addObjectbrick($ob);
             }
         }
+
         return $this;
     }
 

@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document\Tag;
@@ -69,11 +71,11 @@ class Renderlet extends Model\Document\Tag
      */
     public function getData()
     {
-        return array(
+        return [
             "id" => $this->id,
             "type" => $this->getObjectType(),
             "subtype" => $this->subtype
-        );
+        ];
     }
 
     /**
@@ -84,12 +86,13 @@ class Renderlet extends Model\Document\Tag
     public function getDataEditmode()
     {
         if ($this->o instanceof Element\ElementInterface) {
-            return array(
+            return [
                 "id" => $this->id,
                 "type" => $this->getObjectType(),
                 "subtype" => $this->subtype
-            );
+            ];
         }
+
         return null;
     }
 
@@ -116,9 +119,9 @@ class Renderlet extends Model\Document\Tag
         }
 
         if ($this->o instanceof Element\ElementInterface) {
-            $blockparams = array("action", "controller", "module", "template");
+            $blockparams = ["action", "controller", "module", "template"];
 
-            $params = array(
+            $params = [
                 "template" => isset($this->options["template"]) ? $this->options["template"] : null,
                 "object" => $this->o,
                 "element" => $this->o,
@@ -128,7 +131,7 @@ class Renderlet extends Model\Document\Tag
                 "subtype" => $this->subtype,
                 "pimcore_request_source" => "renderlet",
                 "disableBlockClearing" => true
-            );
+            ];
 
             foreach ($this->options as $key => $value) {
                 if (!array_key_exists($key, $params) && !in_array($key, $blockparams)) {
@@ -168,6 +171,7 @@ class Renderlet extends Model\Document\Tag
         $this->subtype = $data["subtype"];
 
         $this->setElement();
+
         return $this;
     }
 
@@ -183,6 +187,7 @@ class Renderlet extends Model\Document\Tag
         $this->subtype = $data["subtype"];
 
         $this->setElement();
+
         return $this;
     }
 
@@ -194,6 +199,7 @@ class Renderlet extends Model\Document\Tag
     public function setElement()
     {
         $this->o = Element\Service::getElementById($this->type, $this->id);
+
         return $this;
     }
 
@@ -204,16 +210,16 @@ class Renderlet extends Model\Document\Tag
     {
         $this->load();
 
-        $dependencies = array();
+        $dependencies = [];
 
         if ($this->o instanceof Element\ElementInterface) {
             $elementType = Element\Service::getElementType($this->o);
             $key = $elementType . "_" . $this->o->getId();
 
-            $dependencies[$key] = array(
+            $dependencies[$key] = [
                 "id" => $this->o->getId(),
                 "type" => $elementType
-            );
+            ];
         }
 
         return $dependencies;
@@ -249,6 +255,7 @@ class Renderlet extends Model\Document\Tag
         if ($this->o instanceof Element\ElementInterface) {
             return false;
         }
+
         return true;
     }
 
@@ -258,7 +265,7 @@ class Renderlet extends Model\Document\Tag
      * @param null $idMapper
      * @throws \Exception
      */
-    public function getFromWebserviceImport($wsElement, $document = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($wsElement, $document = null, $params = [], $idMapper = null)
     {
         $data = $wsElement->value;
         if ($data->id !==null) {
@@ -323,6 +330,7 @@ class Renderlet extends Model\Document\Tag
                 $this->subtype=null;
             }
         }
+
         return $sane;
     }
 
@@ -331,9 +339,9 @@ class Renderlet extends Model\Document\Tag
      */
     public function __sleep()
     {
-        $finalVars = array();
+        $finalVars = [];
         $parentVars = parent::__sleep();
-        $blockedVars = array("o");
+        $blockedVars = ["o"];
         foreach ($parentVars as $key) {
             if (!in_array($key, $blockedVars)) {
                 $finalVars[] = $key;
@@ -362,6 +370,7 @@ class Renderlet extends Model\Document\Tag
     public function setId($id)
     {
         $this->id = $id;
+
         return $this;
     }
 
@@ -380,6 +389,7 @@ class Renderlet extends Model\Document\Tag
     public function setO($o)
     {
         $this->o = $o;
+
         return $this;
     }
 
@@ -398,6 +408,7 @@ class Renderlet extends Model\Document\Tag
     public function setSubtype($subtype)
     {
         $this->subtype = $subtype;
+
         return $this;
     }
 

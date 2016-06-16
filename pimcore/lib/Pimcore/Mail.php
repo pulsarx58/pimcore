@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore;
@@ -24,7 +26,7 @@ class Mail extends \Zend_Mail
      * @var array
      * @static
      */
-    protected static $debugEmailAddresses = array();
+    protected static $debugEmailAddresses = [];
 
     /**
      * @var object Pimcore_Placeholder
@@ -36,7 +38,7 @@ class Mail extends \Zend_Mail
      *
      * @var array
      */
-    protected $temporaryStorage = array();
+    protected $temporaryStorage = [];
 
     /**
      * If true - emails are logged in the database and on the file-system
@@ -57,7 +59,7 @@ class Mail extends \Zend_Mail
      *
      * @var array
      */
-    protected $params = array();
+    protected $params = [];
 
 
     /**
@@ -124,6 +126,7 @@ class Mail extends \Zend_Mail
     public function setHostUrl($url)
     {
         $this->hostUrl = $url;
+
         return $this;
     }
 
@@ -196,7 +199,7 @@ class Mail extends \Zend_Mail
         }
 
         if ($emailSettings['method'] == "smtp") {
-            $config = array();
+            $config = [];
             if ($emailSettings['smtp']['name']) {
                 $config['name'] = $emailSettings['smtp']['name'];
             }
@@ -235,6 +238,7 @@ class Mail extends \Zend_Mail
     public function setIgnoreDebugMode($value)
     {
         $this->ignoreDebugMode = (bool)$value;
+
         return $this;
     }
 
@@ -256,6 +260,7 @@ class Mail extends \Zend_Mail
     public function setEnableLayoutOnPlaceholderRendering($value)
     {
         $this->enableLayoutOnPlaceholderRendering = (bool)$value;
+
         return $this;
     }
 
@@ -273,19 +278,11 @@ class Mail extends \Zend_Mail
      * and uses it to automatically create a text version of the html email
      *
      * @static
-     * @return void
+     * @return bool
      */
     public static function determineHtml2TextIsInstalled()
     {
-        self::$html2textInstalled = false;
-        $paths = array("/usr/bin/html2text","/usr/local/bin/html2text", "/bin/html2text");
-
-        foreach ($paths as $path) {
-            if (@is_executable($path)) {
-                self::$html2textInstalled = true;
-                return true;
-            }
-        }
+        return (bool) \Pimcore\Tool\Console::getExecutable("html2text");
     }
 
     /**
@@ -301,6 +298,7 @@ class Mail extends \Zend_Mail
         } else {
             \Logger::warn('Html2Text options ignored. You have to pass a string');
         }
+
         return $this;
     }
 
@@ -328,6 +326,7 @@ class Mail extends \Zend_Mail
     public function addTo($email, $name = '')
     {
         $this->addToTemporaryStorage('To', $email, $name);
+
         return parent::addTo($email, $name);
     }
 
@@ -342,6 +341,7 @@ class Mail extends \Zend_Mail
     public function addCc($email, $name = '')
     {
         $this->addToTemporaryStorage('Cc', $email, $name);
+
         return parent::addCc($email, $name);
     }
 
@@ -355,6 +355,7 @@ class Mail extends \Zend_Mail
     public function addBcc($email)
     {
         $this->addToTemporaryStorage('Bcc', $email, '');
+
         return parent::addBcc($email);
     }
 
@@ -370,6 +371,7 @@ class Mail extends \Zend_Mail
         unset($this->temporaryStorage['Cc']);
         unset($this->temporaryStorage['Bcc']);
         $this->recipientsCleared = true;
+
         return parent::clearRecipients();
     }
 
@@ -385,10 +387,10 @@ class Mail extends \Zend_Mail
     protected function addToTemporaryStorage($key, $email, $name)
     {
         if (!is_array($email)) {
-            $email = array($name => $email);
+            $email = [$name => $email];
         }
         foreach ($email as $n => $recipient) {
-            $this->temporaryStorage[$key][] = array('email' => $recipient, 'name' => is_int($n) ? '' : $n);
+            $this->temporaryStorage[$key][] = ['email' => $recipient, 'name' => is_int($n) ? '' : $n];
         }
     }
 
@@ -410,6 +412,7 @@ class Mail extends \Zend_Mail
     public function disableLogging()
     {
         $this->loggingEnable = false;
+
         return $this;
     }
 
@@ -421,6 +424,7 @@ class Mail extends \Zend_Mail
     public function enableLogging()
     {
         $this->loggingEnable = true;
+
         return $this;
     }
 
@@ -611,7 +615,7 @@ class Mail extends \Zend_Mail
     public function send($transport = null)
     {
         // filter email addresses
-        $blockedAddresses = array();
+        $blockedAddresses = [];
         foreach ($this->getRecipients() as $recipient) {
             if (Model\Tool\Email\Blacklist::getByAddress($recipient)) {
                 $blockedAddresses[] = $recipient;
@@ -717,6 +721,7 @@ class Mail extends \Zend_Mail
     public static function isValidEmailAddress($emailAddress)
     {
         $validator = new \Zend_Validate_EmailAddress();
+
         return $validator->isValid($emailAddress);
     }
 
@@ -734,6 +739,7 @@ class Mail extends \Zend_Mail
         if (!$subject && $this->getDocument()) {
             $subject = $this->getDocument()->getSubject();
         }
+
         return $this->placeholderObject->replacePlaceholders($subject, $this->getParams(), $this->getDocument(), $this->getEnableLayoutOnPlaceholderRendering());
     }
 
@@ -828,6 +834,7 @@ class Mail extends \Zend_Mail
         } else {
             throw new \Exception("$document is not an instance of \\Document\\Email or at least \\Document");
         }
+
         return $this;
     }
 
@@ -849,6 +856,7 @@ class Mail extends \Zend_Mail
     public function preventDebugInformationAppending()
     {
         $this->preventDebugInformationAppending = true;
+
         return $this;
     }
 
@@ -874,6 +882,7 @@ class Mail extends \Zend_Mail
             throw new \Exception("trying to enable html2text binary,
             but html2text is not installed!");
         }
+
         return $this;
     }
 
@@ -887,6 +896,7 @@ class Mail extends \Zend_Mail
         if (is_null(self::$html2textInstalled)) {
             self::determineHtml2TextIsInstalled();
         }
+
         return self::$html2textInstalled;
     }
 
@@ -903,11 +913,12 @@ class Mail extends \Zend_Mail
                 $htmlContent = utf8_decode($htmlContent);
             }
             //using temporary file so we don't have problems with special characters
-            $tmpFileName = PIMCORE_TEMPORARY_DIRECTORY . "/" . uniqid('email_', true) . ".tmp";
+            $tmpFileName = PIMCORE_SYSTEM_TEMP_DIRECTORY . "/" . uniqid('email_', true) . ".tmp";
             if (\Pimcore\File::put($tmpFileName, $htmlContent)) {
                 $content = @shell_exec("html2text $tmpFileName " . $this->getHtml2TextOptions());
                 @unlink($tmpFileName);
             }
+
             return $content;
         }
 
@@ -925,6 +936,7 @@ class Mail extends \Zend_Mail
         $email = $this->_filterEmail($email);
         $this->sender = $email;
         $this->_storeHeader('Sender', $this->_formatAddress($email, null), true);
+
         return $this;
     }
 }

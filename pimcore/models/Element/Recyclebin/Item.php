@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Element
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Element\Recyclebin;
@@ -100,17 +102,17 @@ class Item extends Model\AbstractModel
 
         // check for element with the same name
         if ($element instanceof Document) {
-            $indentElement = Document::getByPath($element->getFullpath());
+            $indentElement = Document::getByPath($element->getRealFullPath());
             if ($indentElement) {
                 $element->setKey($element->getKey()."_restore");
             }
         } elseif ($element instanceof Asset) {
-            $indentElement = Asset::getByPath($element->getFullpath());
+            $indentElement = Asset::getByPath($element->getRealFullPath());
             if ($indentElement) {
                 $element->setFilename($element->getFilename()."_restore");
             }
         } elseif ($element instanceof Object\AbstractObject) {
-            $indentElement = Object::getByPath($element->getFullpath());
+            $indentElement = Object::getByPath($element->getRealFullPath());
             if ($indentElement) {
                 $element->setKey($element->getKey()."_restore");
             }
@@ -138,7 +140,7 @@ class Item extends Model\AbstractModel
         }
 
         $this->setSubtype($this->getElement()->getType());
-        $this->setPath($this->getElement()->getFullPath());
+        $this->setPath($this->getElement()->getRealFullPath());
         $this->setDate(time());
 
         $this->loadChilds($this->getElement());
@@ -163,7 +165,7 @@ class Item extends Model\AbstractModel
             // assets are kina special because they can contain massive amount of binary data which isn't serialized, we create separate files for them
             if ($element instanceof Asset) {
                 if ($element->getType() != "folder") {
-                    $handle = fopen($scope->getStorageFileBinary($element), "w+");
+                    $handle = fopen($scope->getStorageFileBinary($element), "w", false, File::getContext());
                     $src = $element->getStream();
                     stream_copy_to_stream($src, $handle);
                     fclose($handle);
@@ -223,7 +225,7 @@ class Item extends Model\AbstractModel
         if (method_exists($element, "getChilds")) {
             if ($element instanceof Object\AbstractObject) {
                 // because we also want variants
-                $childs = $element->getChilds(array(Object::OBJECT_TYPE_FOLDER, Object::OBJECT_TYPE_VARIANT, Object::OBJECT_TYPE_OBJECT));
+                $childs = $element->getChilds([Object::OBJECT_TYPE_FOLDER, Object::OBJECT_TYPE_VARIANT, Object::OBJECT_TYPE_OBJECT]);
             } else {
                 $childs = $element->getChilds();
             }
@@ -244,7 +246,7 @@ class Item extends Model\AbstractModel
             if ($element instanceof Asset) {
                 $binFile = $scope->getStorageFileBinary($element);
                 if (file_exists($binFile)) {
-                    $binaryHandle = fopen($binFile, "r+");
+                    $binaryHandle = fopen($binFile, "r", false, File::getContext());
                     $element->setStream($binaryHandle);
                 }
             }
@@ -299,6 +301,7 @@ class Item extends Model\AbstractModel
     public function setId($id)
     {
         $this->id = (int) $id;
+
         return $this;
     }
 
@@ -317,6 +320,7 @@ class Item extends Model\AbstractModel
     public function setPath($path)
     {
         $this->path = $path;
+
         return $this;
     }
 
@@ -335,6 +339,7 @@ class Item extends Model\AbstractModel
     public function setType($type)
     {
         $this->type = $type;
+
         return $this;
     }
 
@@ -353,6 +358,7 @@ class Item extends Model\AbstractModel
     public function setSubtype($subtype)
     {
         $this->subtype = $subtype;
+
         return $this;
     }
 
@@ -371,6 +377,7 @@ class Item extends Model\AbstractModel
     public function setAmount($amount)
     {
         $this->amount = (int) $amount;
+
         return $this;
     }
 
@@ -389,6 +396,7 @@ class Item extends Model\AbstractModel
     public function setDate($date)
     {
         $this->date = (int) $date;
+
         return $this;
     }
 
@@ -407,6 +415,7 @@ class Item extends Model\AbstractModel
     public function setElement($element)
     {
         $this->element = $element;
+
         return $this;
     }
 
@@ -417,6 +426,7 @@ class Item extends Model\AbstractModel
     public function setDeletedby($username)
     {
         $this->deletedby = $username;
+
         return $this;
     }
 

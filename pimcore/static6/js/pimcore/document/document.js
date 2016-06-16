@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.document.document");
@@ -107,8 +109,8 @@ pimcore.document.document = Class.create(pimcore.element.abstract, {
                             pimcore.plugin.broker.fireEvent("postSaveDocument", this, this.getType(), task, only);
                         }
                         else {
-                            pimcore.helpers.showNotification(t("error"), t("error_saving_document"), "error",
-                                                                                                    t(rdata.message));
+                            pimcore.helpers.showPrettyError(rdata.type, t("error"), t("error_saving_document"),
+                                rdata.message, rdata.stack, rdata.code);
                         }
                     } catch (e) {
                         pimcore.helpers.showNotification(t("error"), t("error_saving_document"), "error");
@@ -143,7 +145,11 @@ pimcore.document.document = Class.create(pimcore.element.abstract, {
     },
 
     remove: function () {
-        pimcore.helpers.deleteDocument(this.id);
+        var options = {
+            "elementType" : "document",
+            "id": this.id
+        };
+        pimcore.elementservice.deleteElement(options);
     },
 
     saveClose: function(only){
@@ -169,27 +175,11 @@ pimcore.document.document = Class.create(pimcore.element.abstract, {
             this.toolbarButtons.save.hide();
         }
 
-        // remove class in tree panel
-        try {
-            var tree = pimcore.globalmanager.get("layout_document_tree").tree;
-            var store = tree.getStore();
-            var record = store.getById(this.data.id);
-            if (record) {
-                var view = tree.getView();
-                var nodeEl = Ext.fly(view.getNodeByRecord(record));
-                if (nodeEl) {
-                    var nodeElInner = nodeEl.down(".x-grid-td");
-                    if (nodeElInner) {
-                        nodeElInner.removeCls("pimcore_unpublished");
-                    }
-                }
-                delete record.data.cls;
-                record.data.published = true;
-            }
-        } catch (e) {
-            console.log(e);
-        }
-
+        pimcore.elementservice.setElementPublishedState({
+            elementType: "document",
+            id: this.id,
+            published: true
+        });
 
         this.save("publish", only, callback);
     },
@@ -204,26 +194,11 @@ pimcore.document.document = Class.create(pimcore.element.abstract, {
             this.toolbarButtons.save.show();
         }
 
-        // set class in tree panel
-        try {
-            var tree = pimcore.globalmanager.get("layout_document_tree").tree;
-            var store = tree.getStore();
-            var record = store.getById(this.data.id);
-            if (record) {
-                var view = tree.getView();
-                var nodeEl = Ext.fly(view.getNodeByRecord(record));
-                if (nodeEl) {
-                    var nodeElInner = nodeEl.down(".x-grid-td");
-                    if (nodeElInner) {
-                        nodeElInner.addCls("pimcore_unpublished");
-                    }
-                }
-                record.data.cls = "pimcore_unpublished";
-                record.data.published = false;
-            }
-        } catch (e) {
-            console.log(e);
-        }
+        pimcore.elementservice.setElementPublishedState({
+            elementType: "document",
+            id: this.id,
+            published: false
+        });
 
         this.save("unpublish");
     },
@@ -534,25 +509,31 @@ pimcore.document.document = Class.create(pimcore.element.abstract, {
         }
 
         return {
-            text: t("translation"),
+            tooltip: t("translation"),
             iconCls: "pimcore_icon_translations",
+            scale: "medium",
             menu: [{
                 text: t("new_document"),
                 hidden: !in_array(this.getType(), ["page","snippet","email"]),
+                iconCls: "pimcore_icon_page pimcore_icon_overlay_add",
                 menu: [{
                     text: t("using_inheritance"),
-                    handler: this.createTranslation.bind(this, true)
+                    handler: this.createTranslation.bind(this, true),
+                    iconCls: "pimcore_icon_clone"
                 },{
                     text: t("empty_document"),
-                    handler: this.createTranslation.bind(this, false)
+                    handler: this.createTranslation.bind(this, false),
+                    iconCls: "pimcore_icon_file_plain"
                 }]
             }, {
                 text: t("link_existing_document"),
-                handler: this.linkTranslation.bind(this)
+                handler: this.linkTranslation.bind(this),
+                iconCls: "pimcore_icon_page pimcore_icon_overlay_reading"
             }, {
                 text: t("open_translation"),
                 menu: translationsMenu,
-                hidden: !translationsMenu.length
+                hidden: !translationsMenu.length,
+                iconCls: "pimcore_icon_open"
             }]
         };
     }

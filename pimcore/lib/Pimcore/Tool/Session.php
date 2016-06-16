@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Tool;
@@ -19,7 +21,7 @@ class Session
      * contains the session namespace objects
      * @var array
      */
-    protected static $sessions = array();
+    protected static $sessions = [];
 
     /**
      * contains how many sessions are currently open, this is important, because writeClose() must not be called if
@@ -42,7 +44,6 @@ class Session
      */
     protected static $options = [
         "throw_startup_exceptions" => false,
-        "gc_maxlifetime" => 7200,
         "name" => "pimcore_admin_sid",
         "strict" => false,
         "use_trans_sid" => false,
@@ -144,6 +145,7 @@ class Session
             } catch (\Exception $e) {
                 // invalid session, regenerate the session, and return a dummy object
                 \Zend_Session::regenerateId();
+
                 return new \stdClass();
             }
         }
@@ -164,6 +166,7 @@ class Session
         $session = self::get($namespace, true);
         $session->lock();
         self::writeClose();
+
         return $session;
     }
 

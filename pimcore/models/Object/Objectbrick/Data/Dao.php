@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object\Objectbrick
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Objectbrick\Data;
@@ -47,7 +49,7 @@ class Dao extends Model\Dao\AbstractDao
 
         $fieldDefinitions = $this->model->getDefinition()->getFieldDefinitions();
 
-        $data = array();
+        $data = [];
         $data["o_id"] = $object->getId();
         $data["fieldname"] = $this->model->getFieldname();
 
@@ -60,7 +62,7 @@ class Dao extends Model\Dao\AbstractDao
 
         foreach ($fieldDefinitions as $key => $fd) {
             $getter = "get" . ucfirst($fd->getName());
-            
+
             if (method_exists($fd, "save")) {
                 // for fieldtypes which have their own save algorithm eg. objects, multihref, ...
                 $fd->save($this->model);
@@ -78,11 +80,11 @@ class Dao extends Model\Dao\AbstractDao
         $this->db->insertOrUpdate($storetable, $data);
 
 
-        // get data for query table 
+        // get data for query table
         // $tableName = $this->model->getDefinition()->getTableName($object->getClass(), true);
         // this is special because we have to call each getter to get the inherited values from a possible parent object
 
-        $data = array();
+        $data = [];
         $data["o_id"] = $object->getId();
         $data["fieldname"] = $this->model->getFieldname();
 
@@ -125,6 +127,11 @@ class Dao extends Model\Dao\AbstractDao
                     foreach ($columnNames as $columnName) {
                         if (array_key_exists($columnName, $parentData)) {
                             $data[$columnName] = $parentData[$columnName];
+                            if (is_array($insertData)) {
+                                $insertData[$columnName] = $parentData[$columnName];
+                            } else {
+                                $insertData = $parentData[$columnName];
+                            }
                         }
                     }
                 }
@@ -253,7 +260,7 @@ class Dao extends Model\Dao\AbstractDao
         }
 
 
-        $params = array($field, $id, $field, $id, $field, $id);
+        $params = [$field, $id, $field, $id, $field, $id];
 
         $dest = "dest_id";
         $src = "src_id";
@@ -291,7 +298,7 @@ class Dao extends Model\Dao\AbstractDao
         if (is_array($relations) and count($relations) > 0) {
             return $relations;
         } else {
-            return array();
+            return [];
         }
     }
 }

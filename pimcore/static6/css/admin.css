@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 @import 'ext-modifications.css';
@@ -116,10 +118,10 @@
 #pimcore_logout {
     position: absolute;
     z-index: 2;
-    bottom: -5px;
+    bottom: 1px;
     left: 8px;
     width: 44px;
-    height:44px;
+    height:38px;
     background: url(/pimcore/static6/img/flat-color-icons/logout.svg) center center/20px no-repeat;
 
     filter: grayscale(100%) brightness(200%);
@@ -251,6 +253,9 @@
     overflow: auto;
 }
 
+.pimcore_preview_body {
+    overflow: hidden !important;
+}
 
 .pimcore_iframe_mask {
     position: absolute;
@@ -517,12 +522,12 @@
 
 .asset_folder_preview .x-view-over{
     border:1px solid #dddddd;
-    background: #efefef url(../../resources/images/default/grid/row-over.gif) repeat-x left top;
+    background: #efefef;
     padding: 4px;
 }
 
 .asset_folder_preview .x-view-selected{
-    background: #eff5fb url(images/selected.gif) no-repeat right bottom;
+    background: #eff5fb;
     border:1px solid #99bbe8;
     padding: 4px;
 }
@@ -533,9 +538,6 @@
 
 .asset_folder_preview .loading-indicator {
     font-size:11px;
-    background-image:url('../../resources/images/default/grid/loading.gif');
-    background-repeat: no-repeat;
-    background-position: left;
     padding-left:20px;
     margin:10px;
 }
@@ -993,6 +995,10 @@ span.warning {
     padding: 2px 0 2px 8px;
 }
 
+.pimcore_object_panel_edit .x-panel-default-outer-border-trbl {
+    border-color: #d0d0d0 !important;
+}
+
 .objectlayout_element_accordion .x-accordion-item, .objectlayout_element_text  {
     border: 1px solid #d0d0d0;
 }
@@ -1011,7 +1017,7 @@ span.warning {
     border-left-color: #d0d0d0 !important;
 }
 
-.object_localizedfields_panel .x-panel-default-outer-border-trbl {
+.pimcore_object_panel_edit .x-panel-default-outer-border-trbl {
     border-color: #d0d0d0 !important;
 }
 
@@ -1364,4 +1370,14 @@ span.warning {
 
 .x-portlet .x-panel-header-default-framed-top {
     padding: 5px 14px 5px 14px !important;
+}
+
+.pimcore-panel-header-no-border > .x-panel-header-default {
+    border: none !important;
+}
+
+/* fixes combobox line-height - see issue #531  */
+.x-boundlist-item {
+    padding: 5px 10px;
+    line-height: 23px;
 }

@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Classificationstore;
@@ -52,6 +54,14 @@ class KeyGroupRelation extends Model\AbstractModel
 
     /** @var  int */
     public $sorter;
+
+    /** The group name
+     * @var string
+     */
+    public $groupName;
+
+    /** @var  bool */
+    public $mandatory;
 
     /**
      * @return Model\Object\Classificationstore\KeyGroupRelation
@@ -174,5 +184,37 @@ class KeyGroupRelation extends Model\AbstractModel
     public function setSorter($sorter)
     {
         $this->sorter = $sorter;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isMandatory()
+    {
+        return $this->mandatory;
+    }
+
+    /**
+     * @param boolean $mandatory
+     */
+    public function setMandatory($mandatory)
+    {
+        $this->mandatory = intval($mandatory);
+    }
+
+    /**
+     * @param $groupId
+     * @param $keyId
+     * @return KeyGroupRelation
+     */
+    public static function getByGroupAndKeyId($groupId, $keyId)
+    {
+        $relation = new KeyGroupRelation\Listing();
+        $relation->setCondition("groupId = " . $relation->quote($groupId) . " and keyId = " . $relation->quote($keyId));
+        $relation->setLimit(1);
+        $relation = $relation->load();
+        if ($relation) {
+            return $relation[0];
+        }
     }
 }

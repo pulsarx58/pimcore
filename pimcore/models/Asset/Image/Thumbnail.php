@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Asset
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Asset\Image;
@@ -25,7 +27,7 @@ class Thumbnail
     /**
      * @var mixed|string
      */
-    protected $path;
+    protected $filesystemPath;
 
     /**
      * @var int
@@ -86,21 +88,57 @@ class Thumbnail
 
     /**
      * @param bool $deferredAllowed
+     * @return mixed|string
+     */
+    public function getPath($deferredAllowed = true)
+    {
+        $fsPath = $this->getFileSystemPath($deferredAllowed);
+        $path = str_replace(PIMCORE_DOCUMENT_ROOT, "", $fsPath);
+
+        $results = \Pimcore::getEventManager()->trigger("frontend.path.asset.image.thumbnail", $this, [
+            "filesystemPath" => $fsPath,
+            "frontendPath" => $path
+        ]);
+
+        if ($results->count()) {
+            $path = $results->last();
+        }
+
+        return $path;
+    }
+
+    /**
+     * @param bool $deferredAllowed
+     * @return mixed|string
+     */
+    public function getFileSystemPath($deferredAllowed = false)
+    {
+        $this->generate($deferredAllowed);
+
+        return $this->filesystemPath;
+    }
+
+    /**
+     * @param bool $deferredAllowed
      */
     public function generate($deferredAllowed = true)
     {
-        if (!$this->path) {
+        $errorImage = PIMCORE_PATH . '/static6/img/filetype-not-supported.png';
+
+        if (!$this->asset) {
+            $this->filesystemPath = $errorImage;
+        } elseif (!$this->filesystemPath) {
             // if no correct thumbnail config is given use the original image as thumbnail
             if (!$this->config) {
                 $fsPath = $this->asset->getFileSystemPath();
-                $this->path = str_replace(PIMCORE_DOCUMENT_ROOT, "", $fsPath);
+                $this->filesystemPath = str_replace(PIMCORE_DOCUMENT_ROOT, "", $fsPath);
             } else {
                 try {
                     $deferred = ($deferredAllowed && $this->deferred) ? true : false;
-                    $this->path = Thumbnail\Processor::process($this->asset, $this->config, null, $deferred);
+                    $this->filesystemPath = Thumbnail\Processor::process($this->asset, $this->config, null, $deferred, true);
                 } catch (\Exception $e) {
-                    $this->path = '/pimcore/static/img/filetype-not-supported.png';
-                    \Logger::error("Couldn't create thumbnail of image " . $this->asset->getFullPath());
+                    $this->filesystemPath = $errorImage;
+                    \Logger::error("Couldn't create thumbnail of image " . $this->asset->getRealFullPath());
                     \Logger::error($e);
                 }
             }
@@ -112,7 +150,7 @@ class Thumbnail
      */
     public function reset()
     {
-        $this->path = null;
+        $this->filesystemPath = null;
         $this->width = null;
         $this->height = null;
         $this->realHeight = null;
@@ -131,16 +169,6 @@ class Thumbnail
     }
 
     /**
-     * @param bool $deferredAllowed
-     * @return mixed|string
-     */
-    public function getPath($deferredAllowed = true)
-    {
-        $this->generate($deferredAllowed);
-        return $this->path;
-    }
-
-    /**
      * @return int Width of the generated thumbnail image.
     */
     public function getWidth()
@@ -148,6 +176,7 @@ class Thumbnail
         if (!$this->width) {
             $this->getDimensions();
         }
+
         return $this->width;
     }
 
@@ -160,6 +189,7 @@ class Thumbnail
         if (!$this->height) {
             $this->getDimensions();
         }
+
         return $this->height;
     }
 
@@ -171,6 +201,7 @@ class Thumbnail
         if (!$this->realWidth) {
             $this->getDimensions();
         }
+
         return $this->realWidth;
     }
 
@@ -183,6 +214,7 @@ class Thumbnail
         if (!$this->realHeight) {
             $this->getDimensions();
         }
+
         return $this->realHeight;
     }
 
@@ -284,17 +316,24 @@ class Thumbnail
     * @param array $removeAttributes Listof key-value pairs of HTML attributes that should be removed
     * @return string IMG-element with at least the attributes src, width, height, alt.
     */
-    public function getHTML($attributes = array(), $removeAttributes = [])
+    public function getHTML($attributes = [], $removeAttributes = [])
     {
         $image = $this->getAsset();
-        $attr = array();
+        $attr = [];
         $pictureAttribs = []; // this is used for the html5 <picture> element
 
-        if ($this->getWidth()) {
-            $attr['width'] = 'width="'.$this->getWidth().'"';
-        }
-        if ($this->getHeight()) {
-            $attr['height'] = 'height="'.$this->getHeight().'"';
+        // re-add support for disableWidthHeightAttributes
+        if (isset($attributes['disableWidthHeightAttributes']) && $attributes['disableWidthHeightAttributes']) {
+            // make sure the attributes are removed
+            $removeAttributes = array_merge($removeAttributes, ['width', 'height']);
+        } else {
+            if ($this->getWidth()) {
+                $attr['width'] = 'width="'.$this->getWidth().'"';
+            }
+
+            if ($this->getHeight()) {
+                $attr['height'] = 'height="'.$this->getHeight().'"';
+            }
         }
 
         $altText = "";
@@ -505,14 +544,6 @@ class Thumbnail
         }
 
         return null;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFileSystemPath()
-    {
-        return PIMCORE_DOCUMENT_ROOT . $this->getPath(false);
     }
 
     /**

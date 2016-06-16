@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 use Pimcore\Model\Element\Recyclebin;
@@ -15,7 +17,6 @@ use Pimcore\Model\Element;
 
 class Admin_RecyclebinController extends \Pimcore\Controller\Action\Admin
 {
-
     public function init()
     {
         parent::init();
@@ -26,7 +27,7 @@ class Admin_RecyclebinController extends \Pimcore\Controller\Action\Admin
         set_time_limit($timeout);
 
         // check permissions
-        $notRestrictedActions = array("add");
+        $notRestrictedActions = ["add"];
         if (!in_array($this->getParam("action"), $notRestrictedActions)) {
             $this->checkPermission("recyclebin");
         }
@@ -38,7 +39,7 @@ class Admin_RecyclebinController extends \Pimcore\Controller\Action\Admin
             $item = Recyclebin\Item::getById(\Pimcore\Admin\Helper\QueryParams::getRecordIdForGridRequest($this->getParam("data")));
             $item->delete();
 
-            $this->_helper->json(array("success" => true, "data" => array()));
+            $this->_helper->json(["success" => true, "data" => []]);
         } else {
             $list = new Recyclebin\Item\Listing();
             $list->setLimit($this->getParam("limit"));
@@ -54,7 +55,7 @@ class Admin_RecyclebinController extends \Pimcore\Controller\Action\Admin
             }
 
 
-            $conditionFilters = array();
+            $conditionFilters = [];
 
             if ($this->getParam("filterFullText")) {
                 $conditionFilters[] = "path LIKE " . $list->quote("%".$this->getParam("filterFullText")."%");
@@ -121,7 +122,7 @@ class Admin_RecyclebinController extends \Pimcore\Controller\Action\Admin
 
             $items = $list->load();
 
-            $this->_helper->json(array("data" => $items, "success" => true, "total" => $list->getTotalCount()));
+            $this->_helper->json(["data" => $items, "success" => true, "total" => $list->getTotalCount()]);
         }
     }
 
@@ -130,7 +131,7 @@ class Admin_RecyclebinController extends \Pimcore\Controller\Action\Admin
         $item = Recyclebin\Item::getById($this->getParam("id"));
         $item->restore();
 
-        $this->_helper->json(array("success" => true));
+        $this->_helper->json(["success" => true]);
     }
 
     public function flushAction()
@@ -138,7 +139,7 @@ class Admin_RecyclebinController extends \Pimcore\Controller\Action\Admin
         $bin = new Element\Recyclebin();
         $bin->flush();
 
-        $this->_helper->json(array("success" => true));
+        $this->_helper->json(["success" => true]);
     }
 
     public function addAction()
@@ -149,16 +150,16 @@ class Admin_RecyclebinController extends \Pimcore\Controller\Action\Admin
             $type = Element\Service::getElementType($element);
             $listClass = "\\Pimcore\\Model\\" . ucfirst($type) . "\\Listing";
             $list = new $listClass();
-            $list->setCondition((($type == "object") ? "o_" : "") . "path LIKE '" . $element->getFullPath() . "/%'");
+            $list->setCondition((($type == "object") ? "o_" : "") . "path LIKE '" . $element->getRealFullPath() . "/%'");
             $children = $list->getTotalCount();
 
             if ($children <= 100) {
                 Recyclebin\Item::create($element, $this->getUser());
             }
 
-            $this->_helper->json(array("success" => true));
+            $this->_helper->json(["success" => true]);
         } else {
-            $this->_helper->json(array("success" => false));
+            $this->_helper->json(["success" => false]);
         }
     }
 }

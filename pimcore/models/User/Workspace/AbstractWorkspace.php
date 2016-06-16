@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    User
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\User\Workspace;
@@ -87,6 +89,7 @@ class AbstractWorkspace extends Model\AbstractModel
     public function setCreate($create)
     {
         $this->create = $create;
+
         return $this;
     }
 
@@ -105,6 +108,7 @@ class AbstractWorkspace extends Model\AbstractModel
     public function setDelete($delete)
     {
         $this->delete = $delete;
+
         return $this;
     }
 
@@ -123,6 +127,7 @@ class AbstractWorkspace extends Model\AbstractModel
     public function setList($list)
     {
         $this->list = $list;
+
         return $this;
     }
 
@@ -141,6 +146,7 @@ class AbstractWorkspace extends Model\AbstractModel
     public function setProperties($properties)
     {
         $this->properties = $properties;
+
         return $this;
     }
 
@@ -159,6 +165,7 @@ class AbstractWorkspace extends Model\AbstractModel
     public function setPublish($publish)
     {
         $this->publish = $publish;
+
         return $this;
     }
 
@@ -177,6 +184,7 @@ class AbstractWorkspace extends Model\AbstractModel
     public function setRename($rename)
     {
         $this->rename = $rename;
+
         return $this;
     }
 
@@ -195,6 +203,7 @@ class AbstractWorkspace extends Model\AbstractModel
     public function setSettings($settings)
     {
         $this->settings = $settings;
+
         return $this;
     }
 
@@ -213,6 +222,7 @@ class AbstractWorkspace extends Model\AbstractModel
     public function setVersions($versions)
     {
         $this->versions = $versions;
+
         return $this;
     }
 
@@ -231,6 +241,7 @@ class AbstractWorkspace extends Model\AbstractModel
     public function setView($view)
     {
         $this->view = $view;
+
         return $this;
     }
 
@@ -249,6 +260,7 @@ class AbstractWorkspace extends Model\AbstractModel
     public function setCid($cid)
     {
         $this->cid = $cid;
+
         return $this;
     }
 
@@ -267,6 +279,7 @@ class AbstractWorkspace extends Model\AbstractModel
     public function setUserId($userId)
     {
         $this->userId = $userId;
+
         return $this;
     }
 
@@ -285,6 +298,7 @@ class AbstractWorkspace extends Model\AbstractModel
     public function setCpath($cpath)
     {
         $this->cpath = $cpath;
+
         return $this;
     }
 

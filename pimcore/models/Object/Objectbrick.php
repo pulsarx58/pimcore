@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object\Objectbrick
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object;
@@ -22,7 +24,7 @@ class Objectbrick extends Model\AbstractModel
     /**
      * @var array
      */
-    public $items = array();
+    public $items = [];
 
     /**
      * @var string
@@ -37,7 +39,7 @@ class Objectbrick extends Model\AbstractModel
     /**
      * @var array
      */
-    protected $brickGetters = array();
+    protected $brickGetters = [];
 
     /**
      * @param Concrete $object
@@ -58,7 +60,7 @@ class Objectbrick extends Model\AbstractModel
     {
         if ($withInheritedValues) {
             $getters = $this->getBrickGetters();
-            $values = array();
+            $values = [];
             foreach ($getters as $getter) {
                 $value = $this->$getter();
                 if (!empty($value)) {
@@ -75,6 +77,7 @@ class Objectbrick extends Model\AbstractModel
                     }
                 }
             }
+
             return $this->items;
         }
     }
@@ -86,6 +89,7 @@ class Objectbrick extends Model\AbstractModel
     public function setItems($items)
     {
         $this->items = $items;
+
         return $this;
     }
 
@@ -104,6 +108,7 @@ class Objectbrick extends Model\AbstractModel
     public function setFieldname($fieldname)
     {
         $this->fieldname = $fieldname;
+
         return $this;
     }
 
@@ -112,10 +117,11 @@ class Objectbrick extends Model\AbstractModel
      */
     public function getBrickGetters()
     {
-        $getters = array();
+        $getters = [];
         foreach ($this->brickGetters as $bg) {
             $getters[] = "get" . ucfirst($bg);
         }
+
         return $getters;
     }
 
@@ -124,7 +130,7 @@ class Objectbrick extends Model\AbstractModel
      */
     public function getAllowedBrickTypes()
     {
-        return is_array($this->brickGetters) ? $this->brickGetters : array();
+        return is_array($this->brickGetters) ? $this->brickGetters : [];
     }
 
     /**
@@ -132,7 +138,7 @@ class Objectbrick extends Model\AbstractModel
      */
     public function getItemDefinitions()
     {
-        $definitions = array();
+        $definitions = [];
         foreach ($this->getItems() as $item) {
             $definitions[$item->getType()] = $item->getDefinition();
         }

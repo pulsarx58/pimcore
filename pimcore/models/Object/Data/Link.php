@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Data;
@@ -106,6 +108,7 @@ class Link
     public function setText($text)
     {
         $this->text = $text;
+
         return $this;
     }
 
@@ -124,6 +127,7 @@ class Link
     public function setInternalType($internalType)
     {
         $this->internalType = $internalType;
+
         return $this;
     }
 
@@ -145,6 +149,7 @@ class Link
         if (!empty($internal)) {
             $this->setObjectFromId();
         }
+
         return $this;
     }
 
@@ -163,6 +168,7 @@ class Link
     public function setDirect($direct)
     {
         $this->direct = $direct;
+
         return $this;
     }
 
@@ -181,6 +187,7 @@ class Link
     public function setLinktype($linktype)
     {
         $this->linktype = $linktype;
+
         return $this;
     }
 
@@ -199,6 +206,7 @@ class Link
     public function setTarget($target)
     {
         $this->target = $target;
+
         return $this;
     }
 
@@ -217,6 +225,7 @@ class Link
     public function setParameters($parameters)
     {
         $this->parameters = $parameters;
+
         return $this;
     }
 
@@ -235,6 +244,7 @@ class Link
     public function setAnchor($anchor)
     {
         $this->anchor = $anchor;
+
         return $this;
     }
 
@@ -253,6 +263,7 @@ class Link
     public function setTitle($title)
     {
         $this->title = $title;
+
         return $this;
     }
 
@@ -271,6 +282,7 @@ class Link
     public function setAccesskey($accesskey)
     {
         $this->accesskey = $accesskey;
+
         return $this;
     }
 
@@ -289,6 +301,7 @@ class Link
     public function setRel($rel)
     {
         $this->rel = $rel;
+
         return $this;
     }
 
@@ -307,6 +320,7 @@ class Link
     public function setTabindex($tabindex)
     {
         $this->tabindex = $tabindex;
+
         return $this;
     }
 
@@ -362,6 +376,7 @@ class Link
                 $this->direct = $path;
             }
         }
+
         return $this;
     }
 
@@ -406,6 +421,7 @@ class Link
         }
 
         $this->href = $path;
+
         return $path;
     }
     
@@ -421,6 +437,7 @@ class Link
                 return $this->object;
             }
         }
+
         return false;
     }
     
@@ -430,6 +447,7 @@ class Link
     public function setObject($object)
     {
         $this->object = $object;
+
         return $this;
     }
 
@@ -443,13 +461,14 @@ class Link
         } elseif ($this->internalType == "asset") {
             $this->object = Asset::getById($this->internal);
         }
+
         return $this->object;
     }
     
     public function getHtml()
     {
-        $attributes = array("rel", "tabindex", "accesskey", "title","target","class");
-        $attribs = array();
+        $attributes = ["rel", "tabindex", "accesskey", "title", "target", "class"];
+        $attribs = [];
         foreach ($attributes as $a) {
             if ($this->$a) {
                 $attribs[] = $a . '="' . $this->$a . '"';
@@ -486,7 +505,7 @@ class Link
      * @param array $data
      * @return $this
      */
-    public function setValues($data = array())
+    public function setValues($data = [])
     {
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $key => $value) {
@@ -496,6 +515,7 @@ class Link
                 }
             }
         }
+
         return $this;
     }
 

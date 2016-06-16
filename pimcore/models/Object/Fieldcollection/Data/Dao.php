@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object\Fieldcollection
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Fieldcollection\Data;
@@ -26,11 +28,11 @@ class Dao extends Model\Dao\AbstractDao
     public function save(Model\Object\Concrete $object)
     {
         $tableName = $this->model->getDefinition()->getTableName($object->getClass());
-        $data = array(
+        $data = [
             "o_id" => $object->getId(),
             "index" => $this->model->getIndex(),
             "fieldname" => $this->model->getFieldname()
-        );
+        ];
         
         try {
             foreach ($this->model->getDefinition()->getFieldDefinitions() as $fd) {
@@ -40,14 +42,14 @@ class Dao extends Model\Dao\AbstractDao
                     // for fieldtypes which have their own save algorithm eg. objects, multihref, ...
                     $index = $this->model->getIndex();
                     $fd->save($this->model,
-                        array(
-                            "context" => array(
+                        [
+                            "context" => [
                                 "containerType" => "fieldcollection",
                                 "containerKey" => $this->model->getType(),
                                 "fieldname" =>  $this->model->getFieldname(),
                                 "index" => $index
-                            )
-                        )
+                            ]
+                        ]
                     );
                 } elseif ($fd->getColumnType()) {
                     if (is_array($fd->getColumnType())) {

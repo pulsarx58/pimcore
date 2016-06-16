@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\KeyValue\TranslatorConfig;
@@ -18,7 +20,6 @@ use Pimcore\Model;
 
 class Dao extends Model\Dao\AbstractDao
 {
-
     const TABLE_NAME_TRANSLATOR = "keyvalue_translator_configuration";
 
     /**
@@ -71,6 +72,7 @@ class Dao extends Model\Dao\AbstractDao
         if ($this->model->getId()) {
             return $this->model->update();
         }
+
         return $this->create();
     }
 
@@ -118,7 +120,7 @@ class Dao extends Model\Dao\AbstractDao
      */
     public function create()
     {
-        $this->db->insert(self::TABLE_NAME_TRANSLATOR, array());
+        $this->db->insert(self::TABLE_NAME_TRANSLATOR, []);
 
         $this->model->setId($this->db->lastInsertId());
 

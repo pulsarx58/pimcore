@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Pimcore
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Tool\CustomReport\Adapter;
@@ -112,7 +114,7 @@ class Sql extends AbstractAdapter
             $sql .= " " . str_replace("\n", " ", $config["from"]);
         }
         if ($config["where"] || $drillDownFilters) {
-            $whereParts = array();
+            $whereParts = [];
             if ($config["where"]) {
                 $whereParts[] = "(" . str_replace("\n", " ", $config["where"]) . ")";
             }
@@ -165,36 +167,41 @@ class Sql extends AbstractAdapter
             if (is_array($filters)) {
                 foreach ($filters as $filter) {
                     if (\Pimcore\Tool\Admin::isExtJS6()) {
+                        $value = $filter["value"] ;
+                        $type = $filter["type"];
+                        if ($type == "date") {
+                            $value = strtotime($value);
+                        }
                         $operator = $filter['operator'];
                         switch ($operator) {
                             case 'like':
-                                $condition[] = $db->quoteIdentifier($filter["property"]) . " LIKE " . $db->quote("%" . $filter["value"] . "%");
+                                $condition[] = $db->quoteIdentifier($filter["property"]) . " LIKE " . $db->quote("%" . $value. "%");
                                 break;
                             case "lt":
                             case "gt":
                             case "eq":
 
-                                $compMapping = array(
+                                $compMapping = [
                                     "lt" => "<",
                                     "gt" => ">",
                                     "eq" => "="
-                                );
+                                ];
 
-                                $condition[] = $db->quoteIdentifier($filter["property"]) . " " . $compMapping[$operator] . " " . $db->quote($filter["value"]);
+                                $condition[] = $db->quoteIdentifier($filter["property"]) . " " . $compMapping[$operator] . " " . $db->quote($value);
                                 break;
                             case "=":
-                                $condition[] = $db->quoteIdentifier($filter["property"]) . " = " . $db->quote((int)$filter["value"]);
+                                $condition[] = $db->quoteIdentifier($filter["property"]) . " = " . $db->quote($value);
                                 break;
                         }
                     } else {
                         if ($filter["type"] == "string") {
                             $condition[] = $db->quoteIdentifier($filter["field"]) . " LIKE " . $db->quote("%" . $filter["value"] . "%");
                         } elseif ($filter["type"] == "numeric") {
-                            $compMapping = array(
+                            $compMapping = [
                                 "lt" => "<",
                                 "gt" => ">",
                                 "eq" => "="
-                            );
+                            ];
                             if ($compMapping[$filter["comparison"]]) {
                                 $condition[] = $db->quoteIdentifier($filter["field"]) . " " . $compMapping[$filter["comparison"]] . " " . $db->quote($filter["value"]);
                             }

@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Webservice
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Webservice;
@@ -29,7 +31,7 @@ abstract class Data
     public function map($object, $options = null)
     {
         $keys = get_object_vars($this);
-        $blockedKeys = array("childs");
+        $blockedKeys = ["childs"];
         foreach ($keys as $key => $value) {
             $method = "get" . $key;
             if (method_exists($object, $method) && !in_array($key, $blockedKeys)) {
@@ -62,7 +64,7 @@ abstract class Data
     private function mapProperties($value)
     {
         if (is_array($value)) {
-            $result = array();
+            $result = [];
 
             foreach ($value as $property) {
                 if ($property instanceof \stdClass) {
@@ -78,6 +80,7 @@ abstract class Data
             }
             $value = $result;
         }
+
         return $value;
     }
 
@@ -111,7 +114,7 @@ abstract class Data
 
                 $dat = $propertyWs["data"];
                 $type = $propertyWs["type"];
-                if (in_array($type, array("object", "document", "asset"))) {
+                if (in_array($type, ["object", "document", "asset"])) {
                     $id = $propertyWs["data"];
                     $type = $propertyWs["type"];
                     $dat = null;

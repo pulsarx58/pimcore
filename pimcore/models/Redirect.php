@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Redirect
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model;
@@ -63,6 +65,11 @@ class Redirect extends AbstractModel
     public $priority = 1;
 
     /**
+     * @var bool
+     */
+    public $active = true;
+
+    /**
      * @var int
      */
     public $expiry;
@@ -81,13 +88,13 @@ class Redirect extends AbstractModel
     /**
      * StatusCodes
      */
-    public static $statusCodes = array(
+    public static $statusCodes = [
         "300" => "Multiple Choices",
         "301" => "Moved Permanently",
         "302" => "Found",
         "303" => "See Other",
         "307" => "Temporary Redirect"
-    );
+    ];
 
     /**
      * @param integer $id
@@ -145,6 +152,7 @@ class Redirect extends AbstractModel
     public function setId($id)
     {
         $this->id = (int) $id;
+
         return $this;
     }
 
@@ -155,6 +163,7 @@ class Redirect extends AbstractModel
     public function setSource($source)
     {
         $this->source = $source;
+
         return $this;
     }
 
@@ -165,6 +174,7 @@ class Redirect extends AbstractModel
     public function setTarget($target)
     {
         $this->target = $target;
+
         return $this;
     }
 
@@ -177,6 +187,7 @@ class Redirect extends AbstractModel
         if ($priority) {
             $this->priority = $priority;
         }
+
         return $this;
     }
 
@@ -197,6 +208,7 @@ class Redirect extends AbstractModel
         if ($statusCode) {
             $this->statusCode = $statusCode;
         }
+
         return $this;
     }
 
@@ -217,15 +229,16 @@ class Redirect extends AbstractModel
         if (empty($statusCode)) {
             $statusCode = "301";
         }
+
         return "HTTP/1.1 " . $statusCode . " " . self::$statusCodes[$statusCode];
     }
-    
+
     /**
      * @return void
      */
     public function clearDependentCache()
     {
-        
+
         // this is mostly called in Redirect\Dao not here
         try {
             \Pimcore\Cache::clearTag("redirect");
@@ -244,6 +257,7 @@ class Redirect extends AbstractModel
             $expiry = strtotime($expiry);
         }
         $this->expiry = $expiry;
+
         return $this;
     }
 
@@ -280,6 +294,7 @@ class Redirect extends AbstractModel
         } else {
             $this->sourceEntireUrl = null;
         }
+
         return $this;
     }
 
@@ -289,6 +304,29 @@ class Redirect extends AbstractModel
     public function getSourceEntireUrl()
     {
         return $this->sourceEntireUrl;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getActive()
+    {
+        return $this->active;
+    }
+
+    /**
+     * @param $active
+     * @return $this
+     */
+    public function setActive($active)
+    {
+        if ($active) {
+            $this->active = (bool) $active;
+        } else {
+            $this->active = null;
+        }
+
+        return $this;
     }
 
     /**
@@ -302,6 +340,7 @@ class Redirect extends AbstractModel
         } else {
             $this->sourceSite = null;
         }
+
         return $this;
     }
 
@@ -324,6 +363,7 @@ class Redirect extends AbstractModel
         } else {
             $this->targetSite = null;
         }
+
         return $this;
     }
 
@@ -365,6 +405,7 @@ class Redirect extends AbstractModel
     public function setModificationDate($modificationDate)
     {
         $this->modificationDate = (int) $modificationDate;
+
         return $this;
     }
 
@@ -383,6 +424,7 @@ class Redirect extends AbstractModel
     public function setCreationDate($creationDate)
     {
         $this->creationDate = (int) $creationDate;
+
         return $this;
     }
 

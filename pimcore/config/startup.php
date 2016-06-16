@@ -2,18 +2,26 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT);
 
 // configure some constants needed by pimcore
 $pimcoreDocumentRoot = realpath(dirname(__FILE__) . '/../..');
+
+$customConstants = $pimcoreDocumentRoot . "/constants.php";
+if (file_exists($customConstants)) {
+    include_once $customConstants;
+}
+
 
 if (!defined("PIMCORE_DOCUMENT_ROOT")) {
     define("PIMCORE_DOCUMENT_ROOT", $pimcoreDocumentRoot);
@@ -37,7 +45,7 @@ if (!defined("PIMCORE_WEBSITE_PATH")) {
 
 if (is_array($_SERVER)
     && array_key_exists("HTTP_X_PIMCORE_UNIT_TEST_REQUEST", $_SERVER)
-    && in_array($_SERVER["REMOTE_ADDR"], array("127.0.0.1", $_SERVER["SERVER_ADDR"]))) {
+    && in_array($_SERVER["REMOTE_ADDR"], ["127.0.0.1", $_SERVER["SERVER_ADDR"]])) {
     // change the var directory for unit tests
     if (!defined("PIMCORE_WEBSITE_VAR")) {
         define("PIMCORE_WEBSITE_VAR", PIMCORE_DOCUMENT_ROOT . "/tests/tmp/var");
@@ -47,6 +55,10 @@ if (is_array($_SERVER)
     if (!defined("PIMCORE_WEBSITE_VAR")) {
         define("PIMCORE_WEBSITE_VAR", PIMCORE_WEBSITE_PATH . "/var");
     }
+}
+
+if (!defined("PIMCORE_CUSTOM_CONFIGURATION_DIRECTORY")) {
+    define("PIMCORE_CUSTOM_CONFIGURATION_DIRECTORY", PIMCORE_WEBSITE_PATH . "/config");
 }
 
 if (!defined("PIMCORE_CONFIGURATION_DIRECTORY")) {
@@ -102,7 +114,7 @@ if (!defined("PIMCORE_LOG_MAIL_PERMANENT")) {
 // setup include paths
 // include paths defined in php.ini are ignored because they're causing problems with open_basedir, see PIMCORE-1233
 // it also improves the performance when reducing the amount of include paths, you can of course add additional paths anywhere in your code (/website)
-$includePaths = array(
+$includePaths = [
     PIMCORE_PATH . "/lib",
     PIMCORE_PATH . "/models",
     PIMCORE_WEBSITE_PATH . "/lib",
@@ -112,7 +124,7 @@ $includePaths = array(
     // see also: Pimcore\Composer::zendFrameworkOptimization()
     // actually the problem is 'require_once 'Zend/Loader.php';' in Zend/Loader/Autoloader.php
     PIMCORE_DOCUMENT_ROOT . "/vendor/zendframework/zendframework1/library/",
-);
+];
 set_include_path(implode(PATH_SEPARATOR, $includePaths) . PATH_SEPARATOR);
 
 // composer autoloader
@@ -132,17 +144,32 @@ $autoloader->setFallbackAutoloader(false);
 $autoloader->registerNamespace('Pimcore');
 
 // register class map loader => speed
-$autoloaderClassMapFiles = array(
+$autoloaderClassMapFiles = [
     PIMCORE_CONFIGURATION_DIRECTORY . "/autoload-classmap.php",
-    PIMCORE_PATH . "/config/autoload-classmap.php"
-);
+    PIMCORE_CUSTOM_CONFIGURATION_DIRECTORY . "/autoload-classmap.php",
+    PIMCORE_PATH . "/config/autoload-classmap.php",
+];
 
 foreach ($autoloaderClassMapFiles as $autoloaderClassMapFile) {
     if (file_exists($autoloaderClassMapFile)) {
-        $classMapAutoLoader = new \Pimcore\Loader\ClassMapAutoloader(array($autoloaderClassMapFile));
+        $classMapAutoLoader = new \Pimcore\Loader\ClassMapAutoloader([$autoloaderClassMapFile]);
         $classMapAutoLoader->register();
         break;
     }
+}
+
+// generic pimcore startup
+\Pimcore::setSystemRequirements();
+\Pimcore::initAutoloader();
+\Pimcore::initConfiguration();
+\Pimcore::setupFramework();
+\Pimcore::initLogger();
+\Pimcore::initModules();
+
+if (\Pimcore\Config::getSystemConfig()) {
+    // we do not initialize plugins if pimcore isn't installed properly
+    // reason: it can be the case that plugins use the database in isInstalled() witch isn't available at this time
+    \Pimcore::initPlugins();
 }
 
 // do some general stuff

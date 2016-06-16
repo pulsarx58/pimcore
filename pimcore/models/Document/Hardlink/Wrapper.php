@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document\Hardlink;
@@ -52,7 +54,7 @@ trait Wrapper
             if ($this->getHardLinkSource()->getPropertiesFromSource()) {
                 $sourceProperties = $this->getDao()->getProperties();
             } else {
-                $sourceProperties = array();
+                $sourceProperties = [];
             }
 
             if ($this->getSourceDocument()) {
@@ -63,7 +65,7 @@ trait Wrapper
                 $sourceProperties = $this->getSourceDocument()->getProperties();
             }
 
-            $hardLinkProperties = array();
+            $hardLinkProperties = [];
             $hardLinkSourceProperties = $this->getHardLinkSource()->getProperties();
             foreach ($hardLinkSourceProperties as $key => $prop) {
                 $prop = clone $prop;
@@ -88,11 +90,11 @@ trait Wrapper
         return $this->properties;
     }
 
-    public function getChilds()
+    public function getChilds($unpublished = false)
     {
         if ($this->childs === null) {
             $hardLink = $this->getHardLinkSource();
-            $childs = array();
+            $childs = [];
 
             if ($hardLink->getChildsFromSource() && $hardLink->getSourceDocument() && !\Pimcore::inAdmin()) {
                 foreach (parent::getChilds() as $c) {
@@ -142,6 +144,7 @@ trait Wrapper
     public function setHardLinkSource($hardLinkSource)
     {
         $this->hardLinkSource = $hardLinkSource;
+
         return $this;
     }
 

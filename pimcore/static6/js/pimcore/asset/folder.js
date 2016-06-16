@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.asset.folder");
@@ -80,6 +82,8 @@ pimcore.asset.folder = Class.create(pimcore.asset.asset, {
             '<div class="x-clear"></div>'
         );
 
+        var pageSize = pimcore.helpers.grid.getDefaultPageSize(-1);
+
         this.dataview = new Ext.Panel({
             layout:'fit',
             bodyCls: "asset_folder_preview",
@@ -106,13 +110,7 @@ pimcore.asset.folder = Class.create(pimcore.asset.asset, {
                     }.bind(this)
                 }
             }),
-            bbar: new Ext.PagingToolbar({
-                pageSize: 10,
-                store: this.store,
-                displayInfo: true,
-                displayMsg: '{0} - {1} / {2}',
-                emptyMsg: t("no_assets_found")
-            })
+            bbar: pimcore.helpers.grid.buildDefaultPagingToolbar(this.store, {pageSize: pageSize})
         });
 
         items.push(this.dataview);
@@ -163,32 +161,40 @@ pimcore.asset.folder = Class.create(pimcore.asset.asset, {
                 pimcore.helpers.openAsset(id, type);
             }.bind(this, id, type)
         }));
-        menu.add(new Ext.menu.Item({
-            text: t('show_in_tree'),
-            iconCls: "pimcore_icon_show_in_tree",
-            handler: function () {
-                try {
-                    try {
-                        pimcore.treenodelocator.showInTree(node.id, "asset", this);
-                    } catch (e) {
-                        console.log(e);
-                    }
 
-                } catch (e2) { console.log(e2); }
-            }
-        }));
+        if (pimcore.elementservice.showLocateInTreeButton("asset")) {
+            menu.add(new Ext.menu.Item({
+                text: t('show_in_tree'),
+                iconCls: "pimcore_icon_show_in_tree",
+                handler: function () {
+                    try {
+                        try {
+                            pimcore.treenodelocator.showInTree(node.id, "asset", this);
+                        } catch (e) {
+                            console.log(e);
+                        }
+
+                    } catch (e2) {
+                        console.log(e2);
+                    }
+                }
+            }));
+        }
+
         menu.add(new Ext.menu.Item({
             text: t('delete'),
             iconCls: "pimcore_icon_delete",
             handler: function () {
-                pimcore.helpers.deleteAsset(id, function() {
-                    this.store.reload();
 
-                    var tree = pimcore.globalmanager.get("layout_asset_tree").tree;
-                    tree.getStore().load({
-                        node: tree.getRootNode()
-                    });
-                }.bind(this));
+                var options = {
+                    "elementType" : "asset",
+                    "id": id,
+                    "success": function() {
+                        this.store.reload();
+                    }.bind(this)
+                };
+
+                pimcore.elementservice.deleteElement(options);
             }.bind(this, id)
         }));
         menu.showAt(event.pageX, event.pageY);
@@ -214,52 +220,68 @@ pimcore.asset.folder = Class.create(pimcore.asset.asset, {
             }
 
             this.toolbarButtons.remove = new Ext.Button({
-                text: t('delete_folder'),
+                tooltip: t('delete_folder'),
                 iconCls: "pimcore_icon_delete",
                 scale: "medium",
                 handler: this.remove.bind(this)
             });
-            if (this.isAllowed("delete") && !this.data.locked && this.data.id != 1) {
-                buttons.push(this.toolbarButtons.remove);
-            }
+
+            this.toolbarButtons.rename = new Ext.Button({
+                tooltip: t('rename'),
+                iconCls: "pimcore_icon_key pimcore_icon_overlay_go",
+                scale: "medium",
+                handler: function () {
+                    var options = {
+                        elementType: "asset",
+                        elementSubType: this.getType(),
+                        id: this.id,
+                        default: this.data.filename
+                    }
+                    pimcore.elementservice.editElementKey(options);
+                }.bind(this)
+            });
 
             buttons.push("-");
 
-            var moreButtons = [];
-
-            moreButtons.push({
-                text: t("download_as_zip"),
+            if (this.isAllowed("delete") && !this.data.locked && this.data.id != 1) {
+                buttons.push(this.toolbarButtons.remove);
+            }
+            if (this.isAllowed("rename") && !this.data.locked && this.data.id != 1) {
+                buttons.push(this.toolbarButtons.rename);
+            }
+            
+            buttons.push({
+                tooltip: t("download_as_zip"),
                 iconCls: "pimcore_icon_zip pimcore_icon_overlay_download",
+                scale: "medium",
                 handler: this.downloadZip.bind(this)
             });
 
-            moreButtons.push({
-                text: t('reload'),
+            buttons.push({
+                tooltip: t('reload'),
                 iconCls: "pimcore_icon_reload",
+                scale: "medium",
                 handler: this.reload.bind(this)
             });
 
-            moreButtons.push({
-                text: t('show_in_tree'),
-                iconCls: "pimcore_icon_show_in_tree",
-                handler: this.selectInTree.bind(this)
-            });
-
-            var user = pimcore.globalmanager.get("user");
-            if (user.admin) {
-                moreButtons.push({
-                    text: t("show_metainfo"),
-                    iconCls: "pimcore_icon_info",
-                    handler: this.showMetaInfo.bind(this)
+            if (pimcore.elementservice.showLocateInTreeButton("asset")) {
+                buttons.push({
+                    tooltip: t('show_in_tree'),
+                    iconCls: "pimcore_icon_show_in_tree",
+                    scale: "medium",
+                    handler: this.selectInTree.bind(this)
                 });
             }
 
-            buttons.push({
-                text: t("more"),
-                iconCls: "pimcore_icon_more",
-                scale: "medium",
-                menu: moreButtons
-            });
+            var user = pimcore.globalmanager.get("user");
+            if (user.admin) {
+                buttons.push({
+                    tooltip: t("show_metainfo"),
+                    iconCls: "pimcore_icon_info",
+                    scale: "medium",
+                    handler: this.showMetaInfo.bind(this)
+                });
+            }
 
             buttons.push("-");
             buttons.push({
@@ -274,7 +296,7 @@ pimcore.asset.folder = Class.create(pimcore.asset.asset, {
                 border: false,
                 cls: "main-toolbar",
                 items: buttons,
-                overflowHandler: 'menu'
+                overflowHandler: 'scroller'
             });
         }
 

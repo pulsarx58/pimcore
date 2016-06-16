@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object;
@@ -23,7 +25,7 @@ class Classificationstore extends Model\AbstractModel
     /**
      * @var array
      */
-    public $items = array();
+    public $items = [];
 
     /**
      * @var Model\Object\Concrete
@@ -39,7 +41,7 @@ class Classificationstore extends Model\AbstractModel
     public $fieldname;
 
     /** @var  array */
-    public $activeGroups;
+    public $activeGroups = [];
 
     /** @var  array */
     public $groupCollectionMapping;
@@ -70,6 +72,7 @@ class Classificationstore extends Model\AbstractModel
     public function setItems($items)
     {
         $this->items = $items;
+
         return $this;
     }
 
@@ -107,6 +110,7 @@ class Classificationstore extends Model\AbstractModel
     public function setClass(ClassDefinition $class)
     {
         $this->class = $class;
+
         return $this;
     }
 
@@ -118,6 +122,7 @@ class Classificationstore extends Model\AbstractModel
         if (!$this->class && $this->getObject()) {
             $this->class = $this->getObject()->getClass();
         }
+
         return $this->class;
     }
 
@@ -158,6 +163,7 @@ class Classificationstore extends Model\AbstractModel
                 }
             }
         }
+
         return $this;
     }
 
@@ -251,7 +257,8 @@ class Classificationstore extends Model\AbstractModel
             $data = new Model\Object\Data\CalculatedValue($this->getFieldname());
             $childDef = Model\Object\Classificationstore\Service::getFieldDefinitionFromKeyConfig($keyConfig);
             $data->setContextualData("classificationstore", $this->getFieldname(), null, $language, $groupId, $keyId, $childDef);
-            $data = Model\Object\Service::getCalculatedFieldValueForEditMode($this->getObject(), array(), $data);
+            $data = Model\Object\Service::getCalculatedFieldValueForEditMode($this->getObject(), [], $data);
+
             return $data;
         }
 
@@ -310,11 +317,11 @@ class Classificationstore extends Model\AbstractModel
 
 
         if ($fieldDefinition && method_exists($fieldDefinition, "preGetData")) {
-            $data =  $fieldDefinition->preGetData($this, array(
+            $data =  $fieldDefinition->preGetData($this, [
                 "data" => $data,
                 "language" => $language,
                 "name" => $groupId . "-" . $keyId
-            ));
+            ]);
         }
 
         return $data;

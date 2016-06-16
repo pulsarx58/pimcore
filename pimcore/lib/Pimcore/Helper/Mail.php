@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Helper;
@@ -50,7 +52,7 @@ class Mail
             }
             $debugInformation .= '</td></tr>';
 
-            foreach (array('To', 'Cc', 'Bcc') as $key) {
+            foreach (['To', 'Cc', 'Bcc'] as $key) {
                 if (isset($temporaryStorage[$key]) && is_array($temporaryStorage[$key])) {
                     $debugInformation .= '<tr><td class="pimcore_label_column">' . $key . ': </td>';
                     $debugInformation .= '<td>' . self::formatDebugReceivers($temporaryStorage[$key]) . '</td></tr>';
@@ -61,7 +63,16 @@ class Mail
         } else {
             //generating text debug info
             $debugInformation = "\r\n  \r\nDebug Information:  \r\n  \r\n";
-            foreach (array('To', 'Cc', 'Bcc') as $key) {
+            if ($mail->getFrom()) {
+                $debugInformation .= 'From: ' . $mail->getFrom(). "\r\n";
+            } else {
+                $defaultFrom = $mail->getDefaultFrom();
+                $debugInformation .= 'From: ' . $defaultFrom["email"] . ' (Info: No "from" email address given so the default "from" email address is used from "Settings" -> "System" -> "Email Settings" )'. "\r\n";
+            }
+
+            //generating text debug info
+            $debugInformation = "\r\n  \r\nDebug Information:  \r\n  \r\n";
+            foreach (['To', 'Cc', 'Bcc'] as $key) {
                 if (isset($temporaryStorage[$key]) && is_array($temporaryStorage[$key])) {
                     $debugInformation .= "$key: " . self::formatDebugReceivers($temporaryStorage[$key]) . "\r\n";
                 }
@@ -106,6 +117,7 @@ class Mail
 
 </style>
 CSS;
+
         return $style;
     }
 
@@ -128,6 +140,7 @@ CSS;
             }
         }
         $tmpString = substr($tmpString, 0, strrpos($tmpString, ','));
+
         return $tmpString;
     }
 
@@ -174,7 +187,7 @@ CSS;
         }
 
         $temporaryStorage = $mail->getTemporaryStorage();
-        foreach (array('To', 'Cc', 'Bcc') as $key) {
+        foreach (['To', 'Cc', 'Bcc'] as $key) {
             if (isset($temporaryStorage[$key]) && is_array($temporaryStorage[$key])) {
                 if (method_exists($emailLog, 'set' . $key)) {
                     $emailLog->{"set$key"}(self::formatDebugReceivers($temporaryStorage[$key]));
@@ -200,8 +213,17 @@ CSS;
             throw new \Exception('$document has to be an instance of Document');
         }
 
-        if (is_null($hostUrl)) {
-            $hostUrl = \Pimcore\Tool::getHostUrl();
+        if (!$hostUrl && $document) {
+            // try to determine if the newsletter is within a site
+            $site = \Pimcore\Tool\Frontend::getSiteForDocument($document);
+            if ($site) {
+                $hostUrl = "http://" . $site->getMainDomain();
+            }
+
+            // fallback
+            if (!$hostUrl) {
+                $hostUrl = \Pimcore\Tool::getHostUrl();
+            }
         }
 
         //matches all links
@@ -227,6 +249,7 @@ CSS;
                 $string = preg_replace("!([\"'])$path([\"'])!is", "\\1" . $absolutePath . "\\2", $string);
             }
         }
+
         return $string;
     }
 
@@ -252,7 +275,7 @@ CSS;
                 $fullMatch = $matches[0][$key];
                 $path = $matches[1][$key];
                 $fileInfo = self::getNormalizedFileInfo($path, $document);
-                if (in_array($fileInfo['fileExtension'], array('css', 'less'))) {
+                if (in_array($fileInfo['fileExtension'], ['css', 'less'])) {
                     if (is_readable($fileInfo['filePathNormalized'])) {
                         if ($fileInfo['fileExtension'] == 'css') {
                             $fileContent = file_get_contents($fileInfo['filePathNormalized']);
@@ -332,7 +355,7 @@ CSS;
             throw new \Exception('$document has to be an instance of Document');
         }
 
-        $fileInfo = array();
+        $fileInfo = [];
         $hostUrl = Tool::getHostUrl();
         if ($path[0] != '/') {
             $fileInfo['fileUrl'] = $hostUrl . $document . "/$path"; //relative eg. ../file.css

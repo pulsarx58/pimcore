@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document\Tag;
@@ -26,12 +28,12 @@ class Multihref extends Model\Document\Tag implements \Iterator
     /**
      * @var array
      */
-    public $elements = array();
+    public $elements = [];
 
     /**
      * @var array
      */
-    public $elementIds = array();
+    public $elementIds = [];
 
      /**
      * @see Document\Tag\TagInterface::getType
@@ -48,7 +50,7 @@ class Multihref extends Model\Document\Tag implements \Iterator
     public function setElements()
     {
         if (empty($this->elements)) {
-            $this->elements = array();
+            $this->elements = [];
             foreach ($this->elementIds as $elementId) {
                 $el = Element\Service::getElementById($elementId["type"], $elementId["id"]);
                 if ($el instanceof Element\ElementInterface) {
@@ -56,6 +58,7 @@ class Multihref extends Model\Document\Tag implements \Iterator
                 }
             }
         }
+
         return $this;
     }
 
@@ -66,6 +69,7 @@ class Multihref extends Model\Document\Tag implements \Iterator
     public function getData()
     {
         $this->setElements();
+
         return $this->elements;
     }
 
@@ -85,18 +89,18 @@ class Multihref extends Model\Document\Tag implements \Iterator
     public function getDataEditmode()
     {
         $this->setElements();
-        $return = array();
+        $return = [];
 
         if (is_array($this->elements) && count($this->elements) > 0) {
             foreach ($this->elements as $element) {
                 if ($element instanceof Object\Concrete) {
-                    $return[] = array($element->getId(), $element->getFullPath(), "object", $element->getClassName());
+                    $return[] = [$element->getId(), $element->getRealFullPath(), "object", $element->getClassName()];
                 } elseif ($element instanceof Object\AbstractObject) {
-                    $return[] = array($element->getId(), $element->getFullPath(), "object", "folder");
+                    $return[] = [$element->getId(), $element->getRealFullPath(), "object", "folder"];
                 } elseif ($element instanceof Asset) {
-                    $return[] = array($element->getId(), $element->getFullPath(), "asset", $element->getType());
+                    $return[] = [$element->getId(), $element->getRealFullPath(), "asset", $element->getType()];
                 } elseif ($element instanceof Document) {
-                    $return[] = array($element->getId(), $element->getFullPath(), "document", $element->getType());
+                    $return[] = [$element->getId(), $element->getRealFullPath(), "document", $element->getType()];
                 }
             }
         }
@@ -132,6 +136,7 @@ class Multihref extends Model\Document\Tag implements \Iterator
         if ($data = \Pimcore\Tool\Serialize::unserialize($data)) {
             $this->setDataFromEditmode($data);
         }
+
         return $this;
     }
 
@@ -145,6 +150,7 @@ class Multihref extends Model\Document\Tag implements \Iterator
         if (is_array($data)) {
             $this->elementIds = $data;
         }
+
         return $this;
     }
 
@@ -154,6 +160,7 @@ class Multihref extends Model\Document\Tag implements \Iterator
     public function getElements()
     {
         $this->setElements();
+
         return $this->elements;
     }
 
@@ -163,6 +170,7 @@ class Multihref extends Model\Document\Tag implements \Iterator
     public function isEmpty()
     {
         $this->setElements();
+
         return count($this->elements) > 0 ? false : true;
     }
 
@@ -172,7 +180,7 @@ class Multihref extends Model\Document\Tag implements \Iterator
     public function resolveDependencies()
     {
         $this->setElements();
-        $dependencies = array();
+        $dependencies = [];
 
         if (is_array($this->elements) && count($this->elements) > 0) {
             foreach ($this->elements as $element) {
@@ -180,10 +188,10 @@ class Multihref extends Model\Document\Tag implements \Iterator
                     $elementType = Element\Service::getElementType($element);
                     $key = $elementType . "_" . $element->getId();
 
-                    $dependencies[$key] = array(
+                    $dependencies[$key] = [
                         "id" => $element->getId(),
                         "type" => $elementType
-                    );
+                    ];
                 }
             }
         }
@@ -207,7 +215,7 @@ class Multihref extends Model\Document\Tag implements \Iterator
     public function rewriteIds($idMapping)
     {
         // reset existing elements store
-        $this->elements = array();
+        $this->elements = [];
 
         foreach ($this->elementIds as &$elementId) {
             $type = $elementId["type"];
@@ -227,10 +235,10 @@ class Multihref extends Model\Document\Tag implements \Iterator
      * @param null $idMapper
      * @throws \Exception
      */
-    public function getFromWebserviceImport($wsElement, $document = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($wsElement, $document = null, $params = [], $idMapper = null)
     {
         // currently unsupported
-        return array();
+        return [];
     }
 
 
@@ -239,9 +247,9 @@ class Multihref extends Model\Document\Tag implements \Iterator
      */
     public function __sleep()
     {
-        $finalVars = array();
+        $finalVars = [];
         $parentVars = parent::__sleep();
-        $blockedVars = array("elements");
+        $blockedVars = ["elements"];
         foreach ($parentVars as $key) {
             if (!in_array($key, $blockedVars)) {
                 $finalVars[] = $key;
@@ -273,6 +281,7 @@ class Multihref extends Model\Document\Tag implements \Iterator
     {
         $this->setElements();
         $var = current($this->elements);
+
         return $var;
     }
 
@@ -280,6 +289,7 @@ class Multihref extends Model\Document\Tag implements \Iterator
     {
         $this->setElements();
         $var = key($this->elements);
+
         return $var;
     }
 
@@ -287,6 +297,7 @@ class Multihref extends Model\Document\Tag implements \Iterator
     {
         $this->setElements();
         $var = next($this->elements);
+
         return $var;
     }
 
@@ -294,6 +305,7 @@ class Multihref extends Model\Document\Tag implements \Iterator
     {
         $this->setElements();
         $var = $this->current() !== false;
+
         return $var;
     }
 }

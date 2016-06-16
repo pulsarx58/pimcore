@@ -1,15 +1,17 @@
-<?php 
+<?php
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\ClassDefinition\Data;
@@ -59,7 +61,7 @@ class Link extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataForResource($data, $object = null, $params = array())
+    public function getDataForResource($data, $object = null, $params = [])
     {
         if ($data instanceof Object\Data\Link and isset($data->object)) {
             unset($data->object);
@@ -84,7 +86,7 @@ class Link extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return Object\Data\Link
      */
-    public function getDataFromResource($data, $object = null, $params = array())
+    public function getDataFromResource($data, $object = null, $params = [])
     {
         $link = Serialize::unserialize($data);
 
@@ -111,7 +113,7 @@ class Link extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataForQueryResource($data, $object = null, $params = array())
+    public function getDataForQueryResource($data, $object = null, $params = [])
     {
         return Serialize::serialize($data);
     }
@@ -123,12 +125,13 @@ class Link extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataForEditmode($data, $object = null, $params = array())
+    public function getDataForEditmode($data, $object = null, $params = [])
     {
         if (!$data instanceof Object\Data\Link) {
             return false;
         }
         $data->path = $data->getPath();
+
         return $data;
     }
 
@@ -139,7 +142,7 @@ class Link extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataFromEditmode($data, $object = null, $params = array())
+    public function getDataFromEditmode($data, $object = null, $params = [])
     {
         $link = new Object\Data\Link();
         $link->setValues($data);
@@ -147,6 +150,7 @@ class Link extends Model\Object\ClassDefinition\Data
         if ($link->isEmpty()) {
             return false;
         }
+
         return $link;
     }
 
@@ -157,7 +161,7 @@ class Link extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getVersionPreview($data, $object = null, $params = array())
+    public function getVersionPreview($data, $object = null, $params = [])
     {
         return $data;
     }
@@ -177,12 +181,12 @@ class Link extends Model\Object\ClassDefinition\Data
                     if ($data->getInternalType() == "document") {
                         $doc = Document::getById($data->getInternal());
                         if (!$doc instanceof Document) {
-                            throw new \Exception("invalid internal link, referenced document with id [" . $data->getInternal() . "] does not exist");
+                            throw new Element\ValidationException("invalid internal link, referenced document with id [" . $data->getInternal() . "] does not exist");
                         }
                     } elseif ($data->getInternalType() == "asset") {
                         $asset = Asset::getById($data->getInternal());
                         if (!$asset instanceof Asset) {
-                            throw new \Exception("invalid internal link, referenced asset with id [" . $data->getInternal() . "] does not exist");
+                            throw new Element\ValidationException("invalid internal link, referenced asset with id [" . $data->getInternal() . "] does not exist");
                         }
                     }
                 }
@@ -196,26 +200,26 @@ class Link extends Model\Object\ClassDefinition\Data
      */
     public function resolveDependencies($data)
     {
-        $dependencies = array();
+        $dependencies = [];
 
         if ($data instanceof Object\Data\Link and $data->getInternal()) {
             if (intval($data->getInternal()) > 0) {
                 if ($data->getInternalType() == "document") {
                     if ($doc = Document::getById($data->getInternal())) {
                         $key = "document_" . $doc->getId();
-                        $dependencies[$key] = array(
+                        $dependencies[$key] = [
                             "id" => $doc->getId(),
                             "type" => "document"
-                        );
+                        ];
                     }
                 } elseif ($data->getInternalType() == "asset") {
                     if ($asset = Asset::getById($data->getInternal())) {
                         $key = "asset_" . $asset->getId();
 
-                        $dependencies[$key] = array(
+                        $dependencies[$key] = [
                             "id" => $asset->getId(),
                             "type" => "asset"
-                        );
+                        ];
                     }
                 }
             }
@@ -231,9 +235,9 @@ class Link extends Model\Object\ClassDefinition\Data
      * @param array $tags
      * @return array
      */
-    public function getCacheTags($data, $tags = array())
+    public function getCacheTags($data, $tags = [])
     {
-        $tags = is_array($tags) ? $tags : array();
+        $tags = is_array($tags) ? $tags : [];
 
         if ($data instanceof Object\Data\Link and $data->getInternal()) {
             if (intval($data->getInternal()) > 0) {
@@ -263,9 +267,9 @@ class Link extends Model\Object\ClassDefinition\Data
      * @param array $params
      * @return string
      */
-    public function getForCsvExport($object, $params = array())
+    public function getForCsvExport($object, $params = [])
     {
-        $data = $this->getDataFromObjectParam($object);
+        $data = $this->getDataFromObjectParam($object, $params);
         if ($data instanceof Object\Data\Link) {
             return base64_encode(Serialize::serialize($data));
         } else {
@@ -280,7 +284,7 @@ class Link extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return Object\ClassDefinition\Data\Link
      */
-    public function getFromCsvImport($importValue, $object = null, $params = array())
+    public function getFromCsvImport($importValue, $object = null, $params = [])
     {
         $value = Serialize::unserialize(base64_decode($importValue));
         if ($value instanceof Object\Data\Link) {
@@ -296,7 +300,7 @@ class Link extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return mixed
      */
-    public function getForWebserviceExport($object, $params = array())
+    public function getForWebserviceExport($object, $params = [])
     {
         $data = $this->getDataFromObjectParam($object, $params);
         if ($data instanceof Object\Data\Link) {
@@ -307,6 +311,7 @@ class Link extends Model\Object\ClassDefinition\Data
                     unset($keys[$key]);
                 }
             }
+
             return $keys;
         } else {
             return null;
@@ -321,7 +326,7 @@ class Link extends Model\Object\ClassDefinition\Data
      * @return mixed|void
      * @throws \Exception
      */
-    public function getFromWebserviceImport($value, $relatedObject = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($value, $relatedObject = null, $params = [], $idMapper = null)
     {
         if ($value instanceof \stdclass) {
             $value = (array) $value;
@@ -339,6 +344,7 @@ class Link extends Model\Object\ClassDefinition\Data
                     throw new \Exception("cannot get values from web service import - invalid data. Unknown Object\\Data\\Link setter [ " . $method . " ]");
                 }
             }
+
             return $link;
         } elseif (is_array($value) and !empty($value['text']) and !empty($value['internalType']) and !empty($value['internal'])) {
             $id = $value['internal'];
@@ -352,6 +358,7 @@ class Link extends Model\Object\ClassDefinition\Data
             if (!$element) {
                 if ($idMapper && $idMapper->ignoreMappingFailures()) {
                     $idMapper->recordMappingFailure("object", $relatedObject->getId(), $value['internalType'], $value['internal']);
+
                     return null;
                 } else {
                     throw new \Exception("cannot get values from web service import - referencing unknown internal element with type [ ".$value['internalType']." ] and id [ ".$value['internal']." ]");
@@ -367,6 +374,7 @@ class Link extends Model\Object\ClassDefinition\Data
                     throw new \Exception("cannot get values from web service import - invalid data. Unknown Object\\Data\\Link setter [ " . $method . " ]");
                 }
             }
+
             return $link;
         } elseif (is_array($value)) {
             $link = new Object\Data\Link();
@@ -378,6 +386,7 @@ class Link extends Model\Object\ClassDefinition\Data
                     throw new \Exception("cannot get values from web service import - invalid data. Unknown Object\\Data\\Link setter [ " . $method . " ]");
                 }
             }
+
             return $link;
         } else {
             throw new \Exception("cannot get values from web service import - invalid data");
@@ -389,7 +398,7 @@ class Link extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return bool
      */
-    public function isDiffChangeAllowed($object, $params = array())
+    public function isDiffChangeAllowed($object, $params = [])
     {
         return true;
     }
@@ -401,7 +410,7 @@ class Link extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return array|string
      */
-    public function getDiffVersionPreview($data, $object = null, $params = array())
+    public function getDiffVersionPreview($data, $object = null, $params = [])
     {
         if ($data) {
             if ($data->text) {
@@ -427,7 +436,7 @@ class Link extends Model\Object\ClassDefinition\Data
      * @param array $params
      * @return Element\ElementInterface
      */
-    public function rewriteIds($object, $idMapping, $params = array())
+    public function rewriteIds($object, $idMapping, $params = [])
     {
         $data = $this->getDataFromObjectParam($object, $params);
         if ($data instanceof Object\Data\Link && $data->getLinktype() == "internal") {
@@ -438,6 +447,7 @@ class Link extends Model\Object\ClassDefinition\Data
                 $data->setInternal($idMapping[$type][$id]);
             }
         }
+
         return $data;
     }
 }

@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Asset
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Asset\WebDAV;
@@ -33,11 +35,11 @@ class Tree extends DAV\Tree
         $nameParts = explode("/", $sourcePath);
         $nameParts[count($nameParts)-1] = File::getValidFilename($nameParts[count($nameParts)-1]);
         $sourcePath = implode("/", $nameParts);
-        
+
         $nameParts = explode("/", $destinationPath);
         $nameParts[count($nameParts)-1] = File::getValidFilename($nameParts[count($nameParts)-1]);
         $destinationPath = implode("/", $nameParts);
-  
+
         try {
             if (dirname($sourcePath) == dirname($destinationPath)) {
                 $asset = null;
@@ -68,7 +70,7 @@ class Tree extends DAV\Tree
                 $asset = Asset::getByPath("/" . $sourcePath);
                 $parent = Asset::getByPath("/" . dirname($destinationPath));
 
-                $asset->setPath($parent->getFullPath() . "/");
+                $asset->setPath($parent->getRealFullPath() . "/");
                 $asset->setParentId($parent->getId());
             }
 

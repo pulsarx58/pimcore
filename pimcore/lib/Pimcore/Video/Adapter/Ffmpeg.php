@@ -1,19 +1,22 @@
-<?php 
+<?php
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Video\Adapter;
 
 use Pimcore\Video\Adapter;
 use Pimcore\Tool\Console;
+use Pimcore\File;
 
 class Ffmpeg extends Adapter
 {
@@ -32,7 +35,7 @@ class Ffmpeg extends Adapter
     /**
      * @var string
      */
-    protected $arguments = array();
+    protected $arguments = [];
 
     /**
      * @return bool
@@ -58,29 +61,7 @@ class Ffmpeg extends Adapter
      */
     public static function getFfmpegCli()
     {
-        $ffmpegPath = \Pimcore\Config::getSystemConfig()->assets->ffmpeg;
-        if ($ffmpegPath) {
-            if (@is_executable($ffmpegPath)) {
-                return $ffmpegPath;
-            } else {
-                \Logger::critical("FFMPEG binary: " . $ffmpegPath . " is not executable");
-            }
-        }
-
-        $paths = array(
-            "/usr/local/bin/ffmpeg",
-            "/usr/bin/ffmpeg",
-            "/bin/ffmpeg",
-            realpath(PIMCORE_DOCUMENT_ROOT . "/../ffmpeg/bin/ffmpeg.exe") // for windows sample package (XAMPP)
-        );
-
-        foreach ($paths as $path) {
-            if (@is_executable($path)) {
-                return $path;
-            }
-        }
-
-        throw new \Exception("No ffmpeg executable found, please configure the correct path in the system settings");
+        return \Pimcore\Tool\Console::getExecutable("ffmpeg", true);
     }
 
     /**
@@ -153,8 +134,18 @@ class Ffmpeg extends Adapter
             $timeOffset = 5;
         }
 
+        $realTargetPath = null;
+        if (!stream_is_local($file)) {
+            $realTargetPath = $file;
+            $file = PIMCORE_SYSTEM_TEMP_DIRECTORY . "/ghostscript-tmp-" . uniqid() . "." . File::getFileExtension($file);
+        }
+
         $cmd = self::getFfmpegCli() . " -i " . realpath($this->file) . " -vcodec png -vframes 1 -vf scale=iw*sar:ih -ss " . $timeOffset . " " . str_replace("/", DIRECTORY_SEPARATOR, $file);
         Console::exec($cmd, null, 60);
+
+        if ($realTargetPath) {
+            File::rename($file, $realTargetPath);
+        }
     }
 
     /**
@@ -200,6 +191,7 @@ class Ffmpeg extends Adapter
         if ($status === "error" || $status > 99) {
             return true;
         }
+
         return false;
     }
 
@@ -280,6 +272,7 @@ class Ffmpeg extends Adapter
     public function setProcessId($processId)
     {
         $this->processId = $processId;
+
         return $this;
     }
 
@@ -323,6 +316,7 @@ class Ffmpeg extends Adapter
         if ($videoBitrate) {
             $this->addArgument("videoBitrate", "-vb " . $videoBitrate . "k");
         }
+
         return $this;
     }
 
@@ -341,6 +335,7 @@ class Ffmpeg extends Adapter
         if ($audioBitrate) {
             $this->addArgument("audioBitrate", "-ab " . $audioBitrate . "k");
         }
+
         return $this;
     }
 

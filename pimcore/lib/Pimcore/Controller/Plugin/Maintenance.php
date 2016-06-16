@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Controller\Plugin;
@@ -36,11 +38,19 @@ class Maintenance extends \Zend_Controller_Plugin_Abstract
 
         // do not activate the maintenance for the server itself
         // this is to avoid problems with monitoring agents
-        $serverIps = array("127.0.0.1");
+        $serverIps = ["127.0.0.1"];
 
         if ($maintenance && !in_array(\Pimcore\Tool::getClientIp(), $serverIps)) {
             header("HTTP/1.1 503 Service Temporarily Unavailable", 503);
-            echo file_get_contents(PIMCORE_PATH . "/static/html/maintenance.html");
+
+            $file = PIMCORE_PATH . "/static/html/maintenance.html";
+
+            $customFile = PIMCORE_CUSTOM_CONFIGURATION_DIRECTORY . "/maintenance.html";
+            if (file_exists($customFile)) {
+                $file = $customFile;
+            }
+
+            echo file_get_contents($file);
             exit;
         }
     }

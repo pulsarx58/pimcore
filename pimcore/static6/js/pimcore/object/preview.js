@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.object.preview");
@@ -31,11 +33,11 @@ pimcore.object.preview = Class.create({
                 closable: false,
                 iconCls: "pimcore_icon_preview",
                 bodyCls: "pimcore_overflow_scrolling",
-                html: '<iframe src="about:blank" width="100%" onload="' + iframeOnLoad
+                html: '<iframe src="about:blank" style="width: 100%;" onload="' + iframeOnLoad
                     + '" frameborder="0" id="object_preview_iframe_' + this.object.data.general.o_id + '"></iframe>'
             });
 
-            this.layout.on("resize", this.onLayoutResize.bind(this));
+            this.layout.on("resize", this.setLayoutFrameDimensions.bind(this));
             this.layout.on("activate", this.refresh.bind(this));
         }
 
@@ -56,13 +58,9 @@ pimcore.object.preview = Class.create({
         }
     },
 
-    onLayoutResize: function (el, width, height, rWidth, rHeight) {
-        this.setLayoutFrameDimensions(width, height);
-    },
-
-    setLayoutFrameDimensions: function (width, height) {
+    setLayoutFrameDimensions: function (el, width, height, rWidth, rHeight) {
         Ext.get("object_preview_iframe_" + this.object.data.general.o_id).setStyle({
-            height: (height) + "px"
+            height: (height-7) + "px"
         });
     },
 

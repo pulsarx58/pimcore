@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Asset
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 class Test_Tool
@@ -25,13 +27,14 @@ class Test_Tool
         }
 
         $client = new Zend_Soap_Client($conf->webservice->wsdl . "&username=" . $user->getUsername() . "&apikey=" . $user->getPassword(),
-            array(
+            [
                    "cache_wsdl" => false,
                    "soap_version" => SOAP_1_2,
                    "classmap" => Webservice_Tool::createClassMappings()
-              ));
+              ]);
 
         $client->setLocation($conf->webservice->serviceEndpoint . "?username=" . $user->getUsername() . "&apikey=" . $user->getPassword());
+
         return $client;
     }
 
@@ -43,7 +46,7 @@ class Test_Tool
      */
     protected static function createPropertiesComparisonString($properties)
     {
-        $propertiesStringArray = array();
+        $propertiesStringArray = [];
         ksort($properties);
         if (is_array($properties)) {
             foreach ($properties as $key => $value) {
@@ -66,6 +69,7 @@ class Test_Tool
                 }
             }
         }
+
         return $propertiesStringArray;
     }
 
@@ -77,7 +81,7 @@ class Test_Tool
     public static function createAssetComparisonString($asset, $ignoreCopyDifferences = false)
     {
         if ($asset instanceof Asset) {
-            $a = array();
+            $a = [];
 
             //custom settings
             if (is_array($asset->getCustomSettings())) {
@@ -152,7 +156,7 @@ class Test_Tool
     protected static function createDocumentComparisonString($document, $ignoreCopyDifferences = false)
     {
         if ($document instanceof Document) {
-            $d = array();
+            $d = [];
 
             if ($document instanceof Document_PageSnippet) {
                 $elements = $document->getElements();
@@ -246,7 +250,7 @@ class Test_Tool
                 $collection = $object->$getter();
                 $items = $collection->getItems();
                 if (is_array($items)) {
-                    $returnValue = array();
+                    $returnValue = [];
                     $counter = 0;
                     foreach ($items as $item) {
                         $def = $item->getDefinition();
@@ -267,15 +271,16 @@ class Test_Tool
                         }
                         $counter++;
                     }
+
                     return serialize($returnValue);
                 }
             }
         } elseif (method_exists($object, $getter) and $fd instanceof Object_Class_Data_Localizedfields) {
             $data = $object->$getter();
-            $lData = array();
+            $lData = [];
 
             if (!$data instanceof Object_Localizedfield) {
-                return array();
+                return [];
             }
 
             try {
@@ -311,7 +316,7 @@ class Test_Tool
     protected static function createObjectComparisonString($object, $ignoreCopyDifferences)
     {
         if ($object instanceof Object_Abstract) {
-            $o = array();
+            $o = [];
 
             if ($object instanceof Object_Concrete) {
                 foreach ($object->getClass()->getFieldDefinitions() as $key => $value) {
@@ -391,15 +396,17 @@ class Test_Tool
         if ($save) {
             $emptyObject->save();
         }
+
         return $emptyObject;
     }
 
     public static function createEmptyObjects($keyPrefix = "", $save = true, $count = 10)
     {
-        $result = array();
+        $result = [];
         for ($i = 0; $i < $count; $i++) {
             $result[] = self::createEmptyObject($keyPrefix, $save);
         }
+
         return $result;
     }
 
@@ -493,6 +500,7 @@ class Test_Tool
         if ($save) {
             $document->save();
         }
+
         return $document;
     }
 
@@ -523,12 +531,13 @@ class Test_Tool
         $property->setName("propname");
         $property->setType("text");
         $property->setData("bla");
-        $properties = array($property);
+        $properties = [$property];
         $asset->setProperties($properties);
         $asset->setFilename($keyPrefix . uniqid() . rand(10, 99) . ".jpg");
         if ($save) {
             $asset->save();
         }
+
         return $asset;
     }
 
@@ -593,6 +602,7 @@ class Test_Tool
     {
         $list = new Object_List();
         $childs = $list->load();
+
         return count($childs);
     }
 
@@ -603,6 +613,7 @@ class Test_Tool
     {
         $list = new Asset_List();
         $childs = $list->load();
+
         return count($childs);
     }
 
@@ -613,6 +624,7 @@ class Test_Tool
     {
         $list = new Document_List();
         $childs = $list->load();
+
         return count($childs);
     }
 }

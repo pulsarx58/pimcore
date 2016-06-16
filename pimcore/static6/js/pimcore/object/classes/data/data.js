@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.object.classes.data.data");
@@ -28,7 +30,8 @@ pimcore.object.classes.data.data = Class.create({
         object: false,
         objectbrick: false,
         fieldcollection: false,
-        localizedfield: false
+        localizedfield: false,
+        classificationstore : false
     },
 
 
@@ -131,6 +134,7 @@ pimcore.object.classes.data.data = Class.create({
                 xtype: "checkbox",
                 fieldLabel: t("mandatoryfield"),
                 name: "mandatory",
+                itemId: "mandatory",
                 checked: this.datax.mandatory,
                 disabled: !in_array("mandatory",this.availableSettingsFields) || this.isInCustomLayoutEditor()
             },
@@ -146,6 +150,7 @@ pimcore.object.classes.data.data = Class.create({
                 xtype: "checkbox",
                 fieldLabel: t("invisible"),
                 name: "invisible",
+                itemId: "invisible",
                 checked: this.datax.invisible,
                 disabled: !in_array("invisible",this.availableSettingsFields)
             }
@@ -156,6 +161,7 @@ pimcore.object.classes.data.data = Class.create({
                 xtype: "checkbox",
                 fieldLabel: t("visible_in_gridview"),
                 name: "visibleGridView",
+                itemId: "visibleGridView",
                 checked: this.datax.visibleGridView,
                 disabled: !in_array("visibleGridView",this.availableSettingsFields)
             });
@@ -164,6 +170,7 @@ pimcore.object.classes.data.data = Class.create({
                 xtype: "checkbox",
                 fieldLabel: t("visible_in_searchresult"),
                 name: "visibleSearch",
+                itemId: "visibleSearch",
                 checked: this.datax.visibleSearch,
                 disabled: !in_array("visibleSearch",this.availableSettingsFields)
             });
@@ -172,6 +179,7 @@ pimcore.object.classes.data.data = Class.create({
                 xtype: "checkbox",
                 fieldLabel: t("index"),
                 name: "index",
+                itemId: "index",
                 checked: this.datax.index,
                 disabled: !in_array("index",this.availableSettingsFields)
             });
@@ -182,6 +190,7 @@ pimcore.object.classes.data.data = Class.create({
                 xtype: "textfield",
                 fieldLabel: t("css_style") + " (float: left; margin:10px; ...)",
                 name: "style",
+                itemId: "style",
                 value: this.datax.style,
                 width: 740,
                 disabled: !in_array("style",this.availableSettingsFields)
@@ -306,6 +315,14 @@ pimcore.object.classes.data.data = Class.create({
 
     isInCustomLayoutEditor: function() {
         return this.inCustomLayoutEditor;
+    },
+
+    setInClassificationStoreEditor: function(inClassificationStoreEditor) {
+        this.inClassificationStoreEditor = inClassificationStoreEditor;
+    },
+
+    isInClassificationStoreEditor: function() {
+        return this.inClassificationStoreEditor;
     },
 
     applySpecialData: function(source) {

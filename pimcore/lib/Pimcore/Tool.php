@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore;
@@ -90,14 +92,14 @@ class Tool
             $validLanguages = strval($config->general->validLanguages);
 
             if (empty($validLanguages)) {
-                return array();
+                return [];
             }
 
             $validLanguages = str_replace(" ", "", $validLanguages);
             $languages = explode(",", $validLanguages);
 
             if (!is_array($languages)) {
-                $languages = array();
+                $languages = [];
             }
 
             self::$validLanguages = $languages;
@@ -112,7 +114,7 @@ class Tool
      */
     public static function getFallbackLanguagesFor($language)
     {
-        $languages = array();
+        $languages = [];
 
         $conf = Config::getSystemConfig();
         if ($conf->general->fallbackLanguages && $conf->general->fallbackLanguages->$language) {
@@ -159,7 +161,7 @@ class Tool
             'kk_KZ' => true, 'ks_IN' => true, 'mn_MN' => true, 'ms_BN' => true, 'ms_MY' => true,
             'ms_SG' => true, 'pa_IN' => true, 'pa_PK' => true, 'shi_MA' => true, 'sr_BA' => true, 'sr_ME' => true,
             'sr_RS' => true, 'sr_XK' => true, 'tg_TJ' => true, 'tzm_MA' => true, 'uz_AF' => true, 'uz_UZ' => true,
-            'vai_LR' => true, 'zh_CN' => true, 'zh_HK' => true, 'zh_MO' => true, 'zh_SG' => true, 'zh_TW' => true,];
+            'vai_LR' => true, 'zh_CN' => true, 'zh_HK' => true, 'zh_MO' => true, 'zh_SG' => true, 'zh_TW' => true, ];
 
         $locale = \Zend_Locale::findLocale();
         $cacheKey = "system_supported_locales_" . strtolower((string) $locale);
@@ -169,7 +171,7 @@ class Tool
 
             $languages = array_merge($languages, $aliases);
 
-            $languageOptions = array();
+            $languageOptions = [];
             foreach ($languages as $code => $active) {
                 if ($active) {
                     $translation = \Zend_Locale::getTranslation($code, "language");
@@ -227,7 +229,7 @@ class Tool
         $languageCountryMapping = [
             "aa" => "er", "af" => "za", "am" => "et", "as" => "in", "ast" => "es", "asa" => "tz",
             "az" => "az", "bas" => "cm", "eu" => "es", "be" => "by", "bem" => "zm", "bez" => "tz", "bg" => "bg",
-            "bm" => "ml", "bn" => "bd", "br" => "fr", "brx" => "in", "bs" => "ba", "cs" => "cz", "da" => "da",
+            "bm" => "ml", "bn" => "bd", "br" => "fr", "brx" => "in", "bs" => "ba", "cs" => "cz", "da" => "dk",
             "de" => "de", "dz" => "bt", "el" => "gr", "en" => "gb", "es" => "es", "et" => "ee", "fi" => "fi",
             "fo" => "fo", "fr" => "fr", "ga" => "ie", "gv" => "im", "he" => "il", "hi" => "in", "hr" => "hr",
             "hu" => "hu", "hy" => "am", "id" => "id", "ig" => "ng", "is" => "is", "it" => "it", "ja" => "ja",
@@ -266,11 +268,11 @@ class Tool
 
         if ($config) {
             // system default
-            $routeingDefaults = array(
+            $routeingDefaults = [
                 "controller" => "default",
                 "action" => "default",
                 "module" => PIMCORE_FRONTEND_MODULE
-            );
+            ];
 
             // get configured settings for defaults
             $systemRoutingDefaults = $config->documents->toArray();
@@ -283,7 +285,7 @@ class Tool
 
             return $routeingDefaults;
         } else {
-            return array();
+            return [];
         }
     }
 
@@ -294,12 +296,12 @@ class Tool
      */
     public static function isFrontend()
     {
-        $excludePatterns = array(
+        $excludePatterns = [
             "/^\/admin.*/",
             "/^\/install.*/",
             "/^\/plugin.*/",
             "/^\/webservice.*/"
-        );
+        ];
         foreach ($excludePatterns as $pattern) {
             if (preg_match($pattern, $_SERVER["REQUEST_URI"])) {
                 return false;
@@ -307,6 +309,18 @@ class Tool
         }
 
         return true;
+    }
+
+    /**
+     * @return bool
+     */
+    public static function isInstaller()
+    {
+        if (preg_match("@^/install@", $_SERVER["REQUEST_URI"])) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -372,6 +386,18 @@ class Tool
         return $hostname;
     }
 
+    /**
+     * @return string
+     */
+    public static function getRequestScheme()
+    {
+        $requestScheme = \Zend_Controller_Request_Http::SCHEME_HTTP;
+        if (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on") {
+            $requestScheme = \Zend_Controller_Request_Http::SCHEME_HTTPS;
+        }
+
+        return $requestScheme;
+    }
 
     /**
      * Returns the host URL
@@ -382,17 +408,11 @@ class Tool
      */
     public static function getHostUrl($useProtocol = null)
     {
-        $protocol = "http";
+        $protocol = self::getRequestScheme();
         $port = '';
 
-        if (isset($_SERVER["SERVER_PROTOCOL"])) {
-            $protocol = strtolower($_SERVER["SERVER_PROTOCOL"]);
-            $protocol = substr($protocol, 0, strpos($protocol, "/"));
-            $protocol .= (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on") ? "s" : "";
-        }
-
         if (isset($_SERVER["SERVER_PORT"])) {
-            if (!in_array((int) $_SERVER["SERVER_PORT"], array(443, 80))) {
+            if (!in_array((int) $_SERVER["SERVER_PORT"], [443, 80])) {
                 $port = ":" . $_SERVER["SERVER_PORT"];
             }
         }
@@ -405,6 +425,7 @@ class Tool
             $hostname = $systemConfig['general']['domain'];
             if (!$hostname) {
                 \Logger::warn('Couldn\'t determine HTTP Host. No Domain set in "Settings" -> "System" -> "Website" -> "Domain"');
+
                 return "";
             }
         }
@@ -434,10 +455,16 @@ class Tool
             foreach ($confArray["views"] as $tmp) {
                 if (isset($tmp["name"])) {
                     $tmp["showroot"] = (bool) $tmp["showroot"];
+
+                    if ((bool) $tmp["hidden"]) {
+                        continue;
+                    }
+
                     $cvData[] = $tmp;
                 }
             }
         }
+
         return $cvData;
     }
 
@@ -497,7 +524,7 @@ class Tool
      * @throws \Exception
      * @throws \Zend_Http_Client_Exception
      */
-    public static function getHttpClient($type = "Zend_Http_Client", $options = array())
+    public static function getHttpClient($type = "Zend_Http_Client", $options = [])
     {
         $config = Config::getSystemConfig();
         $clientConfig = $config->httpclient->toArray();
@@ -513,7 +540,7 @@ class Tool
 
             // workaround/for ZF (Proxy-authorization isn't added by ZF)
             if ($clientConfig['proxy_user']) {
-                $client->setHeaders('Proxy-authorization',  \Zend_Http_Client::encodeAuthHeader(
+                $client->setHeaders('Proxy-authorization', \Zend_Http_Client::encodeAuthHeader(
                     $clientConfig['proxy_user'], $clientConfig['proxy_pass'], \Zend_Http_Client::AUTH_BASIC
                     ));
             }
@@ -531,7 +558,7 @@ class Tool
      * @param array $paramsPost
      * @return bool|string
      */
-    public static function getHttpData($url, $paramsGet = array(), $paramsPost = array())
+    public static function getHttpData($url, $paramsGet = [], $paramsPost = [])
     {
         $client = self::getHttpClient();
         $client->setUri($url);
@@ -642,6 +669,7 @@ class Tool
         $ip = self::getClientIp();
         $aip = substr($ip, 0, strrpos($ip, ".")+1);
         $aip .= "255";
+
         return $aip;
     }
 

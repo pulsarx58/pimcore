@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Cache\Backend;
@@ -30,7 +32,7 @@ class Memcached extends \Zend_Cache_Backend_Memcached
     /**
      * @param array $options
      */
-    public function __construct(array $options = array())
+    public function __construct(array $options = [])
     {
         $this->_options["tags_do_not_switch_to_innodb"] = null;
 
@@ -80,6 +82,7 @@ class Memcached extends \Zend_Cache_Backend_Memcached
             \Logger::debug("Initialize dedicated MySQL connection for the cache adapter");
             $this->db = Db::getConnection();
         }
+
         return $this->db;
     }
 
@@ -96,10 +99,10 @@ class Memcached extends \Zend_Cache_Backend_Memcached
         try {
             while ($tag = array_shift($tags)) {
                 try {
-                    $this->getDb()->insertOrUpdate("cache_tags", array(
+                    $this->getDb()->insertOrUpdate("cache_tags", [
                         "id" => $id,
                         "tag" => $tag
-                    ));
+                    ]);
                 } catch (\Exception $e) {
                     if (strpos(strtolower($e->getMessage()), "is full") !== false) {
                         \Logger::warning($e);
@@ -143,6 +146,7 @@ class Memcached extends \Zend_Cache_Backend_Memcached
     {
         $this->checkCacheConsistency();
         $itemIds = $this->getDb()->fetchCol("SELECT id FROM cache_tags WHERE tag = ?", $tag);
+
         return $itemIds;
     }
 
@@ -158,11 +162,11 @@ class Memcached extends \Zend_Cache_Backend_Memcached
      * @param  int    $specificLifetime If != false, set a specific lifetime for this cache record (null => infinite lifetime)
      * @return boolean True if no problem
      */
-    public function save($data, $id, $tags = array(), $specificLifetime = false)
+    public function save($data, $id, $tags = [], $specificLifetime = false)
     {
         $this->checkCacheConsistency();
 
-        $result = parent::save($data, $id, array(), $specificLifetime);
+        $result = parent::save($data, $id, [], $specificLifetime);
 
         if ($result) {
             if (count($tags) > 0) {
@@ -199,7 +203,7 @@ class Memcached extends \Zend_Cache_Backend_Memcached
         return $result;
     }
 
-    /** 
+    /**
      * Clean some cache records
      *
      * Available modes are :
@@ -214,12 +218,13 @@ class Memcached extends \Zend_Cache_Backend_Memcached
      * @param  array  $tags Array of tags
      * @return boolean True if no problem
      */
-    public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, $tags = array())
+    public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, $tags = [])
     {
         $this->checkCacheConsistency();
 
         if ($mode == \Zend_Cache::CLEANING_MODE_ALL) {
             $this->clearTags();
+
             return $this->_memcache->flush();
         }
         if ($mode == \Zend_Cache::CLEANING_MODE_OLD) {
@@ -228,7 +233,7 @@ class Memcached extends \Zend_Cache_Backend_Memcached
         if ($mode == \Zend_Cache::CLEANING_MODE_MATCHING_TAG || $mode == \Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG) {
             foreach ($tags as $tag) {
                 $items = $this->getItemsByTag($tag);
-                $quotedIds = array();
+                $quotedIds = [];
 
                 foreach ($items as $item) {
                     // We call delete directly here because the ID in the cache is already specific for this site
@@ -243,7 +248,7 @@ class Memcached extends \Zend_Cache_Backend_Memcached
             }
         }
         if ($mode == \Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG) {
-            $condParts = array("1=1");
+            $condParts = ["1=1"];
             foreach ($tags as $tag) {
                 $condParts[] = "tag != '" . $tag . "'";
             }
@@ -257,10 +262,10 @@ class Memcached extends \Zend_Cache_Backend_Memcached
 
         // insert dummy for the consistency check
         try {
-            $this->getDb()->insertOrUpdate("cache_tags", array(
+            $this->getDb()->insertOrUpdate("cache_tags", [
                 "id" => "___consistency_check___",
                 "tag" => "___consistency_check___"
-            ));
+            ]);
         } catch (\Exception $e) {
             // doesn't matter as long as the item exists
         }
@@ -276,6 +281,7 @@ class Memcached extends \Zend_Cache_Backend_Memcached
     protected function getTagsById($id)
     {
         $itemIds = $this->getDb()->fetchCol("SELECT tag FROM cache_tags WHERE id = ?", $id);
+
         return $itemIds;
     }
 
@@ -283,14 +289,15 @@ class Memcached extends \Zend_Cache_Backend_Memcached
      * @param array $tags
      * @return array
      */
-    public function getIdsMatchingAnyTags($tags = array())
+    public function getIdsMatchingAnyTags($tags = [])
     {
-        $tags_ = array();
+        $tags_ = [];
         foreach ($tags as $tag) {
             $tags_[] = $this->getDb()->quote($tag);
         }
 
         $itemIds = $this->getDb()->fetchCol("SELECT id FROM cache_tags WHERE tag IN (".implode(",", $tags_).")");
+
         return $itemIds;
     }
 
@@ -299,14 +306,15 @@ class Memcached extends \Zend_Cache_Backend_Memcached
      * @param array $tags
      * @return array
      */
-    public function getIdsMatchingTags($tags = array())
+    public function getIdsMatchingTags($tags = [])
     {
-        $tags_ = array();
+        $tags_ = [];
         foreach ($tags as $tag) {
             $tags_[] = " tag = ".$this->getDb()->quote($tag);
         }
 
         $itemIds = $this->getDb()->fetchCol("SELECT id FROM cache_tags WHERE ".implode(" AND ", $tags_));
+
         return $itemIds;
     }
 

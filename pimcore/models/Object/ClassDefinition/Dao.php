@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\ClassDefinition;
@@ -21,13 +23,14 @@ use Pimcore\File;
 
 class Dao extends Model\Dao\AbstractDao
 {
+    use Object\ClassDefinition\Helper\Dao;
 
     /**
-     * @var Object\Class\ClassDefinition
+     * @var Object\ClassDefinition
      */
     protected $model;
 
-    protected $_sqlChangeLog = array();
+    protected $_sqlChangeLog = [];
 
     protected $tableDefinitions = null;
 
@@ -84,6 +87,7 @@ class Dao extends Model\Dao\AbstractDao
         if (is_file($file)) {
             return Serialize::unserialize(file_get_contents($file));
         }
+
         return;
     }
 
@@ -98,6 +102,7 @@ class Dao extends Model\Dao\AbstractDao
         if ($this->model->getId()) {
             return $this->update();
         }
+
         return $this->create();
     }
 
@@ -108,7 +113,7 @@ class Dao extends Model\Dao\AbstractDao
     public function update()
     {
         $class = get_object_vars($this->model);
-        $data = array();
+        $data = [];
 
         foreach ($class as $key => $value) {
             if (in_array($key, $this->getValidTableColumns("classes"))) {
@@ -137,8 +142,8 @@ class Dao extends Model\Dao\AbstractDao
         $objectView = "object_" . $this->model->getId();
 
         // create object table if not exists
-        $protectedColums = array("oo_id", "oo_classId", "oo_className");
-        $protectedDatastoreColumns = array("oo_id");
+        $protectedColums = ["oo_id", "oo_classId", "oo_className"];
+        $protectedDatastoreColumns = ["oo_id"];
 
         $this->db->query("CREATE TABLE IF NOT EXISTS `" . $objectTable . "` (
 			  `oo_id` int(11) NOT NULL default '0',
@@ -183,7 +188,7 @@ class Dao extends Model\Dao\AbstractDao
         $columnsToRemove = $existingColumns;
         $datastoreColumnsToRemove = $existingDatastoreColumns;
 
-        Object\ClassDefinition\Service::updateTableDefinitions($this->tableDefinitions, array($objectTable, $objectDatastoreTable));
+        Object\ClassDefinition\Service::updateTableDefinitions($this->tableDefinitions, [$objectTable, $objectDatastoreTable]);
 
         // add non existing columns in the table
         if (is_array($this->model->getFieldDefinitions()) && count($this->model->getFieldDefinitions())) {
@@ -220,14 +225,26 @@ class Dao extends Model\Dao\AbstractDao
 //                }
 
                 // add indices
-                $this->addIndexToField($value, $objectTable);
-                $this->addIndexToField($value, $objectDatastoreTable);
+                $this->addIndexToField($value, $objectTable, "getQueryColumnType");
+                $this->addIndexToField($value, $objectDatastoreTable, "getColumnType");
             }
         }
 
         // remove unused columns in the table
         $this->removeUnusedColumns($objectTable, $columnsToRemove, $protectedColums);
-        $this->removeUnusedColumns($objectDatastoreTable, $datastoreColumnsToRemove, $protectedDatastoreColumns, true);
+        $this->removeUnusedColumns($objectDatastoreTable, $datastoreColumnsToRemove, $protectedDatastoreColumns);
+
+        // remove / cleanup unused relations
+        if (is_array($datastoreColumnsToRemove)) {
+            foreach ($datastoreColumnsToRemove as $value) {
+                if (!in_array(strtolower($value), array_map('strtolower', $protectedDatastoreColumns))) {
+                    $tableRelation = "object_relations_" . $this->model->getId();
+                    $this->db->delete($tableRelation, "fieldname = " . $this->db->quote($value) . " AND ownertype = 'object'");
+
+                    // @TODO: remove localized fields and fieldcollections
+                }
+            }
+        }
 
         // create view
         try {
@@ -241,111 +258,13 @@ class Dao extends Model\Dao\AbstractDao
     }
 
     /**
-     * @param $table
-     * @param $columnsToRemove
-     * @param $protectedColumns
-     * @param bool $emptyRelations
-     */
-    private function removeUnusedColumns($table, $columnsToRemove, $protectedColumns, $emptyRelations = false)
-    {
-        if (is_array($columnsToRemove) && count($columnsToRemove) > 0) {
-            foreach ($columnsToRemove as $value) {
-                //if (!in_array($value, $protectedColumns)) {
-                if (!in_array(strtolower($value), array_map('strtolower', $protectedColumns))) {
-                    $this->db->query('ALTER TABLE `' . $table . '` DROP COLUMN `' . $value . '`;');
-
-                    if ($emptyRelations) {
-                        $tableRelation = "object_relations_" . $this->model->getId();
-                        $this->db->delete($tableRelation, "fieldname = " . $this->db->quote($value) . " AND ownertype = 'object'");
-                    }
-
-                    // @TODO: remove localized fields and fieldcollections
-                }
-            }
-        }
-    }
-
-    /**
-     * @param $table
-     * @param $colName
-     * @param $type
-     * @param $default
-     * @param $null
-     */
-    private function addModifyColumn($table, $colName, $type, $default, $null)
-    {
-        $existingColumns = $this->getValidTableColumns($table, false);
-        $existingColName = null;
-
-        // check for existing column case insensitive eg a rename from myInput to myinput
-        $matchingExisting = preg_grep('/^' . preg_quote($colName, '/') . '$/i', $existingColumns);
-        if (is_array($matchingExisting) && !empty($matchingExisting)) {
-            $existingColName = current($matchingExisting);
-        }
-
-        if ($existingColName === null) {
-            $this->db->query('ALTER TABLE `' . $table . '` ADD COLUMN `' . $colName . '` ' . $type . $default . ' ' . $null . ';');
-            $this->resetValidTableColumnsCache($table);
-        } else {
-            if (!Object\ClassDefinition\Service::skipColumn($this->tableDefinitions, $table, $colName, $type, $default, $null)) {
-                $this->db->query('ALTER TABLE `' . $table . '` CHANGE COLUMN `' . $existingColName . '` `' . $colName . '` ' . $type . $default . ' ' . $null . ';');
-            }
-        }
-    }
-
-    /**
-     * @param $field
-     * @param $table
-     */
-    private function addIndexToField($field, $table)
-    {
-        if ($field->getIndex()) {
-            if (is_array($field->getQueryColumnType())) {
-                // multicolumn field
-                foreach ($field->getQueryColumnType() as $fkey => $fvalue) {
-                    $columnName = $field->getName() . "__" . $fkey;
-                    try {
-                        $this->db->query("ALTER TABLE `" . $table . "` ADD INDEX `p_index_" . $columnName . "` (`" . $columnName . "`);");
-                    } catch (\Exception $e) {
-                    }
-                }
-            } else {
-                // single -column field
-                $columnName = $field->getName();
-                try {
-                    $this->db->query("ALTER TABLE `" . $table . "` ADD INDEX `p_index_" . $columnName . "` (`" . $columnName . "`);");
-                } catch (\Exception $e) {
-                }
-            }
-        } else {
-            if (is_array($field->getQueryColumnType())) {
-                // multicolumn field
-                foreach ($field->getQueryColumnType() as $fkey => $fvalue) {
-                    $columnName = $field->getName() . "__" . $fkey;
-                    try {
-                        $this->db->query("ALTER TABLE `" . $table . "` DROP INDEX `p_index_" . $columnName . "`;");
-                    } catch (\Exception $e) {
-                    }
-                }
-            } else {
-                // single -column field
-                $columnName = $field->getName();
-                try {
-                    $this->db->query("ALTER TABLE `" . $table . "` DROP INDEX `p_index_" . $columnName . "`;");
-                } catch (\Exception $e) {
-                }
-            }
-        }
-    }
-
-    /**
      * Create a new record for the object in database
      *
      * @return boolean
      */
     public function create()
     {
-        $this->db->insert("classes", array("name" => $this->model->getName()));
+        $this->db->insert("classes", ["name" => $this->model->getName()]);
 
         $this->model->setId($this->db->lastInsertId());
         $this->model->setCreationDate(time());
@@ -418,12 +337,12 @@ class Dao extends Model\Dao\AbstractDao
      */
     public function updateClassNameInObjects($newName)
     {
-        $this->db->update("objects", array(
+        $this->db->update("objects", [
             "o_className" => $newName
-        ), $this->db->quoteInto("o_classId = ?", $this->model->getId()));
+        ], $this->db->quoteInto("o_classId = ?", $this->model->getId()));
 
-        $this->db->update("object_query_" . $this->model->getId(), array(
+        $this->db->update("object_query_" . $this->model->getId(), [
             "oo_className" => $newName
-        ));
+        ]);
     }
 }

@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    User
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\User;
@@ -71,11 +73,12 @@ class AbstractUser extends Model\AbstractModel
      * @param array $values
      * @return self
      */
-    public static function create($values = array())
+    public static function create($values = [])
     {
         $user = new static();
         $user->setValues($values);
         $user->save();
+
         return $user;
     }
 
@@ -88,6 +91,7 @@ class AbstractUser extends Model\AbstractModel
         try {
             $user = new static();
             $user->getDao()->getByName($name);
+
             return $user;
         } catch (\Exception $e) {
             return false;
@@ -109,6 +113,7 @@ class AbstractUser extends Model\AbstractModel
     public function setId($id)
     {
         $this->id = $id;
+
         return $this;
     }
 
@@ -127,6 +132,7 @@ class AbstractUser extends Model\AbstractModel
     public function setParentId($parentId)
     {
         $this->parentId = $parentId;
+
         return $this;
     }
 
@@ -145,6 +151,7 @@ class AbstractUser extends Model\AbstractModel
     public function setName($name)
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -185,6 +192,7 @@ class AbstractUser extends Model\AbstractModel
     public function setType($type)
     {
         $this->type = $type;
+
         return $this;
     }
 }

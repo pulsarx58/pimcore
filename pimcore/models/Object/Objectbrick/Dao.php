@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object\Objectbrick
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Objectbrick;
@@ -27,7 +29,7 @@ class Dao extends Model\Object\Fieldcollection\Dao
     public function load(Object\Concrete $object)
     {
         $fieldDef = $object->getClass()->getFieldDefinition($this->model->getFieldname());
-        $values = array();
+        $values = [];
 
         foreach ($fieldDef->getAllowedTypes() as $type) {
             try {
@@ -39,9 +41,9 @@ class Dao extends Model\Object\Fieldcollection\Dao
             $tableName = $definition->getTableName($object->getClass(), false);
 
             try {
-                $results = $this->db->fetchAll("SELECT * FROM ".$tableName." WHERE o_id = ? AND fieldname = ?", array($object->getId(), $this->model->getFieldname()));
+                $results = $this->db->fetchAll("SELECT * FROM ".$tableName." WHERE o_id = ? AND fieldname = ?", [$object->getId(), $this->model->getFieldname()]);
             } catch (\Exception $e) {
-                $results = array();
+                $results = [];
             }
 
             //$allRelations = $this->db->fetchAll("SELECT * FROM object_relations_" . $object->getO_classId() . " WHERE src_id = ? AND ownertype = 'objectbrick' AND ownername = ?", array($object->getO_id(), $this->model->getFieldname()));
@@ -62,7 +64,7 @@ class Dao extends Model\Object\Fieldcollection\Dao
                         }
                     } else {
                         if (is_array($fd->getColumnType())) {
-                            $multidata = array();
+                            $multidata = [];
                             foreach ($fd->getColumnType() as $fkey => $fvalue) {
                                 $multidata[$key . "__" . $fkey] = $result[$key . "__" . $fkey];
                             }
@@ -83,6 +85,7 @@ class Dao extends Model\Object\Fieldcollection\Dao
                 $values[] = $brick;
             }
         }
+
         return $values;
     }
 

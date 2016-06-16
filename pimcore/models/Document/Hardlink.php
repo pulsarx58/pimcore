@@ -1,15 +1,17 @@
-<?php 
+<?php
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document;
@@ -67,10 +69,10 @@ class Hardlink extends Document
         if ($this->getSourceDocument() instanceof Document) {
             $key = "document_" . $this->getSourceDocument()->getId();
 
-            $dependencies[$key] = array(
+            $dependencies[$key] = [
                 "id" => $this->getSourceDocument()->getId(),
                 "type" => "document"
-            );
+            ];
         }
 
         return $dependencies;
@@ -81,9 +83,9 @@ class Hardlink extends Document
      *
      * @return array
      */
-    public function getCacheTags($tags = array())
+    public function getCacheTags($tags = [])
     {
-        $tags = is_array($tags) ? $tags : array();
+        $tags = is_array($tags) ? $tags : [];
 
         $tags = parent::getCacheTags($tags);
 
@@ -103,6 +105,7 @@ class Hardlink extends Document
     public function setChildsFromSource($childsFromSource)
     {
         $this->childsFromSource = (bool) $childsFromSource;
+
         return $this;
     }
 
@@ -121,6 +124,7 @@ class Hardlink extends Document
     public function setSourceId($sourceId)
     {
         $this->sourceId = (int) $sourceId;
+
         return $this;
     }
 
@@ -139,6 +143,7 @@ class Hardlink extends Document
     public function setPropertiesFromSource($propertiesFromSource)
     {
         $this->propertiesFromSource = (bool) $propertiesFromSource;
+
         return $this;
     }
 
@@ -189,13 +194,13 @@ class Hardlink extends Document
         if ($this->childs === null) {
             $childs = parent::getChilds();
 
-            $sourceChilds = array();
+            $sourceChilds = [];
             if ($this->getChildsFromSource() && $this->getSourceDocument() && !\Pimcore::inAdmin()) {
                 $sourceChilds = $this->getSourceDocument()->getChilds();
                 foreach ($sourceChilds as &$c) {
                     $c = Document\Hardlink\Service::wrap($c);
                     $c->setHardLinkSource($this);
-                    $c->setPath(preg_replace("@^" . preg_quote($this->getSourceDocument()->getFullpath()) . "@", $this->getFullpath(), $c->getPath()));
+                    $c->setPath(preg_replace("@^" . preg_quote($this->getSourceDocument()->getRealFullPath()) . "@", $this->getRealFullPath(), $c->getRealPath()));
                 }
             }
 
@@ -252,7 +257,7 @@ class Hardlink extends Document
         parent::update();
 
         $config = \Pimcore\Config::getSystemConfig();
-        if ($oldPath && $config->documents->createredirectwhenmoved && $oldPath != $this->getFullPath()) {
+        if ($oldPath && $config->documents->createredirectwhenmoved && $oldPath != $this->getRealFullPath()) {
             // create redirect for old path
             $redirect = new Redirect();
             $redirect->setTarget($this->getId());

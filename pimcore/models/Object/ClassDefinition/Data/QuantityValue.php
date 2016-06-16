@@ -2,16 +2,17 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
-
 
 namespace Pimcore\Model\Object\ClassDefinition\Data;
 
@@ -52,20 +53,20 @@ class QuantityValue extends Model\Object\ClassDefinition\Data
      *
      * @var int
      */
-    public $queryColumnType = array(
+    public $queryColumnType = [
         "value" => "double",
         "unit" => "bigint(20)"
-    );
+    ];
 
     /**
      * Type for the column
      *
      * @var string
      */
-    public $columnType = array(
+    public $columnType = [
         "value" => "double",
         "unit" => "bigint(20)"
-    );
+    ];
 
     /**
      * Type for the generated phpdoc
@@ -155,18 +156,19 @@ class QuantityValue extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return float
      */
-    public function getDataForResource($data, $object = null, $params = array())
+    public function getDataForResource($data, $object = null, $params = [])
     {
         if ($data instanceof \Pimcore\Model\Object\Data\QuantityValue) {
-            return array(
+            return [
                 $this->getName() . "__value" => $data->getValue(),
                 $this->getName() . "__unit" => $data->getUnitId()
-            );
+            ];
         }
-        return array(
+
+        return [
             $this->getName() . "__value" => null,
             $this->getName() . "__unit" => null
-        );
+        ];
     }
 
     /**
@@ -176,11 +178,12 @@ class QuantityValue extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return float
      */
-    public function getDataFromResource($data, $object = null, $params = array())
+    public function getDataFromResource($data, $object = null, $params = [])
     {
         if ($data[$this->getName() . "__value"] && $data[$this->getName() . "__unit"]) {
             return new  \Pimcore\Model\Object\Data\QuantityValue($data[$this->getName() . "__value"], $data[$this->getName() . "__unit"]);
         }
+
         return;
     }
 
@@ -191,7 +194,7 @@ class QuantityValue extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return float
      */
-    public function getDataForQueryResource($data, $object = null, $params = array())
+    public function getDataForQueryResource($data, $object = null, $params = [])
     {
         return $this->getDataForResource($data);
     }
@@ -203,13 +206,13 @@ class QuantityValue extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return float
      */
-    public function getDataForEditmode($data, $object = null, $params = array())
+    public function getDataForEditmode($data, $object = null, $params = [])
     {
         if ($data instanceof  \Pimcore\Model\Object\Data\QuantityValue) {
-            return array(
+            return [
                 "value" => $data->getValue(),
                 "unit" => $data->getUnitId()
-            );
+            ];
         }
 
         return;
@@ -222,26 +225,36 @@ class QuantityValue extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return float
      */
-    public function getDataFromEditmode($data, $object = null, $params = array())
+    public function getDataFromEditmode($data, $object = null, $params = [])
     {
         if ($data["value"] || $data["unit"]) {
             return new \Pimcore\Model\Object\Data\QuantityValue($data["value"], $data["unit"]);
         }
+
         return;
     }
 
     /**
      * @see Object_Class_Data::getVersionPreview
      * @param float $data
-     * @param null|Object\AbstractObject $object
+     * @param null|Model\Object\AbstractObject $object
      * @param mixed $params
      * @return float
      */
-    public function getVersionPreview($data, $object = null, $params = array())
+    public function getVersionPreview($data, $object = null, $params = [])
     {
         if ($data instanceof \Pimcore\Model\Object\Data\QuantityValue) {
-            return $data->getValue() . " " . $data->getUnit()->getAbbreviation();
+            $unit = "";
+            if ($data->getUnitId()) {
+                $unitDefinition = Model\Object\QuantityValue\Unit::getById($data->getUnitId());
+                if ($unitDefinition) {
+                    $unit = " " . $unitDefinition->getAbbreviation();
+                }
+            }
+
+            return $data->getValue() . $unit;
         }
+
         return "";
     }
 
@@ -256,13 +269,13 @@ class QuantityValue extends Model\Object\ClassDefinition\Data
     {
         if (!$omitMandatoryCheck && $this->getMandatory() &&
            ($data === null || $data->getValue() === null || $data->getUnitId() === null)) {
-            throw new \Exception(get_class($this).": Empty mandatory field [ ".$this->getName()." ]");
+            throw new Model\Element\ValidationException("Empty mandatory field [ ".$this->getName()." ]");
         }
 
         if (!empty($data)) {
             $value = $data->getValue();
             if ((!empty($value) && !is_numeric($data->getValue())) || !($data->getUnitId())) {
-                throw new \Exception(get_class($this).": invalid dimension unit data");
+                throw new Model\Element\ValidationException("Invalid dimension unit data");
             }
         }
     }
@@ -274,7 +287,7 @@ class QuantityValue extends Model\Object\ClassDefinition\Data
      * @param array $params
      * @return string
      */
-    public function getForCsvExport($object, $params = array())
+    public function getForCsvExport($object, $params = [])
     {
         $key = $this->getName();
         $getter = "get".ucfirst($key);
@@ -293,7 +306,7 @@ class QuantityValue extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return double
      */
-    public function getFromCsvImport($importValue, $object = null, $params = array())
+    public function getFromCsvImport($importValue, $object = null, $params = [])
     {
         $values = explode("_", $importValue);
 
@@ -302,40 +315,40 @@ class QuantityValue extends Model\Object\ClassDefinition\Data
             $number = (double) str_replace(",", ".", $values[0]);
             $value = new  \Pimcore\Model\Object\Data\QuantityValue($number, $values[1]);
         }
+
         return $value;
     }
 
-
-       /**
+    /**
      * converts data to be exposed via webservices
      * @param string $object
      * @param mixed $params
      * @return mixed
      */
-    public function getForWebserviceExport($object, $params = array())
+    public function getForWebserviceExport($object, $params = [])
     {
         $key = $this->getName();
         $getter = "get".ucfirst($key);
 
         if ($object->$getter() instanceof \Pimcore\Model\Object\Data\QuantityValue) {
-            return array(
+            return [
                 "value" => $object->$getter()->getValue(),
                 "unit" => $object->$getter()->getUnitId(),
-                "unitAbbreviation" => $object->$getter()->getUnit()->getAbbreviation()
-            );
+                "unitAbbreviation" => is_object($object->$getter()->getUnit()) ? $object->$getter()->getUnit()->getAbbreviation() : ""
+            ];
         } else {
             return null;
         }
     }
 
-     /**
+    /**
      * converts data to be imported via webservices
      * @param mixed $value
      * @param null|Model\Object\AbstractObject $object
      * @param mixed $params
      * @return mixed
      */
-    public function getFromWebserviceImport($value, $object = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($value, $object = null, $params = [], $idMapper = null)
     {
         if (empty($value)) {
             return null;
@@ -358,18 +371,18 @@ class QuantityValue extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return mixed
      */
-    public function marshal($value, $object = null, $params = array())
+    public function marshal($value, $object = null, $params = [])
     {
         if (is_array($value)) {
-            return array(
+            return [
                 "value" => $value[$this->getName() . "__value"],
                 "value2" => $value[$this->getName() . "__unit"]
-            );
+            ];
         } else {
-            return array(
+            return [
                 "value" => null,
                 "value2" => null
-            );
+            ];
         }
     }
 
@@ -379,14 +392,14 @@ class QuantityValue extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return mixed
      */
-    public function unmarshal($value, $object = null, $params = array())
+    public function unmarshal($value, $object = null, $params = [])
     {
         if (is_array($value)) {
-            return array(
+            return [
                 $this->getName() . "__value" => $value["value"],
                 $this->getName() . "__unit" => $value["value2"],
 
-            );
+            ];
         } else {
             return null;
         }
@@ -399,7 +412,7 @@ class QuantityValue extends Model\Object\ClassDefinition\Data
             $list = new \Pimcore\Model\Object\QuantityValue\Unit\Listing();
             $units = $list->getUnits();
             if (is_array($units)) {
-                $this->validUnits = array();
+                $this->validUnits = [];
                 /** @var  $unit Model\Object\QuantityValue\Unit */
                 foreach ($units as $unit) {
                     $this->validUnits[] = $unit->getId();

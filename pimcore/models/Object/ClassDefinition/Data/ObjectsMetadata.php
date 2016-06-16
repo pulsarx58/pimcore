@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\ClassDefinition\Data;
@@ -59,28 +61,29 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
      * @param mixed $params
      * @return array
      */
-    public function getDataForResource($data, $object = null, $params = array())
+    public function getDataForResource($data, $object = null, $params = [])
     {
-        $return = array();
+        $return = [];
 
         if (is_array($data) && count($data) > 0) {
             $counter = 1;
             foreach ($data as $metaObject) {
                 $object = $metaObject->getObject();
                 if ($object instanceof Object\Concrete) {
-                    $return[] = array(
+                    $return[] = [
                         "dest_id" => $object->getId(),
                         "type" => "object",
                         "fieldname" => $this->getName(),
                         "index" => $counter
-                    );
+                    ];
                 }
                 $counter++;
             }
+
             return $return;
         } elseif (is_array($data) and count($data)===0) {
             //give empty array if data was not null
-            return array();
+            return [];
         } else {
             //return null if data was null - this indicates data was not loaded
             return null;
@@ -94,9 +97,9 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
      * @param mixed $params
      * @return array
      */
-    public function getDataFromResource($data, $object = null, $params = array())
+    public function getDataFromResource($data, $object = null, $params = [])
     {
-        $objects = array();
+        $objects = [];
 
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $object) {
@@ -126,7 +129,7 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
      * @param mixed $params
      * @throws \Exception
      */
-    public function getDataForQueryResource($data, $object = null, $params = array())
+    public function getDataForQueryResource($data, $object = null, $params = [])
     {
 
         //return null when data is not set
@@ -134,7 +137,7 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
             return null;
         }
 
-        $ids = array();
+        $ids = [];
 
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $metaObject) {
@@ -143,6 +146,7 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
                     $ids[] = $object->getId();
                 }
             }
+
             return "," . implode(",", $ids) . ",";
         } elseif (is_array($data) && count($data) === 0) {
             return "";
@@ -159,9 +163,9 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
      * @param mixed $params
      * @return array
      */
-    public function getDataForEditmode($data, $object = null, $params = array())
+    public function getDataForEditmode($data, $object = null, $params = [])
     {
-        $return = array();
+        $return = [];
 
         $visibleFieldsArray = explode(",", $this->getVisibleFields());
 
@@ -192,14 +196,14 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
      * @param mixed $params
      * @return array
      */
-    public function getDataFromEditmode($data, $object = null, $params = array())
+    public function getDataFromEditmode($data, $object = null, $params = [])
     {
         //if not set, return null
         if ($data === null or $data === false) {
             return null;
         }
 
-        $objectsMetadata = array();
+        $objectsMetadata = [];
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $object) {
                 $o = Object::getById($object["id"]);
@@ -224,16 +228,17 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
      * @param null $object
      * @return array
      */
-    public function getDataForGrid($data, $object = null, $params = array())
+    public function getDataForGrid($data, $object = null, $params = [])
     {
         if (is_array($data)) {
-            $pathes = array();
+            $pathes = [];
             foreach ($data as $metaObject) {
                 $eo = $metaObject->getObject();
                 if ($eo instanceof Element\ElementInterface) {
-                    $pathes[] = $eo->getFullPath();
+                    $pathes[] = $eo->getRealFullPath();
                 }
             }
+
             return $pathes;
         }
     }
@@ -245,13 +250,14 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
      * @param mixed $params
      * @return string
      */
-    public function getVersionPreview($data, $object = null, $params = array())
+    public function getVersionPreview($data, $object = null, $params = [])
     {
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $metaObject) {
                 $o = $metaObject->getObject();
-                $pathes[] = $o->getFullPath();
+                $pathes[] = $o->getRealFullPath();
             }
+
             return implode("<br />", $pathes);
         }
     }
@@ -266,13 +272,13 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
     public function checkValidity($data, $omitMandatoryCheck = false)
     {
         if (!$omitMandatoryCheck and $this->getMandatory() and empty($data)) {
-            throw new \Exception("Empty mandatory field [ ".$this->getName()." ]");
+            throw new Element\ValidationException("Empty mandatory field [ ".$this->getName()." ]");
         }
 
         if (is_array($data)) {
             foreach ($data as $objectMetadata) {
                 if (!($objectMetadata instanceof Object\Data\ObjectMetadata)) {
-                    throw new \Exception("Expected Object\\Data\\ObjectMetadata");
+                    throw new Element\ValidationException("Expected Object\\Data\\ObjectMetadata");
                 }
 
                 $o = $objectMetadata->getObject();
@@ -282,7 +288,7 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
                     } else {
                         $id = "??";
                     }
-                    throw new \Exception("Invalid object relation to object [".$id."] in field " . $this->getName(), null, null);
+                    throw new Element\ValidationException("Invalid object relation to object [".$id."] in field " . $this->getName(), null, null);
                 }
             }
         }
@@ -295,17 +301,18 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
      * @param array $params
      * @return string
      */
-    public function getForCsvExport($object, $params = array())
+    public function getForCsvExport($object, $params = [])
     {
-        $data = $this->getDataFromObjectParam($object);
+        $data = $this->getDataFromObjectParam($object, $params);
         if (is_array($data)) {
-            $paths = array();
+            $paths = [];
             foreach ($data as $metaObject) {
                 $eo = $metaObject->getObject();
                 if ($eo instanceof Element\ElementInterface) {
-                    $paths[] = $eo->getFullPath();
+                    $paths[] = $eo->getRealFullPath();
                 }
             }
+
             return implode(",", $paths);
         } else {
             return null;
@@ -318,11 +325,11 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
      * @param mixed $params
      * @return array|mixed
      */
-    public function getFromCsvImport($importValue, $object = null, $params = array())
+    public function getFromCsvImport($importValue, $object = null, $params = [])
     {
         $values = explode(",", $importValue);
 
-        $value = array();
+        $value = [];
         foreach ($values as $element) {
             if ($el = Object::getByPath($element)) {
                 $className = Tool::getModelClassMapping('\Pimcore\Model\Object\Data\ObjectMetadata');
@@ -331,6 +338,7 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
                 $value[] = $metaObject;
             }
         }
+
         return $value;
     }
 
@@ -342,9 +350,9 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
      * @param array $tags
      * @return array
      */
-    public function getCacheTags($data, $tags = array())
+    public function getCacheTags($data, $tags = [])
     {
-        $tags = is_array($tags) ? $tags : array();
+        $tags = is_array($tags) ? $tags : [];
 
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $metaObject) {
@@ -354,6 +362,7 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
                 }
             }
         }
+
         return $tags;
     }
 
@@ -363,19 +372,20 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
      */
     public function resolveDependencies($data)
     {
-        $dependencies = array();
+        $dependencies = [];
 
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $metaObject) {
                 $o = $metaObject->getObject();
                 if ($o instanceof Object\AbstractObject) {
-                    $dependencies["object_" . $o->getId()] = array(
+                    $dependencies["object_" . $o->getId()] = [
                         "id" => $o->getId(),
                         "type" => "object"
-                    );
+                    ];
                 }
             }
         }
+
         return $dependencies;
     }
 
@@ -384,15 +394,15 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
      * @param mixed $params
      * @return array|mixed|null
      */
-    public function getForWebserviceExport($object, $params = array())
+    public function getForWebserviceExport($object, $params = [])
     {
         $data = $this->getDataFromObjectParam($object, $params);
         if (is_array($data)) {
-            $items = array();
+            $items = [];
             foreach ($data as $metaObject) {
                 $eo = $metaObject->getObject();
                 if ($eo instanceof Element\ElementInterface) {
-                    $item = array();
+                    $item = [];
                     $item["type"] = $eo->getType();
                     $item["id"] = $eo->getId();
 
@@ -403,6 +413,7 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
                     $items[] = $item;
                 }
             }
+
             return $items;
         } else {
             return null;
@@ -418,9 +429,9 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
      * @return array|mixed
      * @throws \Exception
      */
-    public function getFromWebserviceImport($value, $object = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($value, $object = null, $params = [], $idMapper = null)
     {
-        $objects = array();
+        $objects = [];
         if (empty($value)) {
             return null;
         } elseif (is_array($value)) {
@@ -458,6 +469,7 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
         } else {
             throw new \Exception("cannot get values from web service import - invalid data");
         }
+
         return $objects;
     }
 
@@ -467,7 +479,7 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
      * @param Element\AbstractElement $object
      * @return void
      */
-    public function save($object, $params = array())
+    public function save($object, $params = [])
     {
         $objectsMetadata = $this->getDataFromObjectParam($object, $params);
 
@@ -533,14 +545,14 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
         parent::save($object, $params);
     }
 
-    public function preGetData($object, $params = array())
+    public function preGetData($object, $params = [])
     {
         $data = null;
         if ($object instanceof Object\Concrete) {
             $data = $object->{$this->getName()};
             if ($this->getLazyLoading() and !in_array($this->getName(), $object->getO__loadedLazyFields())) {
                 //$data = $this->getDataFromResource($object->getRelationData($this->getName(),true,null));
-                $data = $this->load($object, array("force" => true));
+                $data = $this->load($object, ["force" => true]);
 
                 $setter = "set" . ucfirst($this->getName());
                 if (method_exists($object, $setter)) {
@@ -556,12 +568,13 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
         }
 
         if (Object\AbstractObject::doHideUnpublished() and is_array($data)) {
-            $publishedList = array();
+            $publishedList = [];
             foreach ($data as $listElement) {
                 if (Element\Service::isPublished($listElement->getObject())) {
                     $publishedList[] = $listElement;
                 }
             }
+
             return $publishedList;
         }
 
@@ -572,7 +585,7 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
      * @param Element\AbstractElement $object
      * @return void
      */
-    public function delete($object, $params = array())
+    public function delete($object, $params = [])
     {
         $db = Db::get();
 
@@ -598,6 +611,7 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
     public function setAllowedClassId($allowedClassId)
     {
         $this->allowedClassId = $allowedClassId;
+
         return $this;
     }
 
@@ -623,6 +637,7 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
         }
 
         $this->visibleFields = $visibleFields;
+
         return $this;
     }
 
@@ -641,17 +656,18 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
     public function setColumns($columns)
     {
         if (isset($columns['key'])) {
-            $columns = array($columns);
+            $columns = [$columns];
         }
-        usort($columns, array($this, 'sort'));
+        usort($columns, [$this, 'sort']);
 
-        $this->columns = array();
-        $this->columnKeys = array();
+        $this->columns = [];
+        $this->columnKeys = [];
         foreach ($columns as $c) {
             $c['key'] = strtolower($c['key']);
             $this->columns[] = $c;
             $this->columnKeys[] = $c['key'];
         }
+
         return $this;
     }
 
@@ -668,10 +684,11 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
      */
     public function getColumnKeys()
     {
-        $this->columnKeys = array();
+        $this->columnKeys = [];
         foreach ($this->columns as $c) {
             $this->columnKeys[] = $c['key'];
         }
+
         return $this->columnKeys;
     }
 
@@ -685,13 +702,14 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
         if (is_array($a) && is_array($b)) {
             return $a['position'] - $b['position'];
         }
+
         return strcmp($a, $b);
     }
 
     /**
      * @return void
      */
-    public function classSaved($class, $params = array())
+    public function classSaved($class, $params = [])
     {
         $className = Tool::getModelClassMapping('\Pimcore\Model\Object\Data\ObjectMetadata');
         $temp = new $className(null);
@@ -713,7 +731,7 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
      * @param array $params
      * @return Element\ElementInterface
      */
-    public function rewriteIds($object, $idMapping, $params = array())
+    public function rewriteIds($object, $idMapping, $params = [])
     {
         $data = $this->getDataFromObjectParam($object, $params);
 
@@ -762,7 +780,7 @@ class ObjectsMetadata extends Model\Object\ClassDefinition\Data\Objects
             return;
         }
 
-        $this->visibleFieldDefinitions = array();
+        $this->visibleFieldDefinitions = [];
 
         $t = \Zend_Registry::get("Zend_Translate");
 

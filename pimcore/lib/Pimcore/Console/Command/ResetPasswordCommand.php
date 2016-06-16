@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Console\Command;
@@ -80,11 +82,13 @@ class ResetPasswordCommand extends AbstractCommand
             $command = "cscript //nologo " . escapeshellarg($vbscript);
             $password = rtrim(shell_exec($command));
             unlink($vbscript);
+
             return $password;
         } else {
             $command = "/usr/bin/env bash -c 'echo OK'";
             if (rtrim(shell_exec($command)) !== 'OK') {
                 trigger_error("Can't invoke bash");
+
                 return;
             }
             $command = "/usr/bin/env bash -c 'read -s -p \""
@@ -92,6 +96,7 @@ class ResetPasswordCommand extends AbstractCommand
                 . "\" mypassword && echo \$mypassword'";
             $password = rtrim(shell_exec($command));
             echo "\n";
+
             return $password;
         }
     }

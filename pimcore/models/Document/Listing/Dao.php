@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document\Listing;
@@ -20,6 +22,9 @@ use Pimcore\Model\Document;
 class Dao extends Model\Listing\Dao\AbstractDao
 {
 
+    /** @var  Callback function */
+    protected $onCreateQueryCallback;
+
     /**
      * Loads a list of objects (all are an instance of Document) for the given parameters an return them
      *
@@ -27,8 +32,10 @@ class Dao extends Model\Listing\Dao\AbstractDao
      */
     public function load()
     {
-        $documents = array();
-        $documentsData = $this->db->fetchAll("SELECT id,type FROM documents" . $this->getCondition() . $this->getOrder() . $this->getOffsetLimit(), $this->model->getConditionVariables());
+        $documents = [];
+        $select = (string) $this->getQuery(['id', "type"]);
+
+        $documentsData = $this->db->fetchAll($select, $this->model->getConditionVariables());
 
         foreach ($documentsData as $documentData) {
             if ($documentData["type"]) {
@@ -39,7 +46,27 @@ class Dao extends Model\Listing\Dao\AbstractDao
         }
 
         $this->model->setDocuments($documents);
+
         return $documents;
+    }
+
+    public function getQuery($columns)
+    {
+        $select = $this->db->select();
+        $select->from(
+            [ "documents" ], $columns
+        );
+        $this->addConditions($select);
+        $this->addOrder($select);
+        $this->addLimit($select);
+        $this->addGroupBy($select);
+
+        if ($this->onCreateQueryCallback) {
+            $closure = $this->onCreateQueryCallback;
+            $closure($select);
+        }
+
+        return $select;
     }
 
     /**
@@ -49,38 +76,40 @@ class Dao extends Model\Listing\Dao\AbstractDao
      */
     public function loadIdList()
     {
-        $documentIds = $this->db->fetchCol("SELECT id FROM documents" . $this->getCondition() . $this->getOrder() . $this->getOffsetLimit(), $this->model->getConditionVariables());
+        $select = (string) $this->getQuery(['id']);
+        $documentIds = $this->db->fetchCol($select, $this->model->getConditionVariables());
+
         return $documentIds;
     }
 
     public function loadIdPathList()
     {
-        $documentIds = $this->db->fetchAll("SELECT id, CONCAT(path,`key`) as path FROM documents" . $this->getCondition() . $this->getOrder() . $this->getOffsetLimit(), $this->model->getConditionVariables());
-        return $documentIds;
-    }
+        $select = (string) $this->getQuery(['id', "CONCAT(path,`key`)"]);
+        $documentIds = $this->db->fetchAll($select, $this->model->getConditionVariables());
 
-    protected function getCondition()
-    {
-        if ($cond = $this->model->getCondition()) {
-            if (Document::doHideUnpublished() && !$this->model->getUnpublished()) {
-                return " WHERE (" . $cond . ") AND published = 1";
-            }
-            return " WHERE " . $cond . " ";
-        } elseif (Document::doHideUnpublished() && !$this->model->getUnpublished()) {
-            return " WHERE published = 1";
-        }
-        return "";
+        return $documentIds;
     }
 
     public function getCount()
     {
-        $amount = (int) $this->db->fetchOne("SELECT COUNT(*) as amount FROM documents" . $this->getCondition() . $this->getOffsetLimit(), $this->model->getConditionVariables());
+        $select = $this->getQuery([new \Zend_Db_Expr('COUNT(*)')]);
+        $amount = (int)$this->db->fetchOne($select, $this->model->getConditionVariables());
+
         return $amount;
     }
 
     public function getTotalCount()
     {
-        $amount = (int) $this->db->fetchOne("SELECT COUNT(*) as amount FROM documents" . $this->getCondition(), $this->model->getConditionVariables());
+        $select = $this->getQuery([new \Zend_Db_Expr('COUNT(*)')]);
+        $select->reset(\Zend_Db_Select::LIMIT_COUNT);
+        $select = (string) $select;
+        $amount = (int) $this->db->fetchOne($select, $this->model->getConditionVariables());
+
         return $amount;
+    }
+
+    public function onCreateQuery(callable $callback)
+    {
+        $this->onCreateQueryCallback = $callback;
     }
 }

@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\ClassDefinition\Data\Relations;
@@ -18,6 +20,7 @@ use Pimcore\Model;
 use Pimcore\Model\Object;
 use Pimcore\Model\Element;
 use Pimcore\Db;
+use Pimcore\Tool\Admin;
 
 abstract class AbstractRelations extends Model\Object\ClassDefinition\Data
 {
@@ -45,7 +48,6 @@ abstract class AbstractRelations extends Model\Object\ClassDefinition\Data
      */
     public function getClasses()
     {
-        $this->classes = $this->correctClasses($this->classes);
         return $this->classes;
     }
 
@@ -55,50 +57,11 @@ abstract class AbstractRelations extends Model\Object\ClassDefinition\Data
      */
     public function setClasses($classes)
     {
-        $this->classes = $this->correctClasses($classes);
+        $this->classes = Element\Service::fixAllowedTypes($classes, "classes");
+
         return $this;
     }
 
-    /**
-     * this is a hack for import see: http://www.pimcore.org/issues/browse/PIMCORE-790
-     * @param array
-     * @return array
-     */
-    protected function correctClasses($classes)
-    {
-
-        // this is the new method with Ext.form.MultiSelect
-        /**
-         * @extjs6
-         * @todo this need to be refactored when extjs3 support is removed
-         */
-        if ((is_string($classes) && !empty($classes)) || (\Pimcore\Tool\Admin::isExtJS6() && is_array($classes))) {
-            if (!\Pimcore\Tool\Admin::isExtJS6()) {
-                $classParts = explode(",", $classes);
-            } else {
-                $classParts = $classes;
-            }
-            $classes = array();
-            foreach ($classParts as $class) {
-                if (is_array($class)) {
-                    $classes[] = $class;
-                } elseif ($class) {
-                    $classes[] = array("classes" => $class);
-                }
-            }
-        }
-
-        // this was the legacy method with Ext.SuperField
-        if (is_array($classes) && array_key_exists("classes", $classes)) {
-            $classes = array($classes);
-        }
-
-        if (!is_array($classes)) {
-            $classes = array();
-        }
-
-        return $classes;
-    }
 
     /**
      * @return boolean
@@ -115,6 +78,7 @@ abstract class AbstractRelations extends Model\Object\ClassDefinition\Data
     public function setLazyLoading($lazyLoading)
     {
         $this->lazyLoading = $lazyLoading;
+
         return $this;
     }
 
@@ -161,6 +125,7 @@ abstract class AbstractRelations extends Model\Object\ClassDefinition\Data
             \Logger::debug("checked object relation to target in field [" . $this->getName() . "], not allowed, target ist not an object");
             \Logger::debug($object);
         }
+
         return $allowed;
     }
 
@@ -173,6 +138,7 @@ abstract class AbstractRelations extends Model\Object\ClassDefinition\Data
     protected function allowAssetRelation($asset)
     {
         $allowedAssetTypes = $this->getAssetTypes();
+        $allowedTypes = [];
         $allowed = true;
         if (!$this->getAssetsAllowed()) {
             $allowed = false;
@@ -183,8 +149,22 @@ abstract class AbstractRelations extends Model\Object\ClassDefinition\Data
                     $t = $t["assetTypes"];
                 }
 
-                if ($t && is_string($t)) {
-                    $allowedTypes[] = $t;
+                if ($t) {
+                    if (Admin::isExtJS6()) {
+                        if (is_string($t)) {
+                            $allowedTypes[] = $t;
+                        } elseif (is_array($t) && count($t) > 0) {
+                            if (isset($t["assetTypes"])) {
+                                $allowedTypes []= $t["assetTypes"];
+                            } else {
+                                $allowedTypes[]= $t;
+                            }
+                        }
+                    } else {
+                        if (is_string($t)) {
+                            $allowedTypes[] = $t;
+                        }
+                    }
                 }
             }
             if (!in_array($asset->getType(), $allowedTypes)) {
@@ -195,6 +175,7 @@ abstract class AbstractRelations extends Model\Object\ClassDefinition\Data
         }
 
         \Logger::debug("checked object relation to target asset [" . $asset->getId() . "] in field [" . $this->getName() . "], allowed:" . $allowed);
+
         return $allowed;
     }
 
@@ -224,6 +205,7 @@ abstract class AbstractRelations extends Model\Object\ClassDefinition\Data
         }
 
         \Logger::debug("checked object relation to target document [" . $document->getId() . "] in field [" . $this->getName() . "], allowed:" . $allowed);
+
         return $allowed;
     }
 
@@ -233,10 +215,10 @@ abstract class AbstractRelations extends Model\Object\ClassDefinition\Data
      * @param $classId
      * @param array $relation
      */
-    protected function enrichRelation($object, $params, &$classId, &$relation = array())
+    protected function enrichRelation($object, $params, &$classId, &$relation = [])
     {
         if (!$relation) {
-            $relation = array();
+            $relation = [];
         }
 
         if ($object instanceof Object\Concrete) {
@@ -280,7 +262,7 @@ abstract class AbstractRelations extends Model\Object\ClassDefinition\Data
      * @param array $params
      * @throws \Exception
      */
-    public function save($object, $params = array())
+    public function save($object, $params = [])
     {
         $db = Db::get();
 
@@ -314,19 +296,19 @@ abstract class AbstractRelations extends Model\Object\ClassDefinition\Data
      * @param array $params
      * @return null
      */
-    public function load($object, $params = array())
+    public function load($object, $params = [])
     {
         $db = Db::get();
         $data = null;
 
         if ($object instanceof Object\Concrete) {
             if (!method_exists($this, "getLazyLoading") or !$this->getLazyLoading() or (array_key_exists("force", $params) && $params["force"])) {
-                $relations = $db->fetchAll("SELECT * FROM object_relations_" . $object->getClassId() . " WHERE src_id = ? AND fieldname = ? AND ownertype = 'object'", array($object->getId(), $this->getName()));
+                $relations = $db->fetchAll("SELECT * FROM object_relations_" . $object->getClassId() . " WHERE src_id = ? AND fieldname = ? AND ownertype = 'object'", [$object->getId(), $this->getName()]);
             } else {
                 return null;
             }
         } elseif ($object instanceof Object\Fieldcollection\Data\AbstractData) {
-            $relations = $db->fetchAll("SELECT * FROM object_relations_" . $object->getObject()->getClassId() . " WHERE src_id = ? AND fieldname = ? AND ownertype = 'fieldcollection' AND ownername = ? AND position = ?", array($object->getObject()->getId(), $this->getName(), $object->getFieldname(), $object->getIndex()));
+            $relations = $db->fetchAll("SELECT * FROM object_relations_" . $object->getObject()->getClassId() . " WHERE src_id = ? AND fieldname = ? AND ownertype = 'fieldcollection' AND ownername = ? AND position = ?", [$object->getObject()->getId(), $this->getName(), $object->getFieldname(), $object->getIndex()]);
         } elseif ($object instanceof Object\Localizedfield) {
             if (isset($params["context"])&& $params["context"]["containerType"] == "fieldcollection") {
                 $context = $params["context"];
@@ -334,16 +316,16 @@ abstract class AbstractRelations extends Model\Object\ClassDefinition\Data
                 $index = $context["index"];
                 $filter = "/fieldcollection~" . $fieldname . "/" . $index . "/%";
                 $relations = $db->fetchAll("SELECT * FROM object_relations_" . $object->getObject()->getClassId() . " WHERE src_id = ? AND fieldname = ? AND ownertype = 'localizedfield'  AND position = ? AND ownername LIKE ?",
-                    array($object->getObject()->getId(), $this->getName(), $params["language"], $filter));
+                    [$object->getObject()->getId(), $this->getName(), $params["language"], $filter]);
             } else {
-                $relations = $db->fetchAll("SELECT * FROM object_relations_" . $object->getObject()->getClassId() . " WHERE src_id = ? AND fieldname = ? AND ownertype = 'localizedfield' AND ownername = 'localizedfield' AND position = ?", array($object->getObject()->getId(), $this->getName(), $params["language"]));
+                $relations = $db->fetchAll("SELECT * FROM object_relations_" . $object->getObject()->getClassId() . " WHERE src_id = ? AND fieldname = ? AND ownertype = 'localizedfield' AND ownername = 'localizedfield' AND position = ?", [$object->getObject()->getId(), $this->getName(), $params["language"]]);
             }
         } elseif ($object instanceof Object\Objectbrick\Data\AbstractData) {
-            $relations = $db->fetchAll("SELECT * FROM object_relations_" . $object->getObject()->getClassId() . " WHERE src_id = ? AND fieldname = ? AND ownertype = 'objectbrick' AND ownername = ? AND position = ?", array($object->getObject()->getId(), $this->getName(), $object->getFieldname(), $object->getType()));
+            $relations = $db->fetchAll("SELECT * FROM object_relations_" . $object->getObject()->getClassId() . " WHERE src_id = ? AND fieldname = ? AND ownertype = 'objectbrick' AND ownername = ? AND position = ?", [$object->getObject()->getId(), $this->getName(), $object->getFieldname(), $object->getType()]);
 
             // THIS IS KIND A HACK: it's necessary because of this bug PIMCORE-1454 and therefore cannot be removed
             if (count($relations) < 1) {
-                $relations = $db->fetchAll("SELECT * FROM object_relations_" . $object->getObject()->getClassId() . " WHERE src_id = ? AND fieldname = ? AND ownertype = 'objectbrick' AND ownername = ? AND (position IS NULL OR position = '')", array($object->getObject()->getId(), $this->getName(), $object->getFieldname()));
+                $relations = $db->fetchAll("SELECT * FROM object_relations_" . $object->getObject()->getClassId() . " WHERE src_id = ? AND fieldname = ? AND ownertype = 'objectbrick' AND ownername = ? AND (position IS NULL OR position = '')", [$object->getObject()->getId(), $this->getName(), $object->getFieldname()]);
             }
             // HACK END
         }
@@ -354,6 +336,7 @@ abstract class AbstractRelations extends Model\Object\ClassDefinition\Data
             if ($a["index"] == $b["index"]) {
                 return 0;
             }
+
             return ($a["index"] < $b["index"]) ? -1 : 1;
         });
 

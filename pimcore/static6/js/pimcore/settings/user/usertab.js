@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 
@@ -76,7 +78,7 @@ pimcore.settings.user.usertab = Class.create({
 
     save: function () {
 
-        var active = false;
+        var active = null;
         var data = {
             id: this.id
         };
@@ -84,7 +86,10 @@ pimcore.settings.user.usertab = Class.create({
 
         try {
             var values = this.settings.getValues();
-            active = values.active;
+            if(values.hasOwnProperty("active")) {
+                // only if "active" is available (if not available, the checkbox is disabled, eg. when modifying the logged in user)
+                active = values["active"];
+            }
             contentLanguages = values.contentLanguages;
             data.data = Ext.encode(values);
         } catch (e) {
@@ -120,9 +125,9 @@ pimcore.settings.user.usertab = Class.create({
                             if (nodeEl) {
                                 var nodeElInner = nodeEl.down(".x-grid-td");
                                 if (nodeElInner) {
-                                    if (active) {
+                                    if (active === true) {
                                         nodeElInner.removeCls("pimcore_unpublished");
-                                    } else {
+                                    } else if (active === false) {
                                         nodeElInner.addCls("pimcore_unpublished");
                                     }
                                 }

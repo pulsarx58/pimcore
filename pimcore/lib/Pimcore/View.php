@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore;
@@ -29,7 +31,7 @@ class View extends \Zend_View
      * @param array $options
      * @return Model\Document\Tag
      */
-    public function tag($type, $realName, $options = array())
+    public function tag($type, $realName, $options = [])
     {
         $type = strtolower($type);
         $document = $this->document;
@@ -88,7 +90,7 @@ class View extends \Zend_View
      * @param bool $capture
      * @return string
      */
-    public function template($scriptPath, $params = array(), $resetPassedParams = false, $capture = false)
+    public function template($scriptPath, $params = [], $resetPassedParams = false, $capture = false)
     {
         foreach ($params as $key => $value) {
             $this->assign($key, $value);
@@ -127,6 +129,7 @@ class View extends \Zend_View
 
         if ($capture) {
             $this->placeholder($captureKey)->captureEnd();
+
             return trim($this->placeholder($captureKey)->getValue());
         }
     }
@@ -194,7 +197,7 @@ class View extends \Zend_View
             }
         }
 
-        $params = array_merge($params, array("document" => $include));
+        $params = array_merge($params, ["document" => $include]);
         $content = "";
 
         if ($include instanceof Model\Document\PageSnippet && $include->isPublished()) {
@@ -238,7 +241,7 @@ class View extends \Zend_View
 
         // write contents to the cache, if output-cache is enabled
         if ($cacheConfig) {
-            Cache::save($content, $cacheKey, array("output", "output_inline"), $cacheConfig["lifetime"]);
+            Cache::save($content, $cacheKey, ["output", "output_inline"], $cacheConfig["lifetime"]);
         }
 
         return $content;
@@ -301,6 +304,7 @@ class View extends \Zend_View
     public function setRequest(\Zend_Controller_Request_Abstract $request)
     {
         $this->request = $request;
+
         return $this;
     }
 
@@ -309,7 +313,7 @@ class View extends \Zend_View
      */
     public function t()
     {
-        return call_user_func_array(array($this, "translate"), func_get_args());
+        return call_user_func_array([$this, "translate"], func_get_args());
     }
 
     /**
@@ -317,7 +321,7 @@ class View extends \Zend_View
      */
     public function ts()
     {
-        return call_user_func_array(array($this, "translateAdmin"), func_get_args());
+        return call_user_func_array([$this, "translateAdmin"], func_get_args());
     }
 
     /**
@@ -345,14 +349,15 @@ class View extends \Zend_View
 
             // set default if there is no editable configuration provided
             if (!isset($arguments[1])) {
-                $arguments[1] = array();
+                $arguments[1] = [];
             }
+
             return $this->tag($method, $arguments[0], $arguments[1]);
         }
 
         if ($this->document instanceof Model\Document) {
             if (method_exists($this->document, $method)) {
-                return call_user_func_array(array($this->document, $method), $arguments);
+                return call_user_func_array([$this->document, $method], $arguments);
             }
         }
 

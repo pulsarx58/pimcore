@@ -2,19 +2,22 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document;
 
 use Pimcore\Model;
+use Pimcore\Model\Document;
 
 class Listing extends Model\Listing\AbstractListing implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterAggregate, \Iterator
 {
@@ -32,24 +35,24 @@ class Listing extends Model\Listing\AbstractListing implements \Zend_Paginator_A
      * @var array
      */
     public $documents = null;
-    
+
     /**
      * @var boolean
      */
     public $unpublished = false;
-    
+
     /**
      * Valid order keys
      *
      * @var array
      */
-    public $validOrderKeys = array(
+    public $validOrderKeys = [
         "creationDate",
         "modificationDate",
         "id",
         "key",
         "index"
-    );
+    ];
 
     /**
      * Tests if the given key is an valid order key to sort the results
@@ -69,6 +72,7 @@ class Listing extends Model\Listing\AbstractListing implements \Zend_Paginator_A
         if ($this->documents === null) {
             $this->load();
         }
+
         return $this->documents;
     }
 
@@ -79,9 +83,10 @@ class Listing extends Model\Listing\AbstractListing implements \Zend_Paginator_A
     public function setDocuments($documents)
     {
         $this->documents = $documents;
+
         return $this;
     }
-    
+
     /**
      * @return bool
      */
@@ -89,16 +94,32 @@ class Listing extends Model\Listing\AbstractListing implements \Zend_Paginator_A
     {
         return $this->unpublished;
     }
-    
+
     /**
      * @return bool
      */
     public function setUnpublished($unpublished)
     {
         $this->unpublished = (bool) $unpublished;
+
         return $this;
     }
-    
+
+    public function getCondition()
+    {
+        $condition = parent::getCondition();
+
+        if ($condition) {
+            if (Document::doHideUnpublished() && !$this->getUnpublished()) {
+                $condition = " (" . $condition . ") AND published = 1";
+            }
+        } elseif (Document::doHideUnpublished() && !$this->getUnpublished()) {
+            $condition = "published = 1";
+        }
+
+        return $condition;
+    }
+
     /**
      *
      * Methods for \Zend_Paginator_Adapter_Interface
@@ -113,6 +134,7 @@ class Listing extends Model\Listing\AbstractListing implements \Zend_Paginator_A
     {
         $this->setOffset($offset);
         $this->setLimit($itemCountPerPage);
+
         return $this->load();
     }
 
@@ -120,7 +142,7 @@ class Listing extends Model\Listing\AbstractListing implements \Zend_Paginator_A
     {
         return $this;
     }
-    
+
 
     /**
      * Methods for Iterator
@@ -136,6 +158,7 @@ class Listing extends Model\Listing\AbstractListing implements \Zend_Paginator_A
     {
         $this->getDocuments();
         $var = current($this->documents);
+
         return $var;
     }
 
@@ -143,6 +166,7 @@ class Listing extends Model\Listing\AbstractListing implements \Zend_Paginator_A
     {
         $this->getDocuments();
         $var = key($this->documents);
+
         return $var;
     }
 
@@ -150,6 +174,7 @@ class Listing extends Model\Listing\AbstractListing implements \Zend_Paginator_A
     {
         $this->getDocuments();
         $var = next($this->documents);
+
         return $var;
     }
 
@@ -157,6 +182,7 @@ class Listing extends Model\Listing\AbstractListing implements \Zend_Paginator_A
     {
         $this->getDocuments();
         $var = $this->current() !== false;
+
         return $var;
     }
 }

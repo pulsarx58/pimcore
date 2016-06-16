@@ -1,15 +1,17 @@
-<?php 
+<?php
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document;
@@ -84,10 +86,10 @@ class Link extends Model\Document
             if ($this->getObject() instanceof Document || $this->getObject() instanceof Asset) {
                 $key = $this->getInternalType() . "_" . $this->getObject()->getId();
 
-                $dependencies[$key] = array(
+                $dependencies[$key] = [
                     "id" => $this->getObject()->getId(),
                     "type" => $this->getInternalType()
-                );
+                ];
             }
         }
 
@@ -99,10 +101,10 @@ class Link extends Model\Document
      *
      * @return array
      */
-    public function getCacheTags($tags = array())
+    public function getCacheTags($tags = [])
     {
-        $tags = is_array($tags) ? $tags : array();
-        
+        $tags = is_array($tags) ? $tags : [];
+
         $tags = parent::getCacheTags($tags);
 
         if ($this->getLinktype() == "internal") {
@@ -112,6 +114,7 @@ class Link extends Model\Document
                 }
             }
         }
+
         return $tags;
     }
 
@@ -133,6 +136,7 @@ class Link extends Model\Document
         }
 
         $this->href = $path;
+
         return $path;
     }
 
@@ -178,6 +182,7 @@ class Link extends Model\Document
     public function setTarget($target)
     {
         $this->setProperty("navigation_target", "text", $target, false);
+
         return $this;
     }
 
@@ -223,6 +228,7 @@ class Link extends Model\Document
         } else {
             $this->internal = null;
         }
+
         return $this;
     }
 
@@ -233,6 +239,7 @@ class Link extends Model\Document
     public function setDirect($direct)
     {
         $this->direct = $direct;
+
         return $this;
     }
 
@@ -243,6 +250,7 @@ class Link extends Model\Document
     public function setLinktype($linktype)
     {
         $this->linktype = $linktype;
+
         return $this;
     }
 
@@ -267,6 +275,7 @@ class Link extends Model\Document
     public function setName($name)
     {
         $this->setProperty("navigation_name", "text", $name, false);
+
         return $this;
     }
 
@@ -286,6 +295,7 @@ class Link extends Model\Document
     public function setInternalType($type)
     {
         $this->internalType = $type;
+
         return $this;
     }
 
@@ -301,6 +311,7 @@ class Link extends Model\Document
                 return $this->object;
             }
         }
+
         return false;
     }
 
@@ -310,6 +321,7 @@ class Link extends Model\Document
     public function setObject($object)
     {
         $this->object = $object;
+
         return $this;
     }
 
@@ -348,6 +360,7 @@ class Link extends Model\Document
     public function setParameters($parameters)
     {
         $this->setProperty("navigation_parameters", "text", $parameters, false);
+
         return $this;
     }
 
@@ -369,6 +382,7 @@ class Link extends Model\Document
     public function setAnchor($anchor)
     {
         $this->setProperty("navigation_anchor", "text", $anchor, false);
+
         return $this;
     }
 
@@ -377,7 +391,7 @@ class Link extends Model\Document
      */
     public function getTitle()
     {
-        return $this->title;
+        return $this->getProperty("navigation_title");
     }
 
     /**
@@ -386,7 +400,8 @@ class Link extends Model\Document
      */
     public function setTitle($title)
     {
-        $this->title = $title;
+        $this->setProperty("navigation_title", "text", $title, false);
+
         return $this;
     }
 
@@ -408,6 +423,7 @@ class Link extends Model\Document
     public function setAccesskey($accesskey)
     {
         $this->setProperty("accesskey", "text", $accesskey, false);
+
         return $this;
     }
 
@@ -429,6 +445,7 @@ class Link extends Model\Document
     public function setRel($rel)
     {
         $this->setProperty("navigation_relation", "text", $rel, false);
+
         return $this;
     }
 
@@ -450,6 +467,7 @@ class Link extends Model\Document
     public function setTabindex($tabindex)
     {
         $this->setProperty("navigation_tabindex", "text", $tabindex, false);
+
         return $this;
     }
 
@@ -460,8 +478,8 @@ class Link extends Model\Document
      */
     public function getHtml()
     {
-        $attributes = array("rel", "tabindex", "accesskey", "title", "name", "target");
-        $attribs = array();
+        $attributes = ["rel", "tabindex", "accesskey", "title", "name", "target"];
+        $attribs = [];
         foreach ($attributes as $a) {
             $attribs[] = $a . '="' . $this->$a . '"';
         }
@@ -474,7 +492,7 @@ class Link extends Model\Document
      */
     public function __sleep()
     {
-        $finalVars = array();
+        $finalVars = [];
         $parentVars = parent::__sleep();
 
         $blockedVars = ["object"];

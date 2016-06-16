@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\WebsiteSetting\Listing;
@@ -18,7 +20,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
 {
 
     /**
-     * Loads a list of static routes for the specifies parameters, returns an array of Staticroute elements
+     * Loads a list of static routes for the specified parameters, returns an array of Staticroute elements
      *
      * @return array
      */
@@ -27,12 +29,13 @@ class Dao extends Model\Listing\Dao\AbstractDao
         $sql = "SELECT id FROM website_settings" . $this->getCondition() . $this->getOrder() . $this->getOffsetLimit();
         $settingsData = $this->db->fetchCol($sql, $this->model->getConditionVariables());
 
-        $settings = array();
+        $settings = [];
         foreach ($settingsData as $settingData) {
             $settings[] = Model\WebsiteSetting::getById($settingData);
         }
 
         $this->model->setSettings($settings);
+
         return $settings;
     }
 

@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\ClassDefinition;
@@ -77,7 +79,7 @@ class Layout
     /**
      * @var array
      */
-    public $childs = array();
+    public $childs = [];
 
     /**
      * @var boolean
@@ -155,6 +157,7 @@ class Layout
     public function setName($name)
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -165,6 +168,7 @@ class Layout
     public function setType($type)
     {
         $this->type = $type;
+
         return $this;
     }
 
@@ -175,6 +179,7 @@ class Layout
     public function setRegion($region)
     {
         $this->region = $region;
+
         return $this;
     }
 
@@ -185,6 +190,7 @@ class Layout
     public function setTitle($title)
     {
         $this->title = $title;
+
         return $this;
     }
 
@@ -199,6 +205,7 @@ class Layout
         } else {
             $this->width = $width;
         }
+
         return $this;
     }
 
@@ -213,6 +220,7 @@ class Layout
         } else {
             $this->height = $height;
         }
+
         return $this;
     }
 
@@ -223,6 +231,7 @@ class Layout
     public function setCollapsible($collapsible)
     {
         $this->collapsible = (bool) $collapsible;
+
         return $this;
     }
 
@@ -233,6 +242,7 @@ class Layout
     public function setPermissions($permissions)
     {
         $this->permissions = $permissions;
+
         return $this;
     }
 
@@ -251,6 +261,7 @@ class Layout
     public function setChilds($childs)
     {
         $this->childs = $childs;
+
         return $this;
     }
 
@@ -262,6 +273,7 @@ class Layout
         if (is_array($this->childs) && count($this->childs) > 0) {
             return true;
         }
+
         return false;
     }
 
@@ -279,7 +291,7 @@ class Layout
      * @param array $blockedKeys
      * @return void
      */
-    public function setValues($data = array(), $blockedKeys = array())
+    public function setValues($data = [], $blockedKeys = [])
     {
         foreach ($data as $key => $value) {
             if (!in_array($key, $blockedKeys)) {
@@ -289,6 +301,7 @@ class Layout
                 }
             }
         }
+
         return $this;
     }
 
@@ -307,6 +320,7 @@ class Layout
     public function setDatatype($datatype)
     {
         $this->datatype = $datatype;
+
         return $this;
     }
 
@@ -326,6 +340,7 @@ class Layout
     public function setLocked($locked)
     {
         $this->locked = (bool) $locked;
+
         return $this;
     }
 
@@ -336,6 +351,7 @@ class Layout
     public function setCollapsed($collapsed)
     {
         $this->collapsed = $collapsed;
+
         return $this;
     }
 
@@ -354,6 +370,7 @@ class Layout
     public function setBodyStyle($bodyStyle)
     {
         $this->bodyStyle = $bodyStyle;
+
         return $this;
     }
 

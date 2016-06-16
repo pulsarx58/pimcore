@@ -23,14 +23,31 @@ class QueryParams
     {
         $orderKey = null;
         $order = null;
+        $orderByFeature = null;
 
         if (\Pimcore\Tool\Admin::isExtJS6()) {
-            $sortParam = $params["sort"];
+            $sortParam = isset($params["sort"]) ? $params["sort"] : false;
             if ($sortParam) {
                 $sortParam = json_decode($sortParam, true);
                 $sortParam = $sortParam[0];
-                $orderKey = $sortParam["property"];
-                $order = $sortParam["direction"];
+
+                if (substr($sortParam["property"], 0, 1) != "~") {
+                    $orderKey = $sortParam["property"];
+                    $order = $sortParam["direction"];
+                } else {
+                    $orderKey = $sortParam["property"];
+                    $order = $sortParam["direction"];
+
+                    $parts = explode("~", $orderKey);
+
+                    $fieldname = $parts[2];
+                    $groupKeyId = $parts[3];
+                    $groupKeyId = explode("-", $groupKeyId);
+                    $groupId = $groupKeyId[0];
+                    $keyid = $groupKeyId[1];
+
+                    return ['fieldname' => $fieldname, 'groupId' => $groupId, "keyId"=> $keyid, "order" => $order, "isFeature" => 1];
+                }
             }
         } else {
             if ($params["dir"]) {
@@ -51,6 +68,7 @@ class QueryParams
             return intval($param);
         } else {
             $param = json_decode($param, true);
+
             return $param['id'];
         }
     }

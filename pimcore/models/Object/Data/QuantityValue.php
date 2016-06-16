@@ -2,17 +2,21 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Data;
+
+use Pimcore\Model\Object\QuantityValue\Unit;
 
 class QuantityValue
 {
@@ -36,7 +40,12 @@ class QuantityValue
     {
         $this->value = $value;
         $this->unitId = $unitId;
-        $this->unit = null;
+        $this->unit = "";
+
+        $unit = Unit::getById($this->unitId);
+        if ($unit) {
+            $this->unit = $unit->getAbbreviation();
+        }
     }
 
 
@@ -62,8 +71,9 @@ class QuantityValue
     public function getUnit()
     {
         if (empty($this->unit)) {
-            $this->unit = \Pimcore\Model\Object\QuantityValue\Unit::getById($this->unitId);
+            $this->unit = Unit::getById($this->unitId);
         }
+
         return $this->unit;
     }
 
@@ -99,7 +109,7 @@ class QuantityValue
             }
 
             if ($locale) {
-                $value = \Zend_Locale_Format::toNumber($value, array('locale' => $locale));
+                $value = \Zend_Locale_Format::toNumber($value, ['locale' => $locale]);
             }
         }
 

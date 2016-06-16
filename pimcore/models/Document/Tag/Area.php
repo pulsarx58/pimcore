@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document\Tag;
@@ -52,15 +54,15 @@ class Area extends Model\Document\Tag
             $data = $this->getData();
         }
 
-        $options = array(
+        $options = [
             "options" => $this->getOptions(),
             "data" => $data,
             "name" => $this->getName(),
             "id" => "pimcore_editable_" . $this->getName(),
             "type" => $this->getType(),
             "inherited" => $this->getInherited()
-        );
-        $options = @\Zend_Json::encode($options, false, array('enableJsonExprFinder' => true));
+        ];
+        $options = @\Zend_Json::encode($options, false, ['enableJsonExprFinder' => true]);
 
         if ($this->editmode) {
             echo '
@@ -125,7 +127,7 @@ class Area extends Model\Document\Tag
             $action = $areas[$options["type"]] . "/action.php";
             $edit = $areas[$options["type"]] . "/edit.php";
             $options = $this->getOptions();
-            $params = array();
+            $params = [];
             if (is_array($options["params"]) && array_key_exists($options["type"], $options["params"])) {
                 if (is_array($options["params"][$options["type"]])) {
                     $params = $options["params"][$options["type"]];
@@ -144,7 +146,14 @@ class Area extends Model\Document\Tag
 
                 $actionClassFound = true;
 
-                $actionClassname = "\\Pimcore\\Model\\Document\\Tag\\Area\\" . ucfirst($options["type"]);
+                $actionClass = preg_replace_callback("/[\-_][a-z]/", function ($matches) {
+                    $replacement = str_replace(["-", "_"], "", $matches[0]);
+
+                    return strtoupper($replacement);
+                }, ucfirst($this->currentIndex["type"]));
+
+                $actionClassname = "\\Pimcore\\Model\\Document\\Tag\\Area\\" . $actionClass;
+
                 if (!Tool::classExists($actionClassname, false)) {
                     // also check the legacy prefixed class name, as this is used by some plugins
                     $actionClassname = "\\Document_Tag_Area_" . ucfirst($options["type"]);
@@ -220,11 +229,11 @@ class Area extends Model\Document\Tag
             }
         }
 
-        
+
         $suffixes = \Zend_Registry::get("pimcore_tag_block_numeration");
         array_pop($suffixes);
         \Zend_Registry::set("pimcore_tag_block_numeration", $suffixes);
-        
+
         $suffixes = \Zend_Registry::get("pimcore_tag_block_current");
         array_pop($suffixes);
         \Zend_Registry::set("pimcore_tag_block_current", $suffixes);
@@ -262,19 +271,19 @@ class Area extends Model\Document\Tag
         if (\Zend_Registry::isRegistered("pimcore_tag_block_current")) {
             $current = \Zend_Registry::get("pimcore_tag_block_current");
             if (!is_array($current)) {
-                $current = array();
+                $current = [];
             }
         } else {
-            $current = array();
+            $current = [];
         }
 
         if (\Zend_Registry::isRegistered("pimcore_tag_block_numeration")) {
             $numeration = \Zend_Registry::get("pimcore_tag_block_numeration");
             if (!is_array($numeration)) {
-                $numeration = array();
+                $numeration = [];
             }
         } else {
-            $numeration = array();
+            $numeration = [];
         }
 
         \Zend_Registry::set("pimcore_tag_block_numeration", $numeration);
@@ -313,7 +322,7 @@ class Area extends Model\Document\Tag
         $doc = Model\Document\Page::getById($this->getDocumentId());
         $id = sprintf('%s%s%d', $name, $this->getName(), 1);
         $element = $doc->getElement($id);
-        $element->suffixes = array( $this->getName() );
+        $element->suffixes = [ $this->getName() ];
 
         return $element;
     }

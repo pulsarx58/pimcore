@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Tool
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Tool\Lock;
@@ -39,6 +41,7 @@ class Dao extends Model\Dao\AbstractDao
             if ($expire > 0) {
                 \Logger::debug("Lock '" . $key . "' expired (expiry time: " . $expire . ", lock date: " . $lock["date"] . " / current time: " . time() . ")");
                 $this->release($key);
+
                 return false;
             }
         }
@@ -66,6 +69,7 @@ class Dao extends Model\Dao\AbstractDao
 
             try {
                 $this->lock($key, false);
+
                 return true;
             } catch (\Exception $e) {
                 \Logger::debug($e);
@@ -93,10 +97,10 @@ class Dao extends Model\Dao\AbstractDao
 
         $updateMethod = $force ? "insertOrUpdate" : "insert";
 
-        $this->db->$updateMethod("locks", array(
+        $this->db->$updateMethod("locks", [
             "id" => $key,
             "date" => time()
-        ));
+        ]);
     }
 
     public function getById($key)

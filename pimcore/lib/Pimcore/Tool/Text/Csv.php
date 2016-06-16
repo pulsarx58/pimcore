@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 // this is a port / excerpt of: CSV Reader By Luke Visinoni which isn't maintained anymore
@@ -16,7 +18,6 @@ namespace Pimcore\Tool\Text;
 
 class Csv
 {
-
     public function detect($data)
     {
         $linefeed = $this->guessLinefeed($data);
@@ -76,7 +77,7 @@ class Csv
      */
     protected function guessQuoteAndDelim($data)
     {
-        $patterns = array();
+        $patterns = [];
         $patterns[] = '/([^\w\n"\']) ?(["\']).*?(\2)(\1)/';
         $patterns[] = '/(?:^|\n)(["\']).*?(\1)([^\w\n"\']) ?/'; // dont know if any of the regexes starting here work properly
         $patterns[] = '/([^\w\n"\']) ?(["\']).*?(\2)(?:^|\n)/';
@@ -91,7 +92,7 @@ class Csv
         }
 
         if (!$matches) {
-            return array("", null);
+            return ["", null];
         } // couldn't guess quote or delim
 
         $quotes = array_count_values($matches[2]);
@@ -104,7 +105,8 @@ class Csv
             $quote = "";
             $delim = null;
         }
-        return array($quote, $delim);
+
+        return [$quote, $delim];
     }
 
     /**
@@ -117,7 +119,7 @@ class Csv
     {
         $charcount = count_chars($data, 1);
 
-        $filtered = array();
+        $filtered = [];
         foreach ($charcount as $char => $count) {
             if ($char == ord($quotechar)) {
                 // exclude the quote char
@@ -148,7 +150,7 @@ class Csv
 
         // count every character on every line
         $data = explode($linefeed, $data);
-        $tmp = array();
+        $tmp = [];
         $linecount = 0;
         foreach ($data as $row) {
             if (empty($row)) {
@@ -165,7 +167,7 @@ class Csv
             // store the charcount along with the previous counts
             foreach ($frequency as $char => $count) {
                 if (!array_key_exists($char, $tmp)) {
-                    $tmp[$char] = array();
+                    $tmp[$char] = [];
                 }
                 $tmp[$char][] = $count; // this $char appears $count times on this line
             }
@@ -215,6 +217,7 @@ class Csv
             $variance[] = pow($value - $avg, 2);
         }
         $deviation = sqrt(array_sum($variance) / count($variance));
+
         return $deviation;
     }
 }

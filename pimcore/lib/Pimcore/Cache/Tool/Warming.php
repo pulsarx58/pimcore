@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Cache\Tool;
@@ -41,7 +43,7 @@ class Warming
     public static function documents($types = null)
     {
         if (empty($types)) {
-            $types = array("page", "snippet", "folder", "link");
+            $types = ["page", "snippet", "folder", "link"];
         }
 
         $list = new Document\Listing();
@@ -58,7 +60,7 @@ class Warming
     public static function objects($types = null, $classes = null)
     {
         if (empty($types)) {
-            $types = array("object", "folder", "variant");
+            $types = ["object", "folder", "variant"];
         }
 
         $classesCondition = "";
@@ -80,7 +82,7 @@ class Warming
     public static function assets($types = null)
     {
         if (empty($types)) {
-            $types = array("folder", "image", "text", "audio", "video", "document", "archive", "unknown");
+            $types = ["folder", "image", "text", "audio", "video", "document", "archive", "unknown"];
         }
 
         $list = new Asset\Listing();

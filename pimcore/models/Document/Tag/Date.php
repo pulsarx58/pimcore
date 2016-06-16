@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document\Tag;
@@ -127,6 +129,7 @@ class Date extends Model\Document\Tag
         if ($this->date) {
             return false;
         }
+
         return true;
     }
 
@@ -138,7 +141,7 @@ class Date extends Model\Document\Tag
     * @param $idMapper
     * @throws \Exception
     */
-    public function getFromWebserviceImport($wsElement, $document = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($wsElement, $document = null, $params = [], $idMapper = null)
     {
         if (!$wsElement or empty($wsElement->value)) {
             $this->date = null;
@@ -155,7 +158,7 @@ class Date extends Model\Document\Tag
      * @abstract
      * @return array
      */
-    public function getForWebserviceExport($document = null, $params = array())
+    public function getForWebserviceExport($document = null, $params = [])
     {
         if ($this->date) {
             return $this->date->getTimestamp();
@@ -172,7 +175,7 @@ class Date extends Model\Document\Tag
         if (\Pimcore\Config::getFlag("useZendDate")) {
             $this->date = new \Pimcore\Date($timestamp);
         } else {
-            $this->date = new \DateTime();
+            $this->date = new \Carbon\Carbon();
             $this->date->setTimestamp($timestamp);
         }
     }

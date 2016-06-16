@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Controller\Action;
@@ -176,6 +178,29 @@ abstract class Admin extends Action
         \Zend_Registry::set("pimcore_admin_user", $this->user);
 
         $this->setLanguage($this->user->getLanguage());
+
+        // update perspective settings
+        $requestedPerspective = $this->getParam("perspective");
+        if ($requestedPerspective) {
+            if ($requestedPerspective != $user->getActivePerspective()) {
+                $existingPerspectives = array_keys(Config::getPerspectivesConfig()->toArray());
+                if (!in_array($requestedPerspective, $existingPerspectives)) {
+                    $requestedPerspective = null;
+                }
+            }
+        }
+
+        if (!$requestedPerspective) {
+            $requestedPerspective = $user->getActivePerspective();
+        }
+
+        //TODO check if perspective is still allowed
+
+        if ($requestedPerspective != $user->getActivePerspective()) {
+            $user->setActivePerspective($requestedPerspective);
+            $user->save();
+        }
+
         return $this;
     }
 
@@ -210,19 +235,24 @@ abstract class Admin extends Action
             \Zend_Registry::set("Zend_Locale", $locale);
         } else {
             // check if given language is installed if not => skip
-            if (!in_array((string) $locale, AdminTool::getLanguages())) {
+            if (!in_array((string) $locale->getLanguage(), AdminTool::getLanguages())) {
                 return;
             }
 
             \Zend_Registry::set("Zend_Locale", $locale);
             if (\Zend_Registry::isRegistered("Zend_Translate")) {
                 $t = \Zend_Registry::get("Zend_Translate");
-                $t->setLocale($locale);
+                if ((string) $locale != (string) $t->getLocale()) {
+                    $languageFile = AdminTool::getLanguageFile($locale);
+                    $t->addTranslation($languageFile, $locale);
+                    $t->setLocale($locale);
+                }
             }
         }
 
         $this->language = (string) $locale;
         $this->view->language = $this->getLanguage();
+
         return $this;
     }
 
@@ -232,19 +262,24 @@ abstract class Admin extends Action
      */
     public static function initTranslations($instance)
     {
-
-        //add translations to registry
-        $coreLanguageFile = AdminTool::getLanguageFile("en");
-        $translator = new \Zend_Translate('Pimcore\Translate\Adapter\Json', $coreLanguageFile, 'en');
-
-        $availableLanguages = AdminTool::getLanguages();
-
-        foreach ($availableLanguages as $lang) {
-            if ($lang != "en") {
-                $languageFile = AdminTool::getLanguageFile($lang);
-                $translator->addTranslation($languageFile, $lang);
+        $language = "en";
+        $locale = $instance->getLanguage();
+        if ($locale) {
+            $locale = new \Zend_Locale($locale);
+            foreach ([(string) $locale, $locale->getLanguage()] as $localeVariant) {
+                if (in_array($localeVariant, AdminTool::getLanguages())) {
+                    $language = $localeVariant;
+                    break;
+                }
             }
         }
+
+        //add translations to registry
+        $coreLanguageFile = AdminTool::getLanguageFile($language);
+        $translator = new \Zend_Translate('Pimcore\Translate\Adapter\Json', $coreLanguageFile, $language);
+
+        $languageFile = AdminTool::getLanguageFile($language);
+        $translator->addTranslation($languageFile, $language);
 
         if (\Zend_Registry::isRegistered("Zend_Locale")) {
             $locale = \Zend_Registry::get("Zend_Locale");
@@ -265,6 +300,7 @@ abstract class Admin extends Action
     public function setTranslator(\Zend_Translate $t)
     {
         $this->translator = $t;
+
         return $this;
     }
 
@@ -308,8 +344,8 @@ abstract class Admin extends Action
      */
     protected function logUsageStatistics()
     {
-        $params = array();
-        $disallowedKeys = array("_dc", "module", "controller", "action", "password");
+        $params = [];
+        $disallowedKeys = ["_dc", "module", "controller", "action", "password"];
         foreach ($this->getAllParams() as $key => $value) {
             if (is_json($value)) {
                 $value = \Zend_Json::decode($value);

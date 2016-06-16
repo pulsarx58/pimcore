@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Webservice
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Webservice\Data\Document;
@@ -43,14 +45,14 @@ class PageSnippet extends Model\Webservice\Data\Document
 
     public function map($object, $options = null)
     {
-        $originalElements = array();
+        $originalElements = [];
         if (is_array($object->getElements())) {
             $originalElements=$object->getElements();
         }
 
         parent::map($object);
 
-        $this->elements = array();
+        $this->elements = [];
         foreach ($originalElements as $element) {
             $el = new Webservice\Data\Document\Element();
             $el->name = $element->getName();
@@ -71,12 +73,12 @@ class PageSnippet extends Model\Webservice\Data\Document
         parent::reverseMap($object, $disableMappingExceptions, $idMapper);
         
         $object->childs = null;
-        $object->elements = array();
+        $object->elements = [];
 
         if (is_array($this->elements)) {
             foreach ($this->elements as $element) {
                 $tag = Model\Document\Tag::factory($element->type, $element->name, $this->id);
-                $tag->getFromWebserviceImport($element, $object, array(), $idMapper);
+                $tag->getFromWebserviceImport($element, $object, [], $idMapper);
 
                 $object->elements[$element->name] = $tag;
             }

@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\API\Plugin;
@@ -58,6 +60,7 @@ class AbstractPlugin extends AbstractAPI
     protected static function getDb()
     {
         $db = Db::get();
+
         return $db;
     }
 
@@ -102,7 +105,7 @@ class AbstractPlugin extends AbstractAPI
     }
 
     /**
-     * this method allows the plugin to show status messages in pimcore plugin settings 
+     * this method allows the plugin to show status messages in pimcore plugin settings
      *
      * @static
      * @return string

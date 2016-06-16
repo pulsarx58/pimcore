@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\ClassDefinition\Data;
@@ -35,7 +37,7 @@ class Persona extends Model\Object\ClassDefinition\Data\Select
      * @param mixed $params
      * @return string
      */
-    public function getDataFromResource($data, $object = null, $params = array())
+    public function getDataFromResource($data, $object = null, $params = [])
     {
         if (!empty($data)) {
             try {
@@ -54,7 +56,7 @@ class Persona extends Model\Object\ClassDefinition\Data\Select
      * @param mixed $params
      * @return null|string
      */
-    public function getDataForResource($data, $object = null, $params = array())
+    public function getDataForResource($data, $object = null, $params = [])
     {
         if (!empty($data)) {
             try {
@@ -78,12 +80,12 @@ class Persona extends Model\Object\ClassDefinition\Data\Select
         $list->setOrderKey("name");
         $personas = $list->load();
 
-        $options = array();
+        $options = [];
         foreach ($personas as $persona) {
-            $options[] = array(
+            $options[] = [
                 "value" => $persona->getId(),
                 "key" => $persona->getName()
-            );
+            ];
         }
 
         $this->setOptions($options);
@@ -100,13 +102,13 @@ class Persona extends Model\Object\ClassDefinition\Data\Select
     public function checkValidity($data, $omitMandatoryCheck = false)
     {
         if (!$omitMandatoryCheck and $this->getMandatory() and empty($data)) {
-            throw new \Exception("Empty mandatory field [ ".$this->getName()." ]");
+            throw new Model\Element\ValidationException("Empty mandatory field [ ".$this->getName()." ]");
         }
         
         if (!empty($data)) {
             $persona = Tool\Targeting\Persona::getById($data);
             if (!$persona instanceof Tool\Targeting\Persona) {
-                throw new \Exception("invalid persona reference");
+                throw new Model\Element\ValidationException("Invalid persona reference");
             }
         }
     }

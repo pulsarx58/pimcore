@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 use Pimcore\Model\Element;
@@ -18,7 +20,6 @@ use Pimcore\Model;
 
 class Admin_ElementController extends \Pimcore\Controller\Action\Admin
 {
-
     public function lockElementAction()
     {
         Element\Editlock::lock($this->getParam("id"), $this->getParam("type"));
@@ -36,7 +37,7 @@ class Admin_ElementController extends \Pimcore\Controller\Action\Admin
         $id = (int) $this->getParam("id");
         $type = $this->getParam("type");
 
-        $response = array("success" => true);
+        $response = ["success" => true];
 
         if ($element = Element\Service::getElementById($type, $id)) {
             $response["idPath"] = Element\Service::getIdPath($element);
@@ -71,16 +72,16 @@ class Admin_ElementController extends \Pimcore\Controller\Action\Admin
                 $subtype = "folder";
             }
 
-            $this->_helper->json(array(
+            $this->_helper->json([
                 "subtype" => $subtype,
                 "id" => $el->getId(),
                 "type" => $type,
                 "success" => true
-            ));
+            ]);
         } else {
-            $this->_helper->json(array(
+            $this->_helper->json([
                 "success" => false
-            ));
+            ]);
         }
     }
 
@@ -98,11 +99,11 @@ class Admin_ElementController extends \Pimcore\Controller\Action\Admin
             $list->setOrderKey($sortingSettings['orderKey']);
             $list->setOrder($sortingSettings['order']);
         } else {
-            $list->setOrderKey(array("date", "id"));
-            $list->setOrder(array("DESC", "DESC"));
+            $list->setOrderKey(["date", "id"]);
+            $list->setOrder(["DESC", "DESC"]);
         }
 
-        $conditions = array();
+        $conditions = [];
         if ($this->getParam("filter")) {
             $conditions[] = "(`title` LIKE " . $list->quote("%".$this->getParam("filter")."%") . " OR `description` LIKE " . $list->quote("%".$this->getParam("filter")."%") . " OR `type` LIKE " . $list->quote("%".$this->getParam("filter")."%") . ")";
         }
@@ -117,17 +118,17 @@ class Admin_ElementController extends \Pimcore\Controller\Action\Admin
 
         $list->load();
 
-        $notes = array();
+        $notes = [];
 
         foreach ($list->getNotes() as $note) {
             $cpath = "";
             if ($note->getCid() && $note->getCtype()) {
                 if ($element = Element\Service::getElementById($note->getCtype(), $note->getCid())) {
-                    $cpath = $element->getFullpath();
+                    $cpath = $element->getRealFullPath();
                 }
             }
 
-            $e = array(
+            $e = [
                 "id" => $note->getId(),
                 "type" => $note->getType(),
                 "cid" => $note->getCid(),
@@ -136,10 +137,10 @@ class Admin_ElementController extends \Pimcore\Controller\Action\Admin
                 "date" => $note->getDate(),
                 "title" => $note->getTitle(),
                 "description" => $note->getDescription()
-            );
+            ];
 
             // prepare key-values
-            $keyValues = array();
+            $keyValues = [];
             if (is_array($note->getData())) {
                 foreach ($note->getData() as $name => $d) {
                     $type = $d["type"];
@@ -147,11 +148,11 @@ class Admin_ElementController extends \Pimcore\Controller\Action\Admin
 
                     if ($type == "document" || $type == "object" || $type == "asset") {
                         if ($d["data"] instanceof Element\ElementInterface) {
-                            $data = array(
+                            $data = [
                                 "id" => $d["data"]->getId(),
-                                "path" => $d["data"]->getFullpath(),
+                                "path" => $d["data"]->getRealFullPath(),
                                 "type" => $d["data"]->getType()
-                            );
+                            ];
                         }
                     } elseif ($type == "date") {
                         if (is_object($d["data"])) {
@@ -159,11 +160,11 @@ class Admin_ElementController extends \Pimcore\Controller\Action\Admin
                         }
                     }
 
-                    $keyValue = array(
+                    $keyValue = [
                         "type" => $type,
                         "name" => $name,
                         "data" => $data
-                    );
+                    ];
 
                     $keyValues[] = $keyValue;
                 }
@@ -176,10 +177,10 @@ class Admin_ElementController extends \Pimcore\Controller\Action\Admin
             if ($note->getUser()) {
                 $user = Model\User::getById($note->getUser());
                 if ($user) {
-                    $e["user"] = array(
+                    $e["user"] = [
                         "id" => $user->getId(),
                         "name" => $user->getName()
-                    );
+                    ];
                 } else {
                     $e["user"] = "";
                 }
@@ -188,11 +189,11 @@ class Admin_ElementController extends \Pimcore\Controller\Action\Admin
             $notes[] = $e;
         }
 
-        $this->_helper->json(array(
+        $this->_helper->json([
             "data" => $notes,
             "success" => true,
             "total" => $list->getTotalCount()
-        ));
+        ]);
     }
 
     public function noteAddAction()
@@ -208,9 +209,9 @@ class Admin_ElementController extends \Pimcore\Controller\Action\Admin
         $note->setType($this->getParam("type"));
         $note->save();
 
-        $this->_helper->json(array(
+        $this->_helper->json([
             "success" => true
-        ));
+        ]);
     }
 
     public function findUsagesAction()
@@ -221,7 +222,7 @@ class Admin_ElementController extends \Pimcore\Controller\Action\Admin
             $element = Element\Service::getElementByPath($this->getParam("type"), $this->getParam("path"));
         }
 
-        $results = array();
+        $results = [];
         $success = false;
 
         if ($element) {
@@ -229,17 +230,17 @@ class Admin_ElementController extends \Pimcore\Controller\Action\Admin
             foreach ($elements as $el) {
                 $item = Element\Service::getElementById($el["type"], $el["id"]);
                 if ($item instanceof Element\ElementInterface) {
-                    $el["path"] = $item->getFullpath();
+                    $el["path"] = $item->getRealFullPath();
                     $results[] = $el;
                 }
             }
             $success = true;
         }
 
-        $this->_helper->json(array(
+        $this->_helper->json([
             "data" => $results,
             "success" => $success
-        ));
+        ]);
     }
 
     public function replaceAssignmentsAction()
@@ -254,11 +255,11 @@ class Admin_ElementController extends \Pimcore\Controller\Action\Admin
             && $this->getParam("sourceType") == $this->getParam("targetType")
             && $sourceEl->getType() == $targetEl->getType()
         ) {
-            $rewriteConfig = array(
-                $this->getParam("sourceType") => array(
+            $rewriteConfig = [
+                $this->getParam("sourceType") => [
                     $sourceEl->getId() => $targetEl->getId()
-                )
-            );
+                ]
+            ];
 
             if ($element instanceof Document) {
                 $element = Document\Service::rewriteIds($element, $rewriteConfig);
@@ -276,10 +277,10 @@ class Admin_ElementController extends \Pimcore\Controller\Action\Admin
             $message = "source-type and target-type do not match";
         }
 
-        $this->_helper->json(array(
+        $this->_helper->json([
             "success" => $success,
             "message" => $message
-        ));
+        ]);
     }
 
     public function unlockPropagateAction()
@@ -292,16 +293,16 @@ class Admin_ElementController extends \Pimcore\Controller\Action\Admin
             $success = true;
         }
 
-        $this->_helper->json(array(
+        $this->_helper->json([
             "success" => $success
-        ));
+        ]);
     }
 
     public function typePathAction()
     {
         $id = $this->getParam("id");
         $type = $this->getParam("type");
-        $data = array();
+        $data = [];
 
         if ($type == "asset") {
             $element = Asset::getById($id);
@@ -316,7 +317,7 @@ class Admin_ElementController extends \Pimcore\Controller\Action\Admin
         $data["success"] = true;
         $data["idPath"] = Element\Service::getIdPath($element);
         $data["typePath"] = $typePath;
-        $data["fullpath"] = $element->getFullPath();
+        $data["fullpath"] = $element->getRealFullPath();
 
 
         $this->_helper->json($data);
@@ -332,6 +333,6 @@ class Admin_ElementController extends \Pimcore\Controller\Action\Admin
         $version->setNote($data["note"]);
         $version->save();
 
-        $this->_helper->json(array("success" => true));
+        $this->_helper->json(["success" => true]);
     }
 }

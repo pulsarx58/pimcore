@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 use Pimcore\Google;
@@ -39,7 +41,7 @@ class Reports_AnalyticsController extends \Pimcore\Controller\Action\Admin\Repor
         $config = Google\Analytics::getSiteConfig();
 
         $url = $this->getParam("url");
-        $url = str_replace(array("{accountId}", "{internalWebPropertyId}", "{id}"), array($config->accountid, $config->internalid, $config->profile), $url);
+        $url = str_replace(["{accountId}", "{internalWebPropertyId}", "{id}"], [$config->accountid, $config->internalid, $config->profile], $url);
         $url = "https://www.google.com/analytics/web/" . $url;
 
         $this->redirect($url);
@@ -48,10 +50,10 @@ class Reports_AnalyticsController extends \Pimcore\Controller\Action\Admin\Repor
     public function getProfilesAction()
     {
         try {
-            $data = array("data" => array());
+            $data = ["data" => []];
             $result = $this->service->management_accounts->listManagementAccounts();
 
-            $accountIds = array();
+            $accountIds = [];
             if (is_array($result['items'])) {
                 foreach ($result['items'] as $account) {
                     $accountIds[] = $account['id'];
@@ -63,13 +65,13 @@ class Reports_AnalyticsController extends \Pimcore\Controller\Action\Admin\Repor
 
                 if (is_array($details["items"])) {
                     foreach ($details["items"] as $detail) {
-                        $data["data"][] = array(
+                        $data["data"][] = [
                             "id" => $detail["id"],
                             "name" => $detail["name"],
                             "trackid" => $detail["webPropertyId"],
                             "internalid" => $detail["internalWebPropertyId"],
                             "accountid" => $detail["accountId"]
-                        );
+                        ];
                     }
                 }
             }
@@ -109,6 +111,7 @@ class Reports_AnalyticsController extends \Pimcore\Controller\Action\Admin\Repor
                 $site = Site::getById($this->getParam("site"));
                 $path = preg_replace("@^" . preg_quote($site->getRootPath(), "@") . "/@", "/", $path);
             }
+
             return $path;
         }
 
@@ -127,9 +130,9 @@ class Reports_AnalyticsController extends \Pimcore\Controller\Action\Admin\Repor
             $endDate = date("Y-m-d", strtotime($this->getParam("dateTo")));
         }
 
-        $metrics = array("ga:pageviews");
+        $metrics = ["ga:pageviews"];
         if ($this->getParam("metric")) {
-            $metrics = array();
+            $metrics = [];
 
             if (is_array($this->getParam("metric"))) {
                 foreach ($this->getParam("metric") as $m) {
@@ -140,7 +143,7 @@ class Reports_AnalyticsController extends \Pimcore\Controller\Action\Admin\Repor
             }
         }
 
-        $filters = array();
+        $filters = [];
 
         if ($filterPath = $this->getFilterPath()) {
             $filters[] = "ga:pagePath==".$filterPath;
@@ -150,9 +153,9 @@ class Reports_AnalyticsController extends \Pimcore\Controller\Action\Admin\Repor
             $filters[] = $this->getParam("filters");
         }
 
-        $opts = array(
+        $opts = [
             "dimensions" => "ga:date"
-        );
+        ];
 
         if (!empty($filters)) {
             $opts["filters"] = implode(";", $filters);
@@ -166,15 +169,15 @@ class Reports_AnalyticsController extends \Pimcore\Controller\Action\Admin\Repor
             $opts
         );
 
-        $data = array();
+        $data = [];
 
         foreach ($result["rows"] as $row) {
             $date = $row[0];
 
-            $tmpData = array(
+            $tmpData = [
                 "timestamp" => strtotime($date),
                 "datetext" => $this->formatDimension("date", $date)
-            );
+            ];
 
             foreach ($result["columnHeaders"] as $index => $metric) {
                 if (!$this->getParam("dataField")) {
@@ -187,7 +190,7 @@ class Reports_AnalyticsController extends \Pimcore\Controller\Action\Admin\Repor
             $data[] = $tmpData;
         }
 
-        $this->_helper->json(array("data" => $data));
+        $this->_helper->json(["data" => $data]);
     }
 
 
@@ -208,9 +211,9 @@ class Reports_AnalyticsController extends \Pimcore\Controller\Action\Admin\Repor
         }
 
 
-        $opts = array(
+        $opts = [
             "dimensions" => "ga:date"
-        );
+        ];
 
         if (!empty($filters)) {
             $opts["filters"] = implode(";", $filters);
@@ -224,8 +227,8 @@ class Reports_AnalyticsController extends \Pimcore\Controller\Action\Admin\Repor
             $opts
         );
 
-        $data = array();
-        $dailyDataGrouped = array();
+        $data = [];
+        $dailyDataGrouped = [];
 
         foreach ($result["rows"] as $row) {
             foreach ($result["columnHeaders"] as $index => $metric) {
@@ -237,27 +240,27 @@ class Reports_AnalyticsController extends \Pimcore\Controller\Action\Admin\Repor
         }
 
 
-        $order = array(
+        $order = [
             "ga:pageviews"=> 0,
             "ga:uniquePageviews" => 1,
             "ga:exits" => 2,
             "ga:entrances" => 3,
             "ga:bounces" => 4
-        );
+        ];
 
-        $outputData = array();
+        $outputData = [];
         foreach ($data as $key => $value) {
-            $outputData[$order[$key]] = array(
+            $outputData[$order[$key]] = [
                 "label" => str_replace("ga:", "", $key),
                 "value" => round($value, 2),
                 "chart" => \Pimcore\Helper\ImageChart::lineSmall($dailyDataGrouped[$key]),
                 "metric" => str_replace("ga:", "", $key)
-            );
+            ];
         }
 
         ksort($outputData);
 
-        $this->_helper->json(array("data" => $outputData));
+        $this->_helper->json(["data" => $outputData]);
     }
 
 
@@ -277,11 +280,11 @@ class Reports_AnalyticsController extends \Pimcore\Controller\Action\Admin\Repor
             $filters[] = "ga:pagePath==".$filterPath;
         }
 
-        $opts = array(
+        $opts = [
             "dimensions" => "ga:source",
             "max-results" => "10",
             "sort" => "-ga:pageviews"
-        );
+        ];
 
         if (!empty($filters)) {
             $opts["filters"] = implode(";", $filters);
@@ -295,16 +298,16 @@ class Reports_AnalyticsController extends \Pimcore\Controller\Action\Admin\Repor
             $opts
         );
 
-        $data = array();
+        $data = [];
 
         foreach ((array) $result["rows"] as $row) {
-            $data[] = array(
+            $data[] = [
                 "pageviews" => $row[1],
                 "source" => $row[0]
-            );
+            ];
         }
 
-        $this->_helper->json(array("data" => $data));
+        $this->_helper->json(["data" => $data]);
     }
 
     public function dataExplorerAction()
@@ -340,11 +343,11 @@ class Reports_AnalyticsController extends \Pimcore\Controller\Action\Admin\Repor
             $filters[] = "ga:pagePath==".$filterPath;
         }
 
-        $opts = array(
+        $opts = [
             "dimensions" => $dimension,
             "max-results" => $limit,
             "sort" => ($descending ? "-" : "") . $metric
-        );
+        ];
 
         if (!empty($filters)) {
             $opts["filters"] = implode(";", $filters);
@@ -358,43 +361,43 @@ class Reports_AnalyticsController extends \Pimcore\Controller\Action\Admin\Repor
             $opts
         );
 
-        $data = array();
+        $data = [];
         foreach ($result["rows"] as $row) {
-            $data[] = array(
+            $data[] = [
                 "dimension" => $this->formatDimension($dimension, $row[0]),
                 "metric" => (double) $row[1]
-            );
+            ];
         }
 
-        $this->_helper->json(array("data" => $data));
+        $this->_helper->json(["data" => $data]);
     }
 
 
     public function getDimensionsAction()
     {
-        $this->_helper->json(array("data" => Google\Api::getAnalyticsDimensions()));
+        $this->_helper->json(["data" => Google\Api::getAnalyticsDimensions()]);
     }
 
 
     public function getMetricsAction()
     {
-        $this->_helper->json(array("data" => Google\Api::getAnalyticsMetrics()));
+        $this->_helper->json(["data" => Google\Api::getAnalyticsMetrics()]);
     }
 
     public function getSegmentsAction()
     {
         $result = $this->service->management_segments->listManagementSegments();
 
-        $data = array();
+        $data = [];
 
         foreach ($result['items'] as $row) {
-            $data[] = array(
+            $data[] = [
                 "id" => $row['segmentId'],
                 "name" => $row['name']
-            );
+            ];
         }
 
-        $this->_helper->json(array("data" => $data));
+        $this->_helper->json(["data" => $data]);
     }
 
 
@@ -403,6 +406,7 @@ class Reports_AnalyticsController extends \Pimcore\Controller\Action\Admin\Repor
         if (strpos($type, "date") !== false) {
             $date = new \DateTime();
             $date->setTimestamp(strtotime($value));
+
             return $date->format("Y-m-d");
         }
 
@@ -413,6 +417,7 @@ class Reports_AnalyticsController extends \Pimcore\Controller\Action\Admin\Repor
     {
         $minutes = intval(($sec / 60) % 60);
         $seconds = intval($sec % 60);
+
         return str_pad($minutes, 2, "0", STR_PAD_LEFT).":".str_pad($seconds, 2, "0", STR_PAD_LEFT);
     }
 }

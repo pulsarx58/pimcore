@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Element
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Element;
@@ -37,6 +39,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
                 return $properties[$name]->getData();
             }
         }
+
         return null;
     }
 
@@ -47,6 +50,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
     public function hasProperty($name)
     {
         $properties = $this->getProperties();
+
         return array_key_exists($name, $properties);
     }
 
@@ -68,6 +72,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
     public function getCacheTag()
     {
         $elementType = Service::getElementType($this);
+
         return $elementType . "_" . $this->getId();
     }
 
@@ -78,11 +83,12 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
      * @param array $tags
      * @return array
      */
-    public function getCacheTags($tags = array())
+    public function getCacheTags($tags = [])
     {
-        $tags = is_array($tags) ? $tags : array();
+        $tags = is_array($tags) ? $tags : [];
 
         $tags[$this->getCacheTag()] = $this->getCacheTag();
+
         return $tags;
     }
 
@@ -93,7 +99,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
      */
     public function resolveDependencies()
     {
-        $dependencies = array();
+        $dependencies = [];
 
         // check for properties
         if (method_exists($this, "getProperties")) {
@@ -127,8 +133,8 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
     {
         $elementType = Service::getElementType($this);
         $vars = get_class_vars("\\Pimcore\\Model\\User\\Workspace\\" . ucfirst($elementType));
-        $ignored = array("userId","cid","cpath","dao");
-        $permissions = array();
+        $ignored = ["userId", "cid", "cpath", "dao"];
+        $permissions = [];
 
         foreach ($vars as $name => $defaultValue) {
             if (!in_array($name, $ignored)) {

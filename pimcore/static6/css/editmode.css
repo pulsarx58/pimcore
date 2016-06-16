@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 @import '/pimcore/static6/js/lib/ext/classic/theme-triton/resources/theme-triton-all.css';
@@ -26,11 +28,11 @@
 
 /* pimcore editables */
 
-.pimcore_tag_image .x-panel-body {
-    overflow: hidden;
+.pimcore_tag_image {
+    position: relative;
 }
 
-.pimcore_tag_image .x-panel-body img {
+.pimcore_tag_image img {
     max-width: 100%;
     max-height: 100%;
 }
@@ -165,14 +167,24 @@
 .pimcore_tag_image_empty {
 	border: 1px solid #d0d0d0 !important;
 	background:url(/pimcore/static6/img/flat-color-icons/target.svg) center center/45px no-repeat #f9fbfb !important;
-    height: 100px;
+    min-height: 50px;
 }
 
 .pimcore_tag_video_empty {
 	border: 1px solid #d0d0d0 !important;
-	/*background:url(/pimcore/static6/img/icon/drop-40.png) center center no-repeat #f9fbfb !important;*/
     background:url(/pimcore/static6/img/flat-color-icons/film_reel.svg) center center/50px no-repeat #f9fbfb !important;
     cursor: pointer;
+}
+
+.pimcore_tag_embed {
+    position: relative;
+}
+
+.pimcore_tag_embed_empty {
+    border: 1px solid #d0d0d0 !important;
+    background:url(/pimcore/static6/img/flat-color-icons/bricks.svg) center center/50px no-repeat #f9fbfb !important;
+    cursor: pointer;
+    min-height:100px;
 }
 
 .pimcore_tag_href input{

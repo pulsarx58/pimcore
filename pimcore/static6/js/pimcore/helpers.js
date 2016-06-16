@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 /*global localStorage */
@@ -34,12 +36,14 @@ pimcore.helpers.registerKeyBindings = function (bindEl, ExtJS) {
             key:"sa",
             fn: top.pimcore.helpers.openElementByIdDialog.bind(this, "asset"),
             ctrl:true,
-            shift:true
+            shift:true,
+            alt: false
         }, {
             key:"of",
             fn: top.pimcore.helpers.openElementByIdDialog.bind(this, "object"),
             ctrl:true,
-            shift:true
+            shift:true,
+            alt: false
         },  {
             key:"c",
             fn: top.pimcore.helpers.openClassEditor,
@@ -218,19 +222,48 @@ pimcore.helpers.closeObject = function (id) {
     }
 };
 
-pimcore.helpers.updateObjectQTip = function (id, treeData) {
+pimcore.helpers.updateObjectStyle = function (id, treeData) {
     if (treeData) {
-        var tree = pimcore.globalmanager.get("layout_object_tree").tree;
-        var store = tree.getStore();
-        var record = store.getById(id);
-        if (record) {
-            record.set("qtitle", treeData.qtipCfg.title);
-            record.set("qtip", treeData.qtipCfg.text);
+
+        var key = "object_" + id;
+        if (pimcore.globalmanager.exists(key)) {
+            var editMask = pimcore.globalmanager.get(key);
+            if (editMask.tab) {
+                if (typeof treeData.icon !== "undefined") {
+                    editMask.tab.setIcon(treeData.icon);
+                }
+
+                if (typeof treeData.iconCls !== "undefined") {
+                    editMask.tab.setIconCls(treeData.iconCls);
+                }
+            }
+        }
+
+        var treeNames = pimcore.elementservice.getElementTreeNames("object");
+
+        for (var index = 0; index < treeNames.length; index++) {
+            var treeName = treeNames[index];
+            var tree = pimcore.globalmanager.get(treeName);
+            if (!tree) {
+                continue;
+            }
+            tree = tree.tree;
+            var store = tree.getStore();
+            var record = store.getById(id);
+            if (record) {
+                record.set("qtitle", treeData.qtipCfg.title);
+                record.set("qtip", treeData.qtipCfg.text);
+                if (typeof treeData.icon !== "undefined") {
+                    record.set("icon", treeData.icon);
+                }
+
+                if (typeof treeData.iconCls !== "undefined") {
+                    record.set("iconCls", treeData.iconCls);
+                }
+            }
         }
     }
 };
-
-
 
 pimcore.helpers.getHistory = function() {
     var history = localStorage.getItem("pimcore_element_history");
@@ -339,23 +372,37 @@ pimcore.helpers.getElementTypeByObject = function (object) {
     return type;
 };
 
-pimcore.helpers.getTreeNodeLoadingIndicatorElement = function (type, id) {
+pimcore.helpers.getTreeNodeLoadingIndicatorElements = function (type, id) {
     // display loading indicator on treenode
-    try {
-        var tree = pimcore.globalmanager.get("layout_" + type + "_tree").tree;
-        var store = tree.getStore();
-        var node = store.getNodeById(id);
-        if (node) {
-            var view = tree.getView();
-            var nodeEl = Ext.fly(view.getNodeByRecord(node));
-            var icon = nodeEl.query(".x-tree-icon")[0];
+    var elements = [];
+    var treeNames = pimcore.elementservice.getElementTreeNames(type);
 
-            var iconEl = Ext.get(icon);
-            return iconEl;
+    for (index = 0; index < treeNames.length; index++) {
+        var treeName = treeNames[index];
+        var tree = pimcore.globalmanager.get(treeName);
+        if (!tree) {
+            continue;
         }
-    } catch (e) {
-        //console.log(e);
+        tree = tree.tree;
+
+        try {
+            var store = tree.getStore();
+            var node = store.getNodeById(id);
+            if (node) {
+                var view = tree.getView();
+                var nodeEl = Ext.fly(view.getNodeByRecord(node));
+                var icon = nodeEl.query(".x-tree-icon")[0];
+
+                var iconEl = Ext.get(icon);
+                if (iconEl) {
+                    elements.push(iconEl);
+                }
+            }
+        } catch (e) {
+            //console.log(e);
+        }
     }
+    return elements;
 };
 
 pimcore.helpers.treeNodeLoadingIndicatorTimeouts = {};
@@ -364,9 +411,12 @@ pimcore.helpers.addTreeNodeLoadingIndicator = function (type, id) {
 
     pimcore.helpers.treeNodeLoadingIndicatorTimeouts[type + id] = window.setTimeout(function () {
         // display loading indicator on treenode
-        var iconEl = pimcore.helpers.getTreeNodeLoadingIndicatorElement(type, id);
-        if(iconEl) {
-            iconEl.addCls("pimcore_tree_node_loading_indicator");
+        var iconEls = pimcore.helpers.getTreeNodeLoadingIndicatorElements(type, id);
+        for (var index = 0; index < iconEls.length; index++) {
+            var iconEl = iconEls[index];
+            if (iconEl) {
+                iconEl.addCls("pimcore_tree_node_loading_indicator");
+            }
         }
     }, 200);
 };
@@ -376,9 +426,12 @@ pimcore.helpers.removeTreeNodeLoadingIndicator = function (type, id) {
     clearTimeout(pimcore.helpers.treeNodeLoadingIndicatorTimeouts[type + id]);
 
     // display loading indicator on treenode
-    var iconEl = pimcore.helpers.getTreeNodeLoadingIndicatorElement(type, id);
-    if(iconEl) {
-        iconEl.removeCls("pimcore_tree_node_loading_indicator");
+    var iconEls = pimcore.helpers.getTreeNodeLoadingIndicatorElements(type, id);
+    for (var index = 0; index < iconEls.length; index++) {
+        var iconEl = iconEls[index];
+        if (iconEl) {
+            iconEl.removeCls("pimcore_tree_node_loading_indicator");
+        }
     }
 };
 
@@ -430,6 +483,94 @@ pimcore.helpers.getValidFilename = function (value) {
 
 };
 
+pimcore.helpers.showPrettyError = function (type, title, text, errorText, stack, code, hideDelay) {
+
+    if (type != "ValidationException") {
+        pimcore.helpers.showNotification(title, text, "error", errorText, hideDelay);
+        return;
+    }
+    if (errorText != null && errorText != undefined) {
+
+        if (t(errorText) != "~" + errorText + "~") {
+            errorText = t(errorText);}
+
+        text = text + '<br /><hr />' +
+            '<span style="font-size:12px">'
+            + '<b>' + strip_tags(errorText) + '</b>' +
+            "</span>";
+
+    }
+
+    if (stack) {
+        stack = str_replace("#", "<br>#", stack);
+        var htmlValue = '<a href="#">' + t("detailed_info") + '</a>';
+        var detailedInfo = {
+            xtype: "displayfield",
+            readOnly: true,
+            value: htmlValue,
+            width: 300,
+            listeners: {
+                render: function (c) {
+                    c.getEl().on('click', function () {
+                        var detailedWindow = new Ext.Window({
+                            modal: true,
+                            title: t('detailed_info'),
+                            width: 1000,
+                            height: 600,
+                            html: stack,
+                            autoScroll: true,
+                            bodyStyle: "padding: 10px; background:#fff;",
+                            buttonAlign: "center",
+                            shadow: false,
+                            closable: true,
+                            buttons: [{
+                                text: t("OK"),
+                                handler: function () {
+                                    detailedWindow.close();
+                                }
+                            }]
+                        });
+                        detailedWindow.show();
+                    }, c);
+                }.bind(this)
+            }
+        };
+    }
+
+    if (code) {
+        title = title + " " + code;
+    }
+    var errWin = new Ext.Window({
+        modal: true,
+        iconCls: "pimcore_icon_error",
+        title: title,
+        width: 600,
+        //height: 300,
+
+        layout: 'vbox',
+        items: [
+            {
+                xtype: 'panel',
+                html: text,
+                width: '100%'
+            },
+            detailedInfo
+        ],
+        autoScroll: true,
+        bodyStyle: "padding: 10px; background:#fff;",
+        buttonAlign: "center",
+        shadow: false,
+        closable: false,
+        buttons: [{
+            text: "OK",
+            handler: function () {
+                errWin.close();
+            }
+        }]
+    });
+    errWin.show();
+
+}
 pimcore.helpers.showNotification = function (title, text, type, errorText, hideDelay) {
     // icon types: info,error,success
     if(type == "error"){
@@ -454,7 +595,7 @@ pimcore.helpers.showNotification = function (title, text, type, errorText, hideD
             shadow: false,
             closable: false,
             buttons: [{
-                text: "OK",
+                text: t("OK"),
                 handler: function () {
                     errWin.close();
                 }
@@ -567,8 +708,6 @@ pimcore.helpers.handleF5 = function (keyCode, e) {
 
     var date = new Date();
     location.href = "/admin/?_dc=" + date.getTime();
-
-    mapF5.stopEvent = false;
 };
 
 pimcore.helpers.lockManager = function (cid, ctype, csubtype, data) {
@@ -699,422 +838,6 @@ pimcore.helpers.getFileExtension = function (filename) {
 };
 
 
-pimcore.helpers.deleteAsset = function (id, callback) {
-    // check for dependencies
-    Ext.Ajax.request({
-        url: "/admin/asset/delete-info/",
-        params: {id: id},
-        success: pimcore.helpers.deleteAssetCheckDependencyComplete.bind(window, id, callback)
-    });
-};
-
-pimcore.helpers.deleteAssetCheckDependencyComplete = function (id, callback, response) {
-
-    try {
-        var res = Ext.decode(response.responseText);
-        var message = res.batchDelete ? t('delete_message_batch') : t('delete_message');
-
-        if (res.hasDependencies) {
-            message += "<br />" + t('delete_message_dependencies');
-        }
-
-        if(res["childs"] > 100) {
-            message += "<br /><br /><b>" + t("too_many_children_for_recyclebin") + "</b>";
-        }
-
-        Ext.MessageBox.show({
-            title:t('delete'),
-            msg: message,
-            buttons: Ext.Msg.OKCANCEL ,
-            icon: Ext.MessageBox.INFO ,
-            fn: pimcore.helpers.deleteAssetFromServer.bind(window, id, res, callback)
-        });
-    }
-    catch (e) {
-    }
-};
-
-pimcore.helpers.deleteAssetFromServer = function (id, r, callback, button) {
-
-    if (button == "ok" && r.deletejobs) {
-
-        var tree = pimcore.globalmanager.get("layout_asset_tree").tree;
-        var view = tree.getView();
-        var store = tree.getStore();
-        var node = store.getNodeById(id);
-
-        pimcore.helpers.addTreeNodeLoadingIndicator("asset", id);
-
-        if(node) {
-            var nodeEl = Ext.fly(view.getNodeByRecord(node));
-            nodeEl.addCls("pimcore_delete");
-        }
-        /*this.originalClass = Ext.get(this.getUI().getIconEl()).getAttribute("class");
-         Ext.get(this.getUI().getIconEl()).dom.setAttribute("class", "x-tree-node-icon pimcore_icon_loading");*/
-
-
-        if (pimcore.globalmanager.exists("asset_" + id)) {
-            var tabPanel = Ext.getCmp("pimcore_panel_tabs");
-            tabPanel.remove("asset_" + id);
-        }
-
-        if(r.deletejobs.length > 2) {
-            this.deleteProgressBar = new Ext.ProgressBar({
-                text: t('initializing')
-            });
-
-            this.deleteWindow = new Ext.Window({
-                title: t("delete"),
-                layout:'fit',
-                width:500,
-                bodyStyle: "padding: 10px;",
-                closable:false,
-                plain: true,
-                modal: true,
-                items: [this.deleteProgressBar]
-            });
-
-            this.deleteWindow.show();
-        }
-
-
-        var pj = new pimcore.tool.paralleljobs({
-            success: function (id, callback) {
-
-                //var node = pimcore.globalmanager.get("layout_asset_tree").tree.getNodeById(id);
-                try {
-                    if(nodeEl) {
-                        nodeEl.removeCls("pimcore_delete");
-                    }
-                    //Ext.get(this.getUI().getIconEl()).dom.setAttribute("class", this.originalClass);
-                    pimcore.helpers.removeTreeNodeLoadingIndicator("asset", id);
-
-                    if(node) {
-                        node.remove();
-                    }
-                } catch(e) {
-                    console.log(e);
-                    pimcore.helpers.showNotification(t("error"), t("there_was_a_problem_during_deleting"), "error");
-                    if(node) {
-                        tree.getStore().load( {
-                            node: node.parentNode
-                        });
-                    }
-                }
-
-                if(this.deleteWindow) {
-                    this.deleteWindow.close();
-                }
-
-                this.deleteProgressBar = null;
-                this.deleteWindow = null;
-
-                if(typeof callback == "function") {
-                    callback();
-                }
-            }.bind(this, id, callback),
-            update: function (currentStep, steps, percent) {
-                if(this.deleteProgressBar) {
-                    var status = currentStep / steps;
-                    this.deleteProgressBar.updateProgress(status, percent + "%");
-                }
-            }.bind(this),
-            failure: function (id, message) {
-                this.deleteWindow.close();
-
-                pimcore.helpers.showNotification(t("error"), t("there_was_a_problem_during_deleting"),
-                    "error", t(message));
-
-                var node = pimcore.globalmanager.get("layout_asset_tree").tree.getNodeById(id);
-                if(node) {
-                    tree.getStore().load( {
-                        node: node.parentNode
-                    });
-                }
-            }.bind(this, id),
-            jobs: r.deletejobs
-        });
-    }
-};
-
-
-
-pimcore.helpers.deleteDocument = function (id, callback) {
-
-    // check for dependencies
-    Ext.Ajax.request({
-        url: "/admin/document/delete-info/",
-        params: {id: id},
-        success: pimcore.helpers.deleteDocumentCheckDependencyComplete.bind(window, id, callback)
-    });
-};
-
-pimcore.helpers.deleteDocumentCheckDependencyComplete = function (id, callback, response) {
-
-    try {
-        var res = Ext.decode(response.responseText);
-        var message = t('delete_message');
-
-        if (res.hasDependencies) {
-            message += "<br />" + t('delete_message_dependencies');
-        }
-
-        if(res["childs"] > 100) {
-            message += "<br /><br /><b>" + t("too_many_children_for_recyclebin") + "</b>";
-        }
-
-        Ext.MessageBox.show({
-            title:t('delete'),
-            msg: message,
-            buttons: Ext.Msg.OKCANCEL ,
-            icon: Ext.MessageBox.INFO ,
-            fn: pimcore.helpers.deleteDocumentFromServer.bind(window, id, res, callback)
-        });
-    }
-    catch (e) {
-        console.log(e);
-    }
-};
-
-pimcore.helpers.deleteDocumentFromServer = function (id, r, callback, button) {
-
-    if (button == "ok" && r.deletejobs) {
-        var tree = pimcore.globalmanager.get("layout_document_tree").tree;
-        var view = tree.getView();
-        var store = tree.getStore();
-        var node = store.getNodeById(id);
-
-        pimcore.helpers.addTreeNodeLoadingIndicator("document", id);
-
-        if(node) {
-            var nodeEl = Ext.fly(view.getNodeByRecord(node));
-            nodeEl.addCls("pimcore_delete");
-        }
-        /*this.originalClass = Ext.get(this.getUI().getIconEl()).getAttribute("class");
-         Ext.get(this.getUI().getIconEl()).dom.setAttribute("class", "x-tree-node-icon pimcore_icon_loading");*/
-
-
-        if (pimcore.globalmanager.exists("document_" + id)) {
-            var tabPanel = Ext.getCmp("pimcore_panel_tabs");
-            tabPanel.remove("document_" + id);
-        }
-
-        if(r.deletejobs.length > 2) {
-            this.deleteProgressBar = new Ext.ProgressBar({
-                text: t('initializing')
-            });
-
-            this.deleteWindow = new Ext.Window({
-                title: t("delete"),
-                layout:'fit',
-                width:500,
-                bodyStyle: "padding: 10px;",
-                closable:false,
-                plain: true,
-                modal: true,
-                items: [this.deleteProgressBar]
-            });
-
-            this.deleteWindow.show();
-        }
-
-
-        var pj = new pimcore.tool.paralleljobs({
-            success: function (id, callback) {
-
-                //var node = pimcore.globalmanager.get("layout_document_tree").tree.getNodeById(id);
-                try {
-                    if(nodeEl) {
-                        nodeEl.removeCls("pimcore_delete");
-                    }
-                    //Ext.get(this.getUI().getIconEl()).dom.setAttribute("class", this.originalClass);
-                    pimcore.helpers.removeTreeNodeLoadingIndicator("document", id);
-
-                    if(node) {
-                        node.remove();
-                    }
-                } catch(e) {
-                    console.log(e);
-                    pimcore.helpers.showNotification(t("error"), t("error_deleting_document"), "error");
-
-                    if(node) {
-                        tree.getStore().load( {
-                            node: node.parentNode
-                        });
-                    }
-                }
-
-                if(this.deleteWindow) {
-                    this.deleteWindow.close();
-                }
-
-                this.deleteProgressBar = null;
-                this.deleteWindow = null;
-
-                if(typeof callback == "function") {
-                    callback();
-                }
-            }.bind(this, id, callback),
-            update: function (currentStep, steps, percent) {
-                if(this.deleteProgressBar) {
-                    var status = currentStep / steps;
-                    this.deleteProgressBar.updateProgress(status, percent + "%");
-                }
-            }.bind(this),
-            failure: function (message) {
-                this.deleteWindow.close();
-
-                pimcore.helpers.showNotification(t("error"), t("error_deleting_document"), "error", t(message));
-
-                var node = pimcore.globalmanager.get("layout_document_tree").tree.getNodeById(id);
-                if(node) {
-                    tree.getStore().load( {
-                        node: node.parentNode
-                    });
-                }
-            }.bind(this, id),
-            jobs: r.deletejobs
-        });
-    }
-};
-
-
-pimcore.helpers.deleteObject = function (id, callback) {
-
-    // check for dependencies
-    Ext.Ajax.request({
-        url: "/admin/object/delete-info/",
-        params: {id: id},
-        success: pimcore.helpers.deleteObjectCheckDependencyComplete.bind(window, id, callback)
-    });
-};
-
-pimcore.helpers.deleteObjectCheckDependencyComplete = function (id, callback, response) {
-
-    try {
-        var res = Ext.decode(response.responseText);
-        var message = res.batchDelete ? t('delete_message_batch') : t('delete_message');
-        if (res.hasDependencies) {
-            message += "<br />" + t('delete_message_dependencies');
-        }
-
-        if(res["childs"] > 100) {
-            message += "<br /><br /><b>" + t("too_many_children_for_recyclebin") + "</b>";
-        }
-
-        Ext.MessageBox.show({
-            title:t('delete'),
-            msg: message,
-            buttons: Ext.Msg.OKCANCEL ,
-            icon: Ext.MessageBox.INFO ,
-            fn: pimcore.helpers.deleteObjectFromServer.bind(window, id, res, callback)
-        });
-    }
-    catch (e) {
-    }
-};
-
-pimcore.helpers.deleteObjectFromServer = function (id, r, callback, button) {
-
-    if (button == "ok" && r.deletejobs) {
-
-        var tree = pimcore.globalmanager.get("layout_object_tree").tree;
-        var view = tree.getView();
-        var store = tree.getStore();
-        var node = store.getNodeById(id);
-        pimcore.helpers.addTreeNodeLoadingIndicator("object", id);
-
-        if(node) {
-            var nodeEl = Ext.fly(view.getNodeByRecord(node));
-            nodeEl.addCls("pimcore_delete");
-        }
-        /*this.originalClass = Ext.get(this.getUI().getIconEl()).getAttribute("class");
-         Ext.get(this.getUI().getIconEl()).dom.setAttribute("class", "x-tree-node-icon pimcore_icon_loading");*/
-
-
-        if (pimcore.globalmanager.exists("object_" + id)) {
-            var tabPanel = Ext.getCmp("pimcore_panel_tabs");
-            tabPanel.remove("object_" + id);
-        }
-
-        if(r.deletejobs.length > 2) {
-            this.deleteProgressBar = new Ext.ProgressBar({
-                text: t('initializing')
-            });
-
-            this.deleteWindow = new Ext.Window({
-                title: t("delete"),
-                layout:'fit',
-                width:500,
-                bodyStyle: "padding: 10px;",
-                closable:false,
-                plain: true,
-                modal: true,
-                items: [this.deleteProgressBar]
-            });
-
-            this.deleteWindow.show();
-        }
-
-
-        var pj = new pimcore.tool.paralleljobs({
-            success: function (id, callback) {
-
-                //var node = pimcore.globalmanager.get("layout_object_tree").tree.getNodeById(id);
-                try {
-                    if(nodeEl) {
-                        nodeEl.removeCls("pimcore_delete");
-                    }
-                    //Ext.get(this.getUI().getIconEl()).dom.setAttribute("class", this.originalClass);
-                    pimcore.helpers.removeTreeNodeLoadingIndicator("object", id);
-
-                    if(node) {
-                        node.remove();
-                    }
-                } catch(e) {
-                    console.log(e);
-                    pimcore.helpers.showNotification(t("error"), t("error_deleting_object"), "error");
-                    if(node) {
-                        tree.getStore().load( {
-                            node: node.parentNode
-                        });
-                    }
-                }
-
-                if(this.deleteWindow) {
-                    this.deleteWindow.close();
-                }
-
-                this.deleteProgressBar = null;
-                this.deleteWindow = null;
-
-                if(typeof callback == "function") {
-                    callback();
-                }
-            }.bind(this, id, callback),
-            update: function (currentStep, steps, percent) {
-                if(this.deleteProgressBar) {
-                    var status = currentStep / steps;
-                    this.deleteProgressBar.updateProgress(status, percent + "%");
-                }
-            }.bind(this),
-            failure: function (id, message) {
-                this.deleteWindow.close();
-
-                pimcore.helpers.showNotification(t("error"), t("error_deleting_object"), "error", t(message));
-
-                var node = pimcore.globalmanager.get("layout_object_tree").tree.getNodeById(id);
-                if(node) {
-                    tree.getStore().load( {
-                        node: node.parentNode
-                    });
-                }
-            }.bind(this, id),
-            jobs: r.deletejobs
-        });
-    }
-};
-
 pimcore.helpers.getOpenTab = function () {
     var openTabs = localStorage.getItem("pimcore_opentabs");
     if(!openTabs) {
@@ -1175,7 +898,7 @@ pimcore.helpers.openMemorizedTabs = function () {
     var openTabs = pimcore.helpers.getOpenTab();
     var openedTabs = [];
 
-    for(var i=0; i<openTabs.length; i++) {
+    for(var i=0; i < openTabs.length; i++) {
         if(!empty(openTabs[i])) {
             if(!in_array(openTabs[i], openedTabs)) {
                 var parts = openTabs[i].split("_");
@@ -2919,7 +2642,7 @@ pimcore.helpers.editmode.openPdfEditPanel = function () {
 pimcore.helpers.showAbout = function () {
 
     var html = '<div class="pimcore_about_window">';
-    html += '<br><img src="/pimcore/static6/img/logo.svg" style="width: 300px;"><br>';
+    html += '<br><img src="/pimcore/static6/img/logo-gray.svg" style="width: 300px;"><br>';
     html += '<br><b>Version: ' + pimcore.settings.version + '</b>';
     html += '<br><b>Build: ' + pimcore.settings.build + '</b>';
     html += '<br><br>&copy; by pimcore GmbH, Salzburg, Austria (<a href="http://www.pimcore.org/" target="_blank">pimcore.org</a>)';
@@ -2942,3 +2665,92 @@ pimcore.helpers.showAbout = function () {
     win.show();
 };
 
+pimcore.helpers.saveColumnConfig = function(objectId, classId, configuration, searchType, button) {
+
+
+    try {
+        var data = {
+            id: objectId,
+            class_id: classId,
+            gridconfig: Ext.encode(configuration),
+            searchType: searchType
+        };
+
+        Ext.Ajax.request({
+            url: '/admin/object-helper/grid-save-column-config',
+            method: "post",
+            params: data,
+            success: function (response) {
+                try{
+                    var rdata = Ext.decode(response.responseText);
+                    if (rdata && rdata.success) {
+                        if (button) {
+                            button.hide();
+                        }
+                        pimcore.helpers.showNotification(t("success"), t("your_configuration_has_been_saved"), "success");
+                    }
+                    else {
+                        pimcore.helpers.showNotification(t("error"), t("error_saving_configuration"),
+                            "error",t(rdata.message));
+                    }
+                } catch(e){
+                    pimcore.helpers.showNotification(t("error"), t("error_saving_configuration"), "error");
+                }
+            }.bind(this),
+            failure: function () {
+                pimcore.helpers.showNotification(t("error"), t("error_saving_configuration"), "error");
+            }
+        });
+
+    } catch (e3) {
+        pimcore.helpers.showNotification(t("error"), t("error_saving_configuration"), "error");
+    }
+};
+
+pimcore.helpers.openGenericIframeWindow = function (id, src, iconCls, title) {
+    try {
+        pimcore.globalmanager.get(id).activate();
+    }
+    catch (e) {
+        pimcore.globalmanager.add(id, new pimcore.tool.genericiframewindow(id, src, iconCls, title));
+    }
+};
+
+pimcore.helpers.hideRedundantSeparators = function(menu) {
+    var showSeparator = false;
+
+    for (var i = 0; i < menu.items.length; i++) {
+        var item = menu.items.getAt(i);
+
+        if (item instanceof Ext.menu.Separator) {
+            if (!showSeparator || i == menu.items.length - 1) {
+                item.hide();
+            }
+            showSeparator = false;
+        } else {
+            showSeparator = true;
+        }
+    }
+};
+
+pimcore.helpers.initMenuTooltips = function(){
+
+    var items = $("[data-menu-tooltip]:not(.initialized)");
+
+    items.mouseenter(function (e) {
+        $("#pimcore_menu_tooltip").show();
+        $("#pimcore_menu_tooltip").html($(this).data("menu-tooltip"));
+
+        var offset = $(e.target).offset();
+        var top = offset.top;
+        top = top + ($(e.target).height() / 2);
+
+        $("#pimcore_menu_tooltip").css({top: top});
+    });
+
+    items.mouseleave(function () {
+        $("#pimcore_menu_tooltip").hide();
+    });
+
+    items.addClass("initialized", "true");
+};

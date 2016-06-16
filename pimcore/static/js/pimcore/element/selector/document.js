@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.element.selector.document");
@@ -21,7 +23,7 @@ pimcore.element.selector.document = Class.create(pimcore.element.selector.abstra
                 method: 'POST',
                 url: "/admin/search/search/find"
             }),
-            fields: ["id","fullpath","type","subtype","published","title","description","keywords","name","filename"]
+            fields: ["id","fullpath","type","subtype","published","title","description","name","filename"]
         });
     },
 
@@ -190,7 +192,6 @@ pimcore.element.selector.document = Class.create(pimcore.element.selector.abstra
                 {header: t("path"), width: 200, sortable: true, dataIndex: 'fullpath'},
                 {header: t("title"), width: 200, sortable: false, dataIndex: 'title', hidden: false},
                 {header: t("description"), width: 200, sortable: false, dataIndex: 'description', hidden: true},
-                {header: t("keywords"), width: 200, sortable: false, dataIndex: 'keywords', hidden: true},
                 {header: t("filename"), width: 200, sortable: false, dataIndex: 'filename', hidden: true}
             ];
 

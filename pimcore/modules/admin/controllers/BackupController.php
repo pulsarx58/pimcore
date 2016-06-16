@@ -2,18 +2,18 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code. dsf sdaf asdf asdf
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 class Admin_BackupController extends \Pimcore\Controller\Action\Admin
 {
-
-
     public function init()
     {
         parent::init();
@@ -88,9 +88,7 @@ class Admin_BackupController extends \Pimcore\Controller\Action\Admin
         $backup = $this->session->backup;
         
         header("Content-Type: application/zip");
-        header('Content-Disposition: attachment; filename="' . basename($backup->getBackupFile()) . '"');
-
-        while (@ob_end_flush());
+        header('Content-Disposition: attachment; filename="' . basename($backup->getBackupFile()) . '"'); while (@ob_end_flush());
         flush();
 
         readfile($backup->getBackupFile());

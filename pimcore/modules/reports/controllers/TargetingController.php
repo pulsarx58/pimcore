@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 use Pimcore\Model\Tool\Targeting;
@@ -15,13 +17,12 @@ use Pimcore\Model\Document;
 
 class Reports_TargetingController extends \Pimcore\Controller\Action\Admin
 {
-
     public function init()
     {
         parent::init();
 
         // check permissions
-        $notRestrictedActions = array("persona-list");
+        $notRestrictedActions = ["persona-list"];
         if (!in_array($this->getParam("action"), $notRestrictedActions)) {
             $this->checkPermission("targeting");
         }
@@ -31,15 +32,15 @@ class Reports_TargetingController extends \Pimcore\Controller\Action\Admin
 
     public function ruleListAction()
     {
-        $targets = array();
+        $targets = [];
         $list = new Targeting\Rule\Listing();
 
         foreach ($list->load() as $target) {
-            $targets[] = array(
+            $targets[] = [
                 "id" => $target->getId(),
                 "text" => $target->getName(),
                 "qtip" => $target->getId()
-            );
+            ];
         }
 
         $this->_helper->json($targets);
@@ -51,7 +52,7 @@ class Reports_TargetingController extends \Pimcore\Controller\Action\Admin
         $target->setName($this->getParam("name"));
         $target->save();
 
-        $this->_helper->json(array("success" => true, "id" => $target->getId()));
+        $this->_helper->json(["success" => true, "id" => $target->getId()]);
     }
 
     public function ruleDeleteAction()
@@ -64,7 +65,7 @@ class Reports_TargetingController extends \Pimcore\Controller\Action\Admin
             $success = true;
         }
 
-        $this->_helper->json(array("success" => $success));
+        $this->_helper->json(["success" => $success]);
     }
 
     public function ruleGetAction()
@@ -108,7 +109,7 @@ class Reports_TargetingController extends \Pimcore\Controller\Action\Admin
 
         $target->save();
 
-        $this->_helper->json(array("success" => true));
+        $this->_helper->json(["success" => true]);
     }
 
 
@@ -119,15 +120,15 @@ class Reports_TargetingController extends \Pimcore\Controller\Action\Admin
 
     public function personaListAction()
     {
-        $personas = array();
+        $personas = [];
         $list = new Targeting\Persona\Listing();
 
         foreach ($list->load() as $persona) {
-            $personas[] = array(
+            $personas[] = [
                 "id" => $persona->getId(),
                 "text" => $persona->getName(),
                 "qtip" => $persona->getId()
-            );
+            ];
         }
 
         $this->_helper->json($personas);
@@ -139,7 +140,7 @@ class Reports_TargetingController extends \Pimcore\Controller\Action\Admin
         $persona->setName($this->getParam("name"));
         $persona->save();
 
-        $this->_helper->json(array("success" => true, "id" => $persona->getId()));
+        $this->_helper->json(["success" => true, "id" => $persona->getId()]);
     }
 
     public function personaDeleteAction()
@@ -152,7 +153,7 @@ class Reports_TargetingController extends \Pimcore\Controller\Action\Admin
             $success = true;
         }
 
-        $this->_helper->json(array("success" => $success));
+        $this->_helper->json(["success" => $success]);
     }
 
     public function personaGetAction()
@@ -171,6 +172,6 @@ class Reports_TargetingController extends \Pimcore\Controller\Action\Admin
         $persona->setConditions($data["conditions"]);
         $persona->save();
 
-        $this->_helper->json(array("success" => true));
+        $this->_helper->json(["success" => true]);
     }
 }

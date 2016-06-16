@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Tool
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Tool\Targeting;
@@ -48,7 +50,7 @@ class Rule extends Model\AbstractModel
     /**
      * @var array
      */
-    public $conditions = array();
+    public $conditions = [];
 
     /**
      * @var Model\Tool\Targeting\Rule\Actions
@@ -77,6 +79,7 @@ class Rule extends Model\AbstractModel
         if (array_key_exists("_ptc", $_GET) && intval($targetId) == intval($_GET["_ptc"])) {
             return true;
         }
+
         return false;
     }
 
@@ -109,6 +112,7 @@ class Rule extends Model\AbstractModel
             $target = new self();
             $target->setId(intval($id));
             $target->getDao()->getById();
+
             return $target;
         } catch (\Exception $e) {
             return null;
@@ -125,6 +129,7 @@ class Rule extends Model\AbstractModel
             $target = new self();
             $target->setName($name);
             $target->getDao()->getByName();
+
             return $target;
         } catch (\Exception $e) {
             return null;
@@ -138,6 +143,7 @@ class Rule extends Model\AbstractModel
     public function setDescription($description)
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -156,6 +162,7 @@ class Rule extends Model\AbstractModel
     public function setId($id)
     {
         $this->id = (int) $id;
+
         return $this;
     }
 
@@ -174,6 +181,7 @@ class Rule extends Model\AbstractModel
     public function setName($name)
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -195,6 +203,7 @@ class Rule extends Model\AbstractModel
             $actions = new Tool\Targeting\Rule\Actions();
         }
         $this->actions = $actions;
+
         return $this;
     }
 
@@ -218,9 +227,10 @@ class Rule extends Model\AbstractModel
     public function setConditions($conditions)
     {
         if (!$conditions) {
-            $conditions = array();
+            $conditions = [];
         }
         $this->conditions = $conditions;
+
         return $this;
     }
 

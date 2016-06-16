@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Tool;
@@ -27,7 +29,7 @@ class XmlWriter extends \Zend_Config_Writer_Xml
      *
      * @var array
      */
-    protected $rootElementAttributes = array();
+    protected $rootElementAttributes = [];
 
     /**
      * @var string
@@ -39,7 +41,7 @@ class XmlWriter extends \Zend_Config_Writer_Xml
      *
      * @param array $options
      */
-    public function __construct($options = array())
+    public function __construct($options = [])
     {
         foreach ($options as $key => $value) {
             $setter = "set" . ucfirst($key);
@@ -70,6 +72,7 @@ class XmlWriter extends \Zend_Config_Writer_Xml
     public function setRootElementAttributes($rootElementAttributes)
     {
         $this->rootElementAttributes = $rootElementAttributes;
+
         return $this;
     }
 
@@ -81,6 +84,7 @@ class XmlWriter extends \Zend_Config_Writer_Xml
     public function setRootElementName($name)
     {
         $this->rootElementName = $name;
+
         return $this;
     }
 
@@ -115,6 +119,7 @@ class XmlWriter extends \Zend_Config_Writer_Xml
     public function setEncoding($encoding)
     {
         $this->encoding  = $encoding;
+
         return $this;
     }
 
@@ -142,6 +147,7 @@ class XmlWriter extends \Zend_Config_Writer_Xml
     public function setFormatOutput($formatOutput)
     {
         $this->formatOutput = $formatOutput;
+
         return $this;
     }
 
@@ -154,6 +160,7 @@ class XmlWriter extends \Zend_Config_Writer_Xml
             $xml->{$key} = null;
             $child = $xml->{$key}->addCData((string) $data);
         }
+
         return $child;
     }
 
@@ -255,7 +262,7 @@ class XmlWriter extends \Zend_Config_Writer_Xml
      */
     public function displayXML()
     {
-        # header("Content-Type: application/xml");
+        // header("Content-Type: application/xml");
         die($this->render());
     }
 }

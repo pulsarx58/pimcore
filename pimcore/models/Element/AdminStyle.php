@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Element
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Element;
@@ -18,7 +20,6 @@ use Pimcore\Model;
 
 class AdminStyle
 {
-
     protected $elementCssClass;
     protected $elementIcon;
     protected $elementIconClass;
@@ -28,9 +29,9 @@ class AdminStyle
     {
         if ($element->getType() == "folder") {
             $this->elementIconClass = "pimcore_icon_folder";
-            $this->elementQtipConfig = array(
+            $this->elementQtipConfig = [
                 "title" => "ID: " . $element->getId()
-            );
+            ];
         } else {
             if ($element->getClass()->getIcon()) {
                 $this->elementIcon = $element->getClass()->getIcon();
@@ -38,16 +39,17 @@ class AdminStyle
                 $this->elementIconClass = "pimcore_icon_object";
             }
 
-            $this->elementQtipConfig = array(
+            $this->elementQtipConfig = [
                 "title" => "ID: " . $element->getId(),
                 "text" => 'Type: ' . $element->getClass()->getName()
-            );
+            ];
         }
     }
 
     public function setElementCssClass($elementCssClass)
     {
         $this->elementCssClass = $elementCssClass;
+
         return $this;
     }
 
@@ -59,6 +61,7 @@ class AdminStyle
     public function setElementIcon($elementIcon)
     {
         $this->elementIcon = $elementIcon;
+
         return $this;
     }
 
@@ -70,6 +73,7 @@ class AdminStyle
     public function setElementIconClass($elementIconClass)
     {
         $this->elementIconClass = $elementIconClass;
+
         return $this;
     }
 

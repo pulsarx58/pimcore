@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\ClassDefinition\Data;
@@ -52,28 +54,29 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
      * @param mixed $params
      * @return array
      */
-    public function getDataForResource($data, $object = null, $params = array())
+    public function getDataForResource($data, $object = null, $params = [])
     {
-        $return = array();
+        $return = [];
 
         if (is_array($data) && count($data) > 0) {
             $counter = 1;
             foreach ($data as $metaObject) {
                 $element = $metaObject->getElement();
                 if ($element instanceof Element\ElementInterface) {
-                    $return[] = array(
+                    $return[] = [
                         "dest_id" => $element->getId(),
                         "type" => Element\Service::getElementType($element),
                         "fieldname" => $this->getName(),
                         "index" => $counter
-                    );
+                    ];
                 }
                 $counter++;
             }
+
             return $return;
         } elseif (is_array($data) and count($data)===0) {
             //give empty array if data was not null
-            return array();
+            return [];
         } else {
             //return null if data was null - this indicates data was not loaded
             return null;
@@ -87,9 +90,9 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
      * @param mixed $params
      * @return array
      */
-    public function getDataFromResource($data, $object = null, $params = array())
+    public function getDataFromResource($data, $object = null, $params = [])
     {
-        $list = array();
+        $list = [];
 
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $element) {
@@ -132,7 +135,7 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
      * @param mixed $params
      * @throws \Exception
      */
-    public function getDataForQueryResource($data, $object = null, $params = array())
+    public function getDataForQueryResource($data, $object = null, $params = [])
     {
 
         //return null when data is not set
@@ -140,7 +143,7 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
             return null;
         }
 
-        $ids = array();
+        $ids = [];
 
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $metaObject) {
@@ -150,6 +153,7 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
                     $d[] = $elementType . "|" . $element->getId();
                 }
             }
+
             return "," . implode(",", $ids) . ",";
         } elseif (is_array($data) && count($data) === 0) {
             return "";
@@ -165,9 +169,9 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
      * @param mixed $params
      * @return array
      */
-    public function getDataForEditmode($data, $object = null, $params = array())
+    public function getDataForEditmode($data, $object = null, $params = [])
     {
-        $return = array();
+        $return = [];
 
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $metaObject) {
@@ -176,13 +180,13 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
                 $itemData = null;
 
                 if ($element instanceof Object\Concrete) {
-                    $itemData = array("id" => $element->getId(), "path" => $element->getFullPath(), "type" => "object", "subtype" => $element->getClassName());
+                    $itemData = ["id" => $element->getId(), "path" => $element->getRealFullPath(), "type" => "object", "subtype" => $element->getClassName()];
                 } elseif ($element instanceof Object\AbstractObject) {
-                    $itemData = array("id" => $element->getId(), "path" => $element->getFullPath(), "type" => "object",  "subtype" => "folder");
+                    $itemData = ["id" => $element->getId(), "path" => $element->getRealFullPath(), "type" => "object",  "subtype" => "folder"];
                 } elseif ($element instanceof Asset) {
-                    $itemData = array("id" => $element->getId(), "path" => $element->getFullPath(), "type" => "asset",  "subtype" => $element->getType());
+                    $itemData = ["id" => $element->getId(), "path" => $element->getRealFullPath(), "type" => "asset",  "subtype" => $element->getType()];
                 } elseif ($element instanceof Document) {
-                    $itemData= array("id" => $element->getId(), "path" => $element->getFullPath(), "type" => "document", "subtype" => $element->getType());
+                    $itemData= ["id" => $element->getId(), "path" => $element->getRealFullPath(), "type" => "document", "subtype" => $element->getType()];
                 }
 
                 if (!$itemData) {
@@ -199,6 +203,7 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
             if (empty($return)) {
                 $return = false;
             }
+
             return $return;
         }
     }
@@ -211,14 +216,14 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
      * @param mixed $params
      * @return array
      */
-    public function getDataFromEditmode($data, $object = null, $params = array())
+    public function getDataFromEditmode($data, $object = null, $params = [])
     {
         //if not set, return null
         if ($data === null or $data === false) {
             return null;
         }
 
-        $multihrefMetadata = array();
+        $multihrefMetadata = [];
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $element) {
                 if ($element["type"] == "object") {
@@ -254,16 +259,17 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
      * @param null $object
      * @return array
      */
-    public function getDataForGrid($data, $object = null, $params = array())
+    public function getDataForGrid($data, $object = null, $params = [])
     {
         if (is_array($data)) {
-            $pathes = array();
+            $pathes = [];
             foreach ($data as $metaObject) {
                 $eo = $metaObject->getElement();
                 if ($eo instanceof Element\ElementInterface) {
-                    $pathes[] = $eo->getFullPath();
+                    $pathes[] = $eo->getRealFullPath();
                 }
             }
+
             return $pathes;
         }
     }
@@ -275,13 +281,14 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
      * @param mixed $params
      * @return string
      */
-    public function getVersionPreview($data, $object = null, $params = array())
+    public function getVersionPreview($data, $object = null, $params = [])
     {
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $metaObject) {
                 $o = $metaObject->getElement();
-                $pathes[] = Element\Service::getElementType($o) . " " . $o->getFullPath();
+                $pathes[] = Element\Service::getElementType($o) . " " . $o->getRealFullPath();
             }
+
             return implode("<br />", $pathes);
         }
     }
@@ -296,13 +303,13 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
     public function checkValidity($data, $omitMandatoryCheck = false)
     {
         if (!$omitMandatoryCheck and $this->getMandatory() and empty($data)) {
-            throw new \Exception("Empty mandatory field [ ".$this->getName()." ]");
+            throw new Element\ValidationException("Empty mandatory field [ ".$this->getName()." ]");
         }
 
         if (is_array($data)) {
             foreach ($data as $elementMetadata) {
                 if (!($elementMetadata instanceof Object\Data\ElementMetadata)) {
-                    throw new \Exception("Expected Object\\Data\\ElementMetadata");
+                    throw new Element\ValidationException("Expected Object\\Data\\ElementMetadata");
                 }
 
                 $d = $elementMetadata->getElement();
@@ -319,7 +326,7 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
                     $allow = false;
                 }
                 if (!$allow) {
-                    throw new \Exception("Invalid multihref relation", null, null);
+                    throw new Element\ValidationException("Invalid multihref relation", null, null);
                 }
             }
         }
@@ -332,17 +339,18 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
      * @param array $params
      * @return string
      */
-    public function getForCsvExport($object, $params = array())
+    public function getForCsvExport($object, $params = [])
     {
-        $data = $this->getDataFromObjectParam($object);
+        $data = $this->getDataFromObjectParam($object, $params);
         if (is_array($data)) {
-            $paths = array();
+            $paths = [];
             foreach ($data as $metaObject) {
                 $eo = $metaObject->getElement();
                 if ($eo instanceof Element\ElementInterface) {
-                    $paths[] = Element\Service::getType($eo) . ":" . $eo->getFullPath();
+                    $paths[] = Element\Service::getType($eo) . ":" . $eo->getRealFullPath();
                 }
             }
+
             return implode(",", $paths);
         } else {
             return null;
@@ -355,11 +363,11 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
      * @param mixed $params
      * @return array|mixed
      */
-    public function getFromCsvImport($importValue, $object = null, $params = array())
+    public function getFromCsvImport($importValue, $object = null, $params = [])
     {
         $values = explode(",", $importValue);
 
-        $value = array();
+        $value = [];
         foreach ($values as $element) {
             $tokens = explode(":", $element);
 
@@ -386,9 +394,9 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
      * @param array $tags
      * @return array
      */
-    public function getCacheTags($data, $tags = array())
+    public function getCacheTags($data, $tags = [])
     {
-        $tags = is_array($tags) ? $tags : array();
+        $tags = is_array($tags) ? $tags : [];
 
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $metaObject) {
@@ -398,6 +406,7 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
                 }
             }
         }
+
         return $tags;
     }
 
@@ -407,15 +416,15 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
      * @param mixed $params
      * @return array|mixed|null
      */
-    public function getForWebserviceExport($object, $params = array())
+    public function getForWebserviceExport($object, $params = [])
     {
         $data = $this->getDataFromObjectParam($object, $params);
         if (is_array($data)) {
-            $items = array();
+            $items = [];
             foreach ($data as $metaObject) {
                 $eo = $metaObject->getElement();
                 if ($eo instanceof Element\ElementInterface) {
-                    $item = array();
+                    $item = [];
                     $item["type"] = Element\Service::getType($eo);
                     $item["id"] = $eo->getId();
 
@@ -426,6 +435,7 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
                     $items[] = $item;
                 }
             }
+
             return $items;
         } else {
             return null;
@@ -441,12 +451,12 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
      * @return mixed|void
      * @throws \Exception
      */
-    public function getFromWebserviceImport($value, $relatedObject = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($value, $relatedObject = null, $params = [], $idMapper = null)
     {
         if (empty($value)) {
             return null;
         } elseif (is_array($value)) {
-            $hrefs = array();
+            $hrefs = [];
             foreach ($value as $href) {
                 // cast is needed to make it work for both SOAP and REST
                 $href = (array) $href;
@@ -481,6 +491,7 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
                     }
                 }
             }
+
             return $hrefs;
         } else {
             throw new \Exception("cannot get values from web service import - invalid data");
@@ -492,7 +503,7 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
      * @param Object\Concrete $object
      * @return void
      */
-    public function save($object, $params = array())
+    public function save($object, $params = [])
     {
         $multihrefMetadata = $this->getDataFromObjectParam($object, $params);
 
@@ -558,14 +569,14 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
         parent::save($object, $params);
     }
 
-    public function preGetData($object, $params = array())
+    public function preGetData($object, $params = [])
     {
         $data = null;
         if ($object instanceof Object\Concrete) {
             $data = $object->{$this->getName()};
             if ($this->getLazyLoading() and !in_array($this->getName(), $object->getO__loadedLazyFields())) {
                 //$data = $this->getDataFromResource($object->getRelationData($this->getName(),true,null));
-                $data = $this->load($object, array("force" => true));
+                $data = $this->load($object, ["force" => true]);
 
                 $setter = "set" . ucfirst($this->getName());
                 if (method_exists($object, $setter)) {
@@ -581,13 +592,14 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
         }
 
         if (Object\AbstractObject::doHideUnpublished() and is_array($data)) {
-            $publishedList = array();
+            $publishedList = [];
             /** @var  $listElement Object\Data\ElementMetadata */
             foreach ($data as $listElement) {
                 if (Element\Service::isPublished($listElement->getElement())) {
                     $publishedList[] = $listElement;
                 }
             }
+
             return $publishedList;
         }
 
@@ -598,7 +610,7 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
      * @param Object\Concrete $object
      * @return void
      */
-    public function delete($object, $params = array())
+    public function delete($object, $params = [])
     {
         $db = Db::get();
 
@@ -624,17 +636,18 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
     public function setColumns($columns)
     {
         if (isset($columns['key'])) {
-            $columns = array($columns);
+            $columns = [$columns];
         }
-        usort($columns, array($this, 'sort'));
+        usort($columns, [$this, 'sort']);
 
-        $this->columns = array();
-        $this->columnKeys = array();
+        $this->columns = [];
+        $this->columnKeys = [];
         foreach ($columns as $c) {
             $c['key'] = strtolower($c['key']);
             $this->columns[] = $c;
             $this->columnKeys[] = $c['key'];
         }
+
         return $this;
     }
 
@@ -651,10 +664,11 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
      */
     public function getColumnKeys()
     {
-        $this->columnKeys = array();
+        $this->columnKeys = [];
         foreach ($this->columns as $c) {
             $this->columnKeys[] = $c['key'];
         }
+
         return $this->columnKeys;
     }
 
@@ -668,6 +682,7 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
         if (is_array($a) && is_array($b)) {
             return $a['position'] - $b['position'];
         }
+
         return strcmp($a, $b);
     }
 
@@ -696,7 +711,7 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
      * @param array $params
      * @return Element\ElementInterface
      */
-    public function rewriteIds($object, $idMapping, $params = array())
+    public function rewriteIds($object, $idMapping, $params = [])
     {
         $data = $this->getDataFromObjectParam($object, $params);
 
@@ -741,19 +756,20 @@ class MultihrefMetadata extends Model\Object\ClassDefinition\Data\Multihref
      */
     public function resolveDependencies($data)
     {
-        $dependencies = array();
+        $dependencies = [];
 
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $metaElement) {
                 $o = $metaElement->getElement();
                 if ($o instanceof Object\AbstractObject) {
-                    $dependencies["object_" . $o->getId()] = array(
+                    $dependencies["object_" . $o->getId()] = [
                         "id" => $o->getId(),
                         "type" => "object"
-                    );
+                    ];
                 }
             }
         }
+
         return $dependencies;
     }
 }

@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object;
@@ -84,7 +86,7 @@ class ClassDefinition extends Model\AbstractModel
     /**
      * @var array
      */
-    public $fieldDefinitions = array();
+    public $fieldDefinitions = [];
 
     /**
      * @var array
@@ -104,22 +106,22 @@ class ClassDefinition extends Model\AbstractModel
     /**
      * @var array
      */
-    public $propertyVisibility = array(
-        "grid" => array(
+    public $propertyVisibility = [
+        "grid" => [
             "id" => true,
             "path" => true,
             "published" => true,
             "modificationDate" => true,
             "creationDate" => true
-        ),
-        "search" => array(
+        ],
+        "search" => [
             "id" => true,
             "path" => true,
             "published" => true,
             "modificationDate" => true,
             "creationDate" => true
-        )
-    );
+        ]
+    ];
 
 
     /**
@@ -147,6 +149,7 @@ class ClassDefinition extends Model\AbstractModel
                 \Zend_Registry::set($cacheKey, $class);
             } catch (\Exception $e) {
                 \Logger::error($e);
+
                 return null;
             }
         }
@@ -166,6 +169,7 @@ class ClassDefinition extends Model\AbstractModel
             $class->getDao()->getByName($name);
         } catch (\Exception $e) {
             \Logger::error($e);
+
             return null;
         }
 
@@ -179,10 +183,11 @@ class ClassDefinition extends Model\AbstractModel
      * @param array $values
      * @return self
      */
-    public static function create($values = array())
+    public static function create($values = [])
     {
         $class = new self();
         $class->setValues($values);
+
         return $class;
     }
 
@@ -238,7 +243,7 @@ class ClassDefinition extends Model\AbstractModel
         $cd .= "/**\n";
 
         if ($this->getDescription()) {
-            $description = str_replace(array("/**", "*/", "//"), "", $this->getDescription());
+            $description = str_replace(["/**", "*/", "//"], "", $this->getDescription());
             $description = str_replace("\n", "\n* ", $description);
 
             $cd .= "* " . $description . "\n";
@@ -266,7 +271,11 @@ class ClassDefinition extends Model\AbstractModel
         if (is_array($this->getFieldDefinitions()) && count($this->getFieldDefinitions())) {
             foreach ($this->getFieldDefinitions() as $key => $def) {
                 if (!(method_exists($def, "isRemoteOwner") and $def->isRemoteOwner())) {
-                    $cd .= "* @method static \\Pimcore\\Model\\Object\\" . ucfirst($this->getName()) . '\Listing getBy' . ucfirst($def->getName()) . ' ($value, $limit = 0) ' ."\n";
+                    if ($def instanceof Object\ClassDefinition\Data\Localizedfields) {
+                        $cd .= "* @method static \\Pimcore\\Model\\Object\\" . ucfirst($this->getName()) . '\Listing getBy' . ucfirst($def->getName()) . ' ($field, $value, $locale = null, $limit = 0) ' . "\n";
+                    } else {
+                        $cd .= "* @method static \\Pimcore\\Model\\Object\\" . ucfirst($this->getName()) . '\Listing getBy' . ucfirst($def->getName()) . ' ($value, $limit = 0) ' . "\n";
+                    }
                 }
             }
         }
@@ -308,7 +317,7 @@ class ClassDefinition extends Model\AbstractModel
         $cd .= "\n\n";
 
         if (is_array($this->getFieldDefinitions()) && count($this->getFieldDefinitions())) {
-            $relationTypes = array();
+            $relationTypes = [];
             foreach ($this->getFieldDefinitions() as $key => $def) {
                 if (method_exists($def, "isRemoteOwner") and $def->isRemoteOwner()) {
                     continue;
@@ -324,7 +333,7 @@ class ClassDefinition extends Model\AbstractModel
                 }
 
                 if ($def->isRelationType()) {
-                    $relationTypes[$key] = array("type" => $def->getFieldType());
+                    $relationTypes[$key] = ["type" => $def->getFieldType()];
                 }
 
                 // collect lazyloaded fields
@@ -497,6 +506,7 @@ class ClassDefinition extends Model\AbstractModel
     public function setId($id)
     {
         $this->id = (int) $id;
+
         return $this;
     }
 
@@ -507,6 +517,7 @@ class ClassDefinition extends Model\AbstractModel
     public function setName($name)
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -517,6 +528,7 @@ class ClassDefinition extends Model\AbstractModel
     public function setCreationDate($creationDate)
     {
         $this->creationDate = (int) $creationDate;
+
         return $this;
     }
 
@@ -527,6 +539,7 @@ class ClassDefinition extends Model\AbstractModel
     public function setModificationDate($modificationDate)
     {
         $this->modificationDate = (int) $modificationDate;
+
         return $this;
     }
 
@@ -537,6 +550,7 @@ class ClassDefinition extends Model\AbstractModel
     public function setUserOwner($userOwner)
     {
         $this->userOwner = (int) $userOwner;
+
         return $this;
     }
 
@@ -547,6 +561,7 @@ class ClassDefinition extends Model\AbstractModel
     public function setUserModification($userModification)
     {
         $this->userModification = (int) $userModification;
+
         return $this;
     }
 
@@ -573,6 +588,7 @@ class ClassDefinition extends Model\AbstractModel
     public function setFieldDefinitions($fieldDefinitions)
     {
         $this->fieldDefinitions = $fieldDefinitions;
+
         return $this;
     }
 
@@ -584,6 +600,7 @@ class ClassDefinition extends Model\AbstractModel
     public function addFieldDefinition($key, $data)
     {
         $this->fieldDefinitions[$key] = $data;
+
         return $this;
     }
 
@@ -595,6 +612,7 @@ class ClassDefinition extends Model\AbstractModel
         if (array_key_exists($key, $this->fieldDefinitions)) {
             return $this->fieldDefinitions[$key];
         }
+
         return false;
     }
 
@@ -606,7 +624,7 @@ class ClassDefinition extends Model\AbstractModel
     {
         $this->layoutDefinitions = $layoutDefinitions;
 
-        $this->fieldDefinitions = array();
+        $this->fieldDefinitions = [];
         $this->extractDataDefinitions($this->layoutDefinitions);
 
         return $this;
@@ -656,6 +674,7 @@ class ClassDefinition extends Model\AbstractModel
     public function setParent($parent)
     {
         $this->parent = $parent;
+
         return $this;
     }
 
@@ -682,6 +701,7 @@ class ClassDefinition extends Model\AbstractModel
     public function setUseTraits($useTraits)
     {
         $this->useTraits = $useTraits;
+
         return $this;
     }
 
@@ -708,6 +728,7 @@ class ClassDefinition extends Model\AbstractModel
     public function setParentClass($parentClass)
     {
         $this->parentClass = $parentClass;
+
         return $this;
     }
 
@@ -718,6 +739,7 @@ class ClassDefinition extends Model\AbstractModel
     public function setAllowInherit($allowInherit)
     {
         $this->allowInherit = (bool) $allowInherit;
+
         return $this;
     }
 
@@ -728,6 +750,7 @@ class ClassDefinition extends Model\AbstractModel
     public function setAllowVariants($allowVariants)
     {
         $this->allowVariants = (bool) $allowVariants;
+
         return $this;
     }
 
@@ -746,6 +769,7 @@ class ClassDefinition extends Model\AbstractModel
     public function setIcon($icon)
     {
         $this->icon = $icon;
+
         return $this;
     }
 
@@ -766,6 +790,7 @@ class ClassDefinition extends Model\AbstractModel
         if (is_array($propertyVisibility)) {
             $this->propertyVisibility = $propertyVisibility;
         }
+
         return $this;
     }
 
@@ -776,6 +801,7 @@ class ClassDefinition extends Model\AbstractModel
     public function setPreviewUrl($previewUrl)
     {
         $this->previewUrl = $previewUrl;
+
         return $this;
     }
 
@@ -794,6 +820,7 @@ class ClassDefinition extends Model\AbstractModel
     public function setDescription($description)
     {
         $this->description = $description;
+
         return $this;
     }
 

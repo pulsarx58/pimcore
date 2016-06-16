@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Image\Adapter;
@@ -57,6 +59,15 @@ class Imagick extends Adapter
 
             File::put($tmpFilePath, \Pimcore\Tool::getHttpData($imagePath));
             $imagePath = $tmpFilePath;
+        }
+
+        if (!stream_is_local($imagePath)) {
+            // imagick is only able to deal with local files
+            // if your're using custom stream wrappers this wouldn't work, so we create a temp. local copy
+            $tmpFilePath = PIMCORE_SYSTEM_TEMP_DIRECTORY . "/imagick-tmp-" . uniqid() . "." . File::getFileExtension($imagePath);
+            copy($imagePath, $tmpFilePath);
+            $imagePath = $tmpFilePath;
+            $this->tmpFiles[] = $imagePath;
         }
 
         if ($this->resource) {
@@ -109,6 +120,7 @@ class Imagick extends Adapter
         } catch (\Exception $e) {
             \Logger::error("Unable to load image: " . $imagePath);
             \Logger::error($e);
+
             return false;
         }
 
@@ -174,6 +186,13 @@ class Imagick extends Adapter
             }
         }
 
+        // Imagick isn't able to work with custom stream wrappers, so we make a workaround
+        $realTargetPath = null;
+        if (!stream_is_local($path)) {
+            $realTargetPath = $path;
+            $path = PIMCORE_SYSTEM_TEMP_DIRECTORY . "/imagick-tmp-" . uniqid() . "." . File::getFileExtension($path);
+        }
+
         if (defined("HHVM_VERSION")) {
             $success = $i->writeImage($path);
         } else {
@@ -184,29 +203,12 @@ class Imagick extends Adapter
             throw new \Exception("Unable to write image: ", $path);
         }
 
+        if ($realTargetPath) {
+            File::rename($path, $realTargetPath);
+        }
+
         return $this;
     }
-
-    /**
-     * @return $this
-     */
-    // @TODO: Needs further testing => speed improvement especially with bigger images
-    /*protected function reinitializeImage() {
-
-        $i = $this->resource;
-
-        $i->writeImage("mpr:temp");
-        $this->destroy();
-
-        $i = new \Imagick();
-        $i->readImage("mpr:temp");
-
-        $this->resource = $i;
-
-        $this->modified = false;
-
-        return $this;
-    }*/
 
     /**
      * @return  void
@@ -269,7 +271,7 @@ class Imagick extends Adapter
             }
         } elseif ($imageColorspace == \Imagick::COLORSPACE_GRAY) {
             $this->resource->setImageColorspace(\Imagick::COLORSPACE_SRGB);
-        } elseif (!in_array($imageColorspace, array(\Imagick::COLORSPACE_RGB, \Imagick::COLORSPACE_SRGB))) {
+        } elseif (!in_array($imageColorspace, [\Imagick::COLORSPACE_RGB, \Imagick::COLORSPACE_SRGB])) {
             $this->resource->setImageColorspace(\Imagick::COLORSPACE_SRGB);
         } else {
             // this is to handle embedded icc profiles in the RGB/sRGB colorspace
@@ -780,7 +782,7 @@ class Imagick extends Adapter
 
         try {
             $type = $this->resource->getimageformat();
-            $vectorTypes = array("EPT","EPDF","EPI","EPS","EPS2","EPS3","EPSF","EPSI","EPT","PDF","PFA","PFB","PFM","PS","PS2","PS3","SVG","SVGZ","MVG");
+            $vectorTypes = ["EPT", "EPDF", "EPI", "EPS", "EPS2", "EPS3", "EPSF", "EPSI", "EPT", "PDF", "PFA", "PFB", "PFM", "PS", "PS2", "PS3", "SVG", "SVGZ", "MVG"];
 
             if (in_array(strtoupper($type), $vectorTypes)) {
                 return true;

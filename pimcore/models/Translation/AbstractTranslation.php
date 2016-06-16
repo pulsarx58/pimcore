@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Translation
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Translation;
@@ -56,6 +58,7 @@ abstract class AbstractTranslation extends Model\AbstractModel implements Transl
     public function setKey($key)
     {
         $this->key = self::getValidTranslationKey($key);
+
         return $this;
     }
 
@@ -74,6 +77,7 @@ abstract class AbstractTranslation extends Model\AbstractModel implements Transl
     public function setTranslations($translations)
     {
         $this->translations = $translations;
+
         return $this;
     }
 
@@ -93,6 +97,7 @@ abstract class AbstractTranslation extends Model\AbstractModel implements Transl
     public function setDate($date)
     {
         $this->setModificationDate($date);
+
         return $this;
     }
 
@@ -108,6 +113,7 @@ abstract class AbstractTranslation extends Model\AbstractModel implements Transl
     public function setCreationDate($date)
     {
         $this->creationDate = (int) $date;
+
         return $this;
     }
 
@@ -123,6 +129,7 @@ abstract class AbstractTranslation extends Model\AbstractModel implements Transl
     public function setModificationDate($date)
     {
         $this->modificationDate = (int) $date;
+
         return $this;
     }
 
@@ -150,7 +157,7 @@ abstract class AbstractTranslation extends Model\AbstractModel implements Transl
      */
     public static function clearDependentCache()
     {
-        \Pimcore\Cache::clearTags(array("translator", "translate"));
+        \Pimcore\Cache::clearTags(["translator", "translate"]);
     }
 
     /**
@@ -199,7 +206,7 @@ abstract class AbstractTranslation extends Model\AbstractModel implements Transl
                 $translation->setCreationDate(time());
                 $translation->setModificationDate(time());
 
-                $translations = array();
+                $translations = [];
                 foreach ($languages as $lang) {
                     $translations[$lang] = "";
                 }
@@ -275,7 +282,7 @@ abstract class AbstractTranslation extends Model\AbstractModel implements Transl
      */
     public static function importTranslationsFromFile($file, $replaceExistingTranslations = true, $languages = null)
     {
-        $delta = array();
+        $delta = [];
 
         if (is_readable($file)) {
             if (!$languages || empty($languages) || !is_array($languages)) {
@@ -284,6 +291,10 @@ abstract class AbstractTranslation extends Model\AbstractModel implements Transl
 
             //read import data
             $tmpData = file_get_contents($file);
+
+            //replace magic excel bytes
+            $tmpData = str_replace("\xEF\xBB\xBF", "", $tmpData);
+
             //convert to utf-8 if needed
             $tmpData = Tool\Text::convertToUTF8($tmpData);
 
@@ -309,7 +320,7 @@ abstract class AbstractTranslation extends Model\AbstractModel implements Transl
                 $keys = $data[0];
                 $data = array_slice($data, 1);
                 foreach ($data as $row) {
-                    $keyValueArray = array();
+                    $keyValueArray = [];
                     for ($counter = 0; $counter < count($row); $counter++) {
                         $rd = str_replace("&quot;", '"', $row[$counter]);
                         $keyValueArray[$keys[$counter]] = $rd;
@@ -335,12 +346,12 @@ abstract class AbstractTranslation extends Model\AbstractModel implements Transl
                                         }
                                     } elseif ($t->getTranslation($key) != $value && $value) {
                                         $delta[]=
-                                            array(
+                                            [
                                                 "lg" => $key,
                                                 "key" => $textKey,
                                                 "text" => $t->getTranslation($key),
                                                 "csv" =>  $value
-                                            );
+                                            ];
                                     }
                                 }
                             }
@@ -362,6 +373,7 @@ abstract class AbstractTranslation extends Model\AbstractModel implements Transl
         } else {
             throw new \Exception("$file is not readable");
         }
+
         return $delta;
     }
 
@@ -384,6 +396,7 @@ abstract class AbstractTranslation extends Model\AbstractModel implements Transl
     {
         $data = get_object_vars($this);
         unset($data['dao']);
+
         return $data;
     }
 }

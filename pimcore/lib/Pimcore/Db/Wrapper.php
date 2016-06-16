@@ -1,13 +1,15 @@
-<?php 
+<?php
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Db;
@@ -40,6 +42,7 @@ class Wrapper
     public function setWriteResource($writeResource)
     {
         $this->writeResource = $writeResource;
+
         return $this;
     }
 
@@ -91,6 +94,7 @@ class Wrapper
     public function setResource($resource)
     {
         $this->resource = $resource;
+
         return $this;
     }
 
@@ -103,6 +107,7 @@ class Wrapper
             // get the \Zend_Db_Adapter_Abstract not the wrapper
             $this->resource = Db::getConnection(true);
         }
+
         return $this->resource;
     }
 
@@ -156,9 +161,9 @@ class Wrapper
     {
         // extract and quote col names from the array keys
         $i = 0;
-        $bind = array();
-        $cols = array();
-        $vals = array();
+        $bind = [];
+        $cols = [];
+        $vals = [];
         foreach ($data as $col => $val) {
             $cols[] = $this->quoteIdentifier($col, true);
             if ($val instanceof \Zend_Db_Expr) {
@@ -182,7 +187,7 @@ class Wrapper
 
 
         // build the statement
-        $set = array();
+        $set = [];
         foreach ($cols as $i => $col) {
             $set[] = sprintf('%s = %s', $col, $vals[$i]);
         }
@@ -204,6 +209,7 @@ class Wrapper
 
         $stmt = $this->query($sql, $bind);
         $result = $stmt->rowCount();
+
         return $result;
     }
 
@@ -213,6 +219,7 @@ class Wrapper
     public function beginTransaction()
     {
         $this->inTransaction = true;
+
         return $this->__call("beginTransaction", []);
     }
 
@@ -223,7 +230,22 @@ class Wrapper
     {
         $return = $this->__call("commit", []);
         $this->inTransaction = false;
+
         return $return;
+    }
+
+    public function queryIgnoreError($sql, $bind = [])
+    {
+        try {
+            // we call callResourceMethod() directly to bypass the error-handling in __call()
+            $return = $this->callResourceMethod("query", [$sql, $bind]);
+
+            return $return;
+        } catch (\Exception $e) {
+            // we simply ignore the error
+        }
+
+        return null;
     }
 
     /**
@@ -236,6 +258,7 @@ class Wrapper
     {
         try {
             $r = $this->callResourceMethod($method, $args);
+
             return $r;
         } catch (\Exception $e) {
             return Db::errorHandler($method, $args, $e);
@@ -257,14 +280,14 @@ class Wrapper
         $capture = false;
 
         if (\Pimcore::inAdmin()) {
-            $methodsToCheck = array("query","update","delete","insert");
+            $methodsToCheck = ["query", "update", "delete", "insert"];
             if (in_array($method, $methodsToCheck)) {
                 $capture = true;
                 Db::startCapturingDefinitionModifications($resource, $method, $args);
             }
         }
 
-        $r = call_user_func_array(array($resource, $method), $args);
+        $r = call_user_func_array([$resource, $method], $args);
 
         if (\Pimcore::inAdmin() && $capture) {
             Db::stopCapturingDefinitionModifications($resource);

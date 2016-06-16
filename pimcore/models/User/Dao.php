@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    User
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\User;
@@ -33,25 +35,25 @@ class Dao extends UserRole\Dao
         // cleanup system
 
         // assets
-        $this->db->update("assets", array("userOwner" => null), $this->db->quoteInto("userOwner = ?", $userId));
-        $this->db->update("assets", array("userModification" => null), $this->db->quoteInto("userModification = ?", $userId));
+        $this->db->update("assets", ["userOwner" => null], $this->db->quoteInto("userOwner = ?", $userId));
+        $this->db->update("assets", ["userModification" => null], $this->db->quoteInto("userModification = ?", $userId));
         $this->db->delete("users_workspaces_asset", $this->db->quoteInto("userId = ?", $userId));
 
         // classes
-        $this->db->update("classes", array("userOwner" => null), $this->db->quoteInto("userOwner = ?", $userId));
-        $this->db->update("classes", array("userModification" => null), $this->db->quoteInto("userModification = ?", $userId));
+        $this->db->update("classes", ["userOwner" => null], $this->db->quoteInto("userOwner = ?", $userId));
+        $this->db->update("classes", ["userModification" => null], $this->db->quoteInto("userModification = ?", $userId));
 
         // documents
-        $this->db->update("documents", array("userOwner" => null), $this->db->quoteInto("userOwner = ?", $userId));
-        $this->db->update("documents", array("userModification" => null), $this->db->quoteInto("userModification = ?", $userId));
+        $this->db->update("documents", ["userOwner" => null], $this->db->quoteInto("userOwner = ?", $userId));
+        $this->db->update("documents", ["userModification" => null], $this->db->quoteInto("userModification = ?", $userId));
         $this->db->delete("users_workspaces_document", $this->db->quoteInto("userId = ?", $userId));
 
         // objects
-        $this->db->update("objects", array("o_userOwner" => null), $this->db->quoteInto("o_userOwner = ?", $userId));
-        $this->db->update("objects", array("o_userModification" => null), $this->db->quoteInto("o_userModification = ?", $userId));
+        $this->db->update("objects", ["o_userOwner" => null], $this->db->quoteInto("o_userOwner = ?", $userId));
+        $this->db->update("objects", ["o_userModification" => null], $this->db->quoteInto("o_userModification = ?", $userId));
         $this->db->delete("users_workspaces_object", $this->db->quoteInto("userId= ?", $userId));
 
         // versions
-        $this->db->update("versions", array("userId" => null), $this->db->quoteInto("userId = ?", $userId));
+        $this->db->update("versions", ["userId" => null], $this->db->quoteInto("userId = ?", $userId));
     }
 }

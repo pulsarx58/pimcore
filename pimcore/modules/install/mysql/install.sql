@@ -57,7 +57,7 @@ CREATE TABLE `assets_metadata` (
 DROP TABLE IF EXISTS `cache`;
 CREATE TABLE `cache` (
   `id` varchar(165) NOT NULL DEFAULT '',
-  `data` longtext,
+  `data` longblob,
   `mtime` bigint(20) DEFAULT NULL,
   `expire` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
@@ -125,7 +125,7 @@ DROP TABLE IF EXISTS `documents` ;
 CREATE TABLE `documents` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `parentId` int(11) unsigned DEFAULT NULL,
-  `type` enum('page','link','snippet','folder','hardlink','email') DEFAULT NULL,
+  `type` enum('page','link','snippet','folder','hardlink','email','printpage','printcontainer') DEFAULT NULL,
   `key` varchar(255) DEFAULT '',
   `path` varchar(765) CHARACTER SET ascii DEFAULT NULL, /* path in ascii using the full key length of 765 bytes (PIMCORE-2654) */
   `index` int(11) unsigned DEFAULT '0',
@@ -196,11 +196,9 @@ CREATE TABLE `documents_page` (
   `template` varchar(255) DEFAULT NULL,
   `title` varchar(255) DEFAULT NULL,
   `description` varchar(255) DEFAULT NULL,
-  `keywords` varchar(255) DEFAULT NULL,
   `metaData` text,
   `prettyUrl` varchar(255) DEFAULT NULL,
   `contentMasterDocumentId` int(11) DEFAULT NULL,
-  `css` longtext,
   `personas` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `prettyUrl` (`prettyUrl`)
@@ -227,6 +225,19 @@ CREATE TABLE `documents_translations` (
   KEY `sourceId` (`sourceId`),
   KEY `language` (`language`)
 ) DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `documents_printpage`;
+CREATE TABLE `documents_printpage` (
+  `id` int(11) unsigned NOT NULL DEFAULT '0',
+  `module` varchar(255) DEFAULT NULL,
+  `controller` varchar(255) DEFAULT NULL,
+  `action` varchar(255) DEFAULT NULL,
+  `template` varchar(255) DEFAULT NULL,
+  `lastGenerated` int(11) DEFAULT NULL,
+  `lastGenerateMessage` text CHARACTER SET utf8,
+  PRIMARY KEY (`id`)
+) DEFAULT CHARSET=utf8;
+
 
 DROP TABLE IF EXISTS `edit_lock`;
 CREATE TABLE `edit_lock` (
@@ -434,11 +445,13 @@ CREATE TABLE `redirects` (
   `targetSite` int(11) DEFAULT NULL,
   `statusCode` varchar(3) DEFAULT NULL,
   `priority` int(2) DEFAULT '0',
+  `active` tinyint(1) DEFAULT NULL,
   `expiry` bigint(20) DEFAULT NULL,
   `creationDate` bigint(20) unsigned DEFAULT '0',
   `modificationDate` bigint(20) unsigned DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `priority` (`priority`)
+  KEY `priority` (`priority`),
+  KEY `active` (`active`)
 ) DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `sanitycheck`;
@@ -645,7 +658,7 @@ CREATE TABLE `users` (
   `contentLanguages` LONGTEXT NULL,
   `admin` tinyint(1) unsigned DEFAULT '0',
   `active` tinyint(1) unsigned DEFAULT '1',
-  `permissions` varchar(1000) DEFAULT NULL,
+  `permissions` text,
   `roles` varchar(1000) DEFAULT NULL,
   `welcomescreen` tinyint(1) DEFAULT NULL,
   `closeWarning` tinyint(1) DEFAULT NULL,
@@ -653,6 +666,8 @@ CREATE TABLE `users` (
   `docTypes` varchar(255) DEFAULT NULL,
   `classes` varchar(255) DEFAULT NULL,
   `apiKey` varchar(255) DEFAULT NULL,
+	`activePerspective` VARCHAR(255) NULL DEFAULT NULL,
+	`perspectives` LONGTEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `type_name` (`type`,`name`),
   KEY `parentId` (`parentId`),
@@ -799,7 +814,7 @@ CREATE TABLE `classificationstore_keys` (
 	`name` VARCHAR(255) NOT NULL DEFAULT '',
 	`title` VARCHAR(255) NOT NULL DEFAULT '',
 	`description` TEXT NULL,
-	`type` ENUM('input','textarea','wysiwyg','checkbox','numeric','slider','select','multiselect','date','datetime','language','languagemultiselect','country','countrymultiselect','table','quantityValue','calculatedValue') NULL DEFAULT NULL,
+	`type` VARCHAR(255) NULL DEFAULT NULL,
 	`creationDate` BIGINT(20) UNSIGNED NULL DEFAULT '0',
 	`modificationDate` BIGINT(20) UNSIGNED NULL DEFAULT '0',
 	`definition` LONGTEXT NULL,
@@ -816,9 +831,11 @@ CREATE TABLE `classificationstore_relations` (
 	`groupId` BIGINT(20) NOT NULL,
 	`keyId` BIGINT(20) NOT NULL,
 	`sorter` INT(11) NULL DEFAULT NULL,
+	`mandatory` TINYINT(1) NULL DEFAULT NULL,
 	PRIMARY KEY (`groupId`, `keyId`),
 	INDEX `FK_classificationstore_relations_classificationstore_keys` (`keyId`),
 	INDEX `groupId` (`groupId`),
+	INDEX `mandatory` (`mandatory`),
 	CONSTRAINT `FK_classificationstore_relations_classificationstore_groups` FOREIGN KEY (`groupId`) REFERENCES `classificationstore_groups` (`id`) ON DELETE CASCADE,
 	CONSTRAINT `FK_classificationstore_relations_classificationstore_keys` FOREIGN KEY (`keyId`) REFERENCES `classificationstore_keys` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE
 ) DEFAULT CHARSET=utf8;

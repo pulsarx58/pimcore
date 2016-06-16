@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Data\ObjectMetadata;
@@ -32,13 +34,13 @@ class Dao extends Model\Dao\AbstractDao
     {
         $table = $this->getTablename($object);
 
-        $dataTemplate = array("o_id" => $object->getId(),
+        $dataTemplate = ["o_id" => $object->getId(),
             "dest_id" => $this->model->getElement()->getId(),
             "fieldname" => $this->model->getFieldname(),
             "ownertype" => $ownertype,
             "ownername" => $ownername ? $ownername : "",
             "position" => $position ?  $position : "0",
-            "type" => $type ?  $type : "object");
+            "type" => $type ?  $type : "object"];
 
         foreach ($this->model->getColumns() as $column) {
             $getter = "get" . ucfirst($column);
@@ -76,7 +78,7 @@ class Dao extends Model\Dao\AbstractDao
             $typeQuery = " AND type = " . $this->db->quote($type);
         }
 
-        $dataRaw = $this->db->fetchAll("SELECT * FROM " . $this->getTablename($source) . " WHERE o_id = ? AND dest_id = ? AND fieldname = ? AND ownertype = ? AND ownername = ? and position = ? " . $typeQuery, array($source->getId(), $destination->getId(), $fieldname, $ownertype, $ownername, $position));
+        $dataRaw = $this->db->fetchAll("SELECT * FROM " . $this->getTablename($source) . " WHERE o_id = ? AND dest_id = ? AND fieldname = ? AND ownertype = ? AND ownername = ? and position = ? " . $typeQuery, [$source->getId(), $destination->getId(), $fieldname, $ownertype, $ownername, $position]);
         if (!empty($dataRaw)) {
             $this->model->setElement($destination);
             $this->model->setFieldname($fieldname);

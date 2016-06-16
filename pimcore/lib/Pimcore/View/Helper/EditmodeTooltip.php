@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\View\Helper;
@@ -25,10 +27,10 @@ class EditmodeTooltip extends \Zend_View_Helper_Abstract
      */
     protected function getDefaultEditmodeTooltipOptions()
     {
-        return array("autoHide" => true,
+        return ["autoHide" => true,
                      "title" => null,
                      "icon" => "/pimcore/static/img/icon/information.png"
-        );
+        ];
     }
 
     /**
@@ -48,7 +50,7 @@ class EditmodeTooltip extends \Zend_View_Helper_Abstract
      * @param array $options
      * @return string
      */
-    public function editmodeTooltip($html, $title = null, $options = array())
+    public function editmodeTooltip($html, $title = null, $options = [])
     {
         if ($html) {
             $options = array_merge($this->getDefaultEditmodeTooltipOptions(), $options);
@@ -62,6 +64,7 @@ class EditmodeTooltip extends \Zend_View_Helper_Abstract
 
             $s = "<img id='" . $options["target"] . "' src='" . $options["icon"] . "' alt='' class='pimcore_editmode_tooltip' />";
             $s .= "<script type='text/javascript'>new Ext.ToolTip(" . \Zend_Json::encode($options) .");</script>";
+
             return $s;
         }
     }

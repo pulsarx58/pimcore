@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 use Pimcore\Db;
@@ -23,7 +25,7 @@ class Admin_KeyValueController extends \Pimcore\Controller\Action\Admin
         $config = KeyValue\GroupConfig::getById($id);
         $config->delete();
 
-        $this->_helper->json(array("success" => true));
+        $this->_helper->json(["success" => true]);
     }
 
     public function addgroupAction()
@@ -39,7 +41,7 @@ class Admin_KeyValueController extends \Pimcore\Controller\Action\Admin
             $config->save();
         }
 
-        $this->_helper->json(array("success" => !$alreadyExist, "id" => $config->getName()));
+        $this->_helper->json(["success" => !$alreadyExist, "id" => $config->getName()]);
     }
 
     public function getgroupAction()
@@ -47,11 +49,11 @@ class Admin_KeyValueController extends \Pimcore\Controller\Action\Admin
         $id = $this->getParam("id");
         $config = KeyValue\GroupConfig::getByName($id);
 
-        $data = array(
+        $data = [
             "id" => $id,
             "name" => $config->getName(),
             "description" => $config->getDescription()
-        );
+        ];
 
         $this->_helper->json($data);
     }
@@ -74,7 +76,7 @@ class Admin_KeyValueController extends \Pimcore\Controller\Action\Admin
 
             $config->save();
 
-            $this->_helper->json(array("success" => true, "data" => $config));
+            $this->_helper->json(["success" => true, "data" => $config]);
         } else {
             $start = 0;
             $limit = 15;
@@ -135,19 +137,19 @@ class Admin_KeyValueController extends \Pimcore\Controller\Action\Admin
             $list->load();
             $configList = $list->getList();
 
-            $rootElement = array();
+            $rootElement = [];
 
-            $data = array();
+            $data = [];
             foreach ($configList as $config) {
                 $name = $config->getName();
                 if (!$name) {
                     $name = "EMPTY";
                 }
-                $item = array(
+                $item = [
                     "id" => $config->getId(),
                     "name" => $name,
                     "description" => $config->getDescription()
-                );
+                ];
                 if ($config->getCreationDate()) {
                     $item["creationDate"] = $config->getCreationDate();
                 }
@@ -162,6 +164,7 @@ class Admin_KeyValueController extends \Pimcore\Controller\Action\Admin
             $rootElement["data"] = $data;
             $rootElement["success"] = true;
             $rootElement["total"] = $list->getTotalCount();
+
             return $this->_helper->json($rootElement);
         }
     }
@@ -188,7 +191,7 @@ class Admin_KeyValueController extends \Pimcore\Controller\Action\Admin
             $config->save();
             $item = $this->getConfigItem($config);
 
-            $this->_helper->json(array("success" => true, "data" => $item));
+            $this->_helper->json(["success" => true, "data" => $item]);
         } else {
             $start = 0;
             $limit = 15;
@@ -276,9 +279,9 @@ class Admin_KeyValueController extends \Pimcore\Controller\Action\Admin
             $list->load();
             $configList = $list->getList();
 
-            $rootElement = array();
+            $rootElement = [];
 
-            $data = array();
+            $data = [];
             foreach ($configList as $config) {
                 $item = $this->getConfigItem($config);
                 $data[] = $item;
@@ -286,6 +289,7 @@ class Admin_KeyValueController extends \Pimcore\Controller\Action\Admin
             $rootElement["data"] = $data;
             $rootElement["success"] = true;
             $rootElement["total"] = $list->getTotalCount();
+
             return $this->_helper->json($rootElement);
         }
     }
@@ -312,7 +316,7 @@ class Admin_KeyValueController extends \Pimcore\Controller\Action\Admin
             }
         }
 
-        $item = array(
+        $item = [
             "id" => $config->getId(),
             "name" => $name,
             "description" => $config->getDescription(),
@@ -324,7 +328,7 @@ class Admin_KeyValueController extends \Pimcore\Controller\Action\Admin
             "groupName" => $groupName,
             "translator" => $config->getTranslator(),
             "mandatory" => $config->getMandatory()
-        );
+        ];
 
         if ($config->getCreationDate()) {
             $item["creationDate"] = $config->getCreationDate();
@@ -333,6 +337,7 @@ class Admin_KeyValueController extends \Pimcore\Controller\Action\Admin
         if ($config->getModificationDate()) {
             $item["modificationDate"] = $config->getModificationDate();
         }
+
         return $item;
     }
 
@@ -348,7 +353,7 @@ class Admin_KeyValueController extends \Pimcore\Controller\Action\Admin
             $config->save();
         }
 
-        $this->_helper->json(array("success" => !$alreadyExist, "id" => $config->getName()));
+        $this->_helper->json(["success" => !$alreadyExist, "id" => $config->getName()]);
     }
 
     public function deletepropertyAction()
@@ -358,7 +363,7 @@ class Admin_KeyValueController extends \Pimcore\Controller\Action\Admin
         $config = KeyValue\KeyConfig::getById($id);
         $config->delete();
 
-        $this->_helper->json(array("success" => true));
+        $this->_helper->json(["success" => true]);
     }
 
     /**
@@ -371,7 +376,7 @@ class Admin_KeyValueController extends \Pimcore\Controller\Action\Admin
         $importData = $conf->toArray();
         Object\KeyValue\Helper::import($importData);
 
-        $this->_helper->json(array("success" => true), false);
+        $this->_helper->json(["success" => true], false);
 
         // set content-type to text/html, otherwise (when application/json is sent) chrome will complain in
         // Ext.form.Action.Submit and mark the submission as failed
@@ -410,16 +415,16 @@ class Admin_KeyValueController extends \Pimcore\Controller\Action\Admin
         $list = new KeyValue\TranslatorConfig\Listing();
         $list->load();
         $items = $list->getList();
-        $result = array();
+        $result = [];
         foreach ($items as $item) {
-            $result[] = array(
+            $result[] = [
                 "id" => $item->getId(),
                 "name" => $item->getName(),
                 "translator" => $item->getTranslator()
-            );
+            ];
         }
 
-        $this->_helper->json(array("configurations" => $result));
+        $this->_helper->json(["configurations" => $result]);
     }
 
     public function translateAction()
@@ -444,15 +449,15 @@ class Admin_KeyValueController extends \Pimcore\Controller\Action\Admin
                 }
             }
 
-            $this->_helper->json(array("success" => true,
+            $this->_helper->json(["success" => true,
                 "keyId" => $this->getParam("keyId"),
                 "text" => $text,
                 "translated" => $translatedValue,
                 "recordId" => $recordId
-            ));
+            ]);
         } catch (\Exception $e) {
         }
 
-        $this->_helper->json(array("success" => $success));
+        $this->_helper->json(["success" => $success]);
     }
 }

@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document;
@@ -100,6 +102,7 @@ abstract class Tag extends Model\AbstractModel implements Model\Document\Tag\Tag
         $tag->setView($view);
         $tag->setEditmode($editmode);
         $tag->setOptions($config);
+
         return $tag;
     }
 
@@ -117,15 +120,15 @@ abstract class Tag extends Model\AbstractModel implements Model\Document\Tag\Tag
             $data = $this->getData();
         }
 
-        $options = array(
+        $options = [
             "options" => $this->getOptions(),
             "data" => $data,
             "name" => $this->getName(),
             "id" => "pimcore_editable_" . $this->getName(),
             "type" => $this->getType(),
             "inherited" => $this->getInherited()
-        );
-        $options = @\Zend_Json::encode($options, false, array('enableJsonExprFinder' => true));
+        ];
+        $options = @\Zend_Json::encode($options, false, ['enableJsonExprFinder' => true]);
 
         return '
             <script type="text/javascript">
@@ -159,6 +162,7 @@ abstract class Tag extends Model\AbstractModel implements Model\Document\Tag\Tag
     public function setName($name)
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -169,6 +173,7 @@ abstract class Tag extends Model\AbstractModel implements Model\Document\Tag\Tag
     public function setDocumentId($id)
     {
         $this->documentId = (int) $id;
+
         return $this;
     }
 
@@ -185,7 +190,7 @@ abstract class Tag extends Model\AbstractModel implements Model\Document\Tag\Tag
      */
     public function getOptions()
     {
-        return is_array($this->options) ? $this->options : array();
+        return is_array($this->options) ? $this->options : [];
     }
 
     /**
@@ -195,6 +200,7 @@ abstract class Tag extends Model\AbstractModel implements Model\Document\Tag\Tag
     public function setOptions($options)
     {
         $this->options = $options;
+
         return $this;
     }
 
@@ -205,6 +211,7 @@ abstract class Tag extends Model\AbstractModel implements Model\Document\Tag\Tag
     public function setController($controller)
     {
         $this->controller = $controller;
+
         return $this;
     }
 
@@ -223,6 +230,7 @@ abstract class Tag extends Model\AbstractModel implements Model\Document\Tag\Tag
     public function setView($view)
     {
         $this->view = $view;
+
         return $this;
     }
 
@@ -259,13 +267,14 @@ abstract class Tag extends Model\AbstractModel implements Model\Document\Tag\Tag
     {
 
         // here the "normal" task of __sleep ;-)
-        $blockedVars = array("dao", "controller", "view", "editmode", "options");
+        $blockedVars = ["dao", "controller", "view", "editmode", "options"];
         $vars = get_object_vars($this);
         foreach ($vars as $key => $value) {
             if (!in_array($key, $blockedVars)) {
                 $finalVars[] = $key;
             }
         }
+
         return $finalVars;
     }
 
@@ -293,6 +302,7 @@ abstract class Tag extends Model\AbstractModel implements Model\Document\Tag\Tag
         if (is_string($return)) {
             return $return;
         }
+
         return '';
     }
 
@@ -311,6 +321,7 @@ abstract class Tag extends Model\AbstractModel implements Model\Document\Tag\Tag
     public function setEditmode($editmode)
     {
         $this->editmode = (bool) $editmode;
+
         return $this;
     }
 
@@ -322,6 +333,7 @@ abstract class Tag extends Model\AbstractModel implements Model\Document\Tag\Tag
     public function getDataForResource()
     {
         $this->checkValidity();
+
         return $this->getData();
     }
 
@@ -330,7 +342,7 @@ abstract class Tag extends Model\AbstractModel implements Model\Document\Tag\Tag
      * @param array $tags
      * @return array
      */
-    public function getCacheTags($ownerDocument, $tags = array())
+    public function getCacheTags($ownerDocument, $tags = [])
     {
         return $tags;
     }
@@ -340,7 +352,7 @@ abstract class Tag extends Model\AbstractModel implements Model\Document\Tag\Tag
      */
     public function resolveDependencies()
     {
-        return array();
+        return [];
     }
 
 
@@ -352,7 +364,7 @@ abstract class Tag extends Model\AbstractModel implements Model\Document\Tag\Tag
      * @param mixed $params
      * @return void
      */
-    public function getFromWebserviceImport($wsElement, $document = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($wsElement, $document = null, $params = [], $idMapper = null)
     {
         return $wsElement;
     }
@@ -364,11 +376,11 @@ abstract class Tag extends Model\AbstractModel implements Model\Document\Tag\Tag
      * @abstract
      * @return array
      */
-    public function getForWebserviceExport($document = null, $params = array())
+    public function getForWebserviceExport($document = null, $params = [])
     {
         $keys = get_object_vars($this);
 
-        $el = array();
+        $el = [];
         foreach ($keys as $key => $value) {
             if ($value instanceof Model\Element\ElementInterface) {
                 $value = $value->getId();
@@ -384,6 +396,7 @@ abstract class Tag extends Model\AbstractModel implements Model\Document\Tag\Tag
         unset($el["editmode"]);
 
         $el = Webservice\Data\Mapper::toObject($el);
+
         return $el;
     }
 
@@ -404,6 +417,7 @@ abstract class Tag extends Model\AbstractModel implements Model\Document\Tag\Tag
     public function setInherited($inherited)
     {
         $this->inherited = $inherited;
+
         return $this;
     }
 

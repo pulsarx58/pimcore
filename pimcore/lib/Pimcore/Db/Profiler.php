@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Db;
@@ -56,7 +58,7 @@ class Profiler extends \Zend_Db_Profiler
     /**
      * @var array
      */
-    protected $queries = array();
+    protected $queries = [];
 
     /**
      * @param null $label
@@ -79,6 +81,7 @@ class Profiler extends \Zend_Db_Profiler
     public function setEnabled($enable)
     {
         parent::setEnabled($enable);
+
         return $this;
     }
 
@@ -108,14 +111,14 @@ class Profiler extends \Zend_Db_Profiler
             "time" => (string)round($profile->getElapsedSecs(), 5)
         ]);
 
-        $this->queries[] = array(
+        $this->queries[] = [
             "time" => $profile->getElapsedSecs(),
             "query" => $profile->getQuery() . " | " . implode(",", $profile->getQueryParams())
-        );
+        ];
     }
 
     /**
-     * 
+     *
      */
     public function __destruct()
     {
@@ -134,6 +137,7 @@ class Profiler extends \Zend_Db_Profiler
                 if ($a == $b) {
                     return 0;
                 }
+
                 return ($b < $a) ? -1 : 1;
             });
 
@@ -167,12 +171,12 @@ class Profiler extends \Zend_Db_Profiler
         if (!$this->_message) {
             return;
         }
-        $this->_message->setLabel(str_replace(array('%label%',
+        $this->_message->setLabel(str_replace(['%label%',
                                                     '%totalCount%',
-                                                    '%totalDuration%'),
-                                              array($this->_label,
+                                                    '%totalDuration%'],
+                                              [$this->_label,
                                                     $this->getTotalNumQueries(),
-                                                    (string)round($this->_totalElapsedTime, 5)),
+                                                    (string)round($this->_totalElapsedTime, 5)],
                                               $this->_label_template));
     }
 

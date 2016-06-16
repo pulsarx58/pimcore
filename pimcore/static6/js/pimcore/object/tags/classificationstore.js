@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.object.tags.classificationstore");
@@ -115,6 +117,23 @@ pimcore.object.tags.classificationstore = Class.create(pimcore.object.tags.abstr
 
         var nrOfLanguages = this.frontendLanguages.length;
 
+        var tbarItems = [];
+
+        if (!this.fieldConfig.noteditable) {
+            tbarItems.push(
+                {
+                    xtype: 'button',
+                    iconCls: "pimcore_icon_add",
+                    handler: function() {
+                        var storeId = this.fieldConfig.storeId;
+                        var window = new pimcore.object.classificationstore.keySelectionWindow(this, true, false, true, storeId);
+                        window.setRestriction(this.object, this.fieldConfig.name);
+                        window.show();
+                    }.bind(this)
+                }
+            );
+        }
+
         if (this.dropdownLayout) {
 
         } else {
@@ -130,18 +149,7 @@ pimcore.object.tags.classificationstore = Class.create(pimcore.object.tags.abstr
                 forceLayout: true,
                 enableTabScroll: true,
                 tbar: {
-                    items: [
-                        {
-                            xtype: 'button',
-                            iconCls: "pimcore_icon_add",
-                            handler: function() {
-                                var storeId = this.fieldConfig.storeId;
-                                var window = new pimcore.object.classificationstore.keySelectionWindow(this, true, false, true, storeId);
-                                window.setRestriction(this.object, this.fieldConfig.name);
-                                window.show();
-                            }.bind(this)
-                        }
-                    ]
+                    items: tbarItems
                 }
             };
 
@@ -224,8 +232,6 @@ pimcore.object.tags.classificationstore = Class.create(pimcore.object.tags.abstr
     getLayoutShow: function () {
 
         this.component = this.getLayoutEdit();
-        this.component.disable();
-
         return this.component;
     },
 
@@ -375,11 +381,16 @@ pimcore.object.tags.classificationstore = Class.create(pimcore.object.tags.abstr
 
             for (var s=0; s<this.languageElements[currentLanguage].length; s++) {
                 if(this.languageElements[currentLanguage][s].isMandatory()) {
-                    if(this.languageElements[currentLanguage][s].isInvalidMandatory()) {
-                        invalidMandatoryFields.push(this.languageElements[currentLanguage][s].getTitle() + " - "
-                            + currentLanguage.toUpperCase() + " ("
-                            + this.languageElements[currentLanguage][s].getName() + ")");
-                        isInvalid = true;
+                    var languageElement = this.languageElements[currentLanguage][s];
+                    try {
+                        if (languageElement.isInvalidMandatory()) {
+                            invalidMandatoryFields.push(this.languageElements[currentLanguage][s].getTitle() + " - "
+                                + currentLanguage.toUpperCase() + " ("
+                                + this.languageElements[currentLanguage][s].getName() + ")");
+                            isInvalid = true;
+                        }
+                    } catch (e) {
+                        console.log(e);
                     }
                 }
             }
@@ -397,8 +408,11 @@ pimcore.object.tags.classificationstore = Class.create(pimcore.object.tags.abstr
         var groupId = group.id;
         var groupTitle = group.description ? group.name + " - " + group.description : group.name;
 
-        var editable =  (pimcore.currentuser.admin ||
-        this.fieldConfig.permissionEdit === undefined ||  this.fieldConfig.permissionEdit.length == 0 || in_array(this.currentLanguage, this.fieldConfig.permissionEdit));
+        var editable =  !this.fieldConfig.noteditable &&
+            (pimcore.currentuser.admin
+            || this.fieldConfig.permissionEdit === undefined
+            || this.fieldConfig.permissionEdit.length == 0
+            || in_array(this.currentLanguage, this.fieldConfig.permissionEdit));
 
 
         var keys = group.keys;
@@ -419,8 +433,11 @@ pimcore.object.tags.classificationstore = Class.create(pimcore.object.tags.abstr
         config = {
             title: ts(groupTitle),
             items: groupedChildItems,
-            collapsible: true,
-            tools: [
+            collapsible: true
+        };
+
+        if (!this.fieldConfig.noteditable) {
+            config.tools = [
                 {
                     type: 'close',
                     qtip: t('remove_group'),
@@ -428,8 +445,8 @@ pimcore.object.tags.classificationstore = Class.create(pimcore.object.tags.abstr
                         this.deleteGroup(groupId);
                     }.bind(this)
 
-                }]
-        };
+                }];
+        }
         if (cls) {
             config.cls = cls;
         }

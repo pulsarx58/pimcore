@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Classificationstore\KeyGroupRelation\Listing;
@@ -21,7 +23,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
 {
 
     /**
-     * Loads a list of Classificationstore group configs for the specifies parameters, returns an array of config elements
+     * Loads a list of Classificationstore group configs for the specified parameters, returns an array of config elements
      *
      * @return array
      */
@@ -36,12 +38,36 @@ class Dao extends Model\Listing\Dao\AbstractDao
         $condition .= Object\Classificationstore\KeyGroupRelation\Dao::TABLE_NAME_RELATIONS
             . ".keyId = " . Object\Classificationstore\KeyConfig\Dao::TABLE_NAME_KEYS . ".id";
 
-        $sql = "SELECT * FROM " . Object\Classificationstore\KeyGroupRelation\Dao::TABLE_NAME_RELATIONS
-            . "," . Object\Classificationstore\KeyConfig\Dao::TABLE_NAME_KEYS
-            . $condition . $this->getOrder() . $this->getOffsetLimit();
+        $resourceGroupName = $this->model->getResolveGroupName();
+
+        if ($resourceGroupName) {
+            $condition .= " and " . Object\Classificationstore\GroupConfig\Dao::TABLE_NAME_GROUPS . ".id = "
+                . Object\Classificationstore\KeyGroupRelation\Dao::TABLE_NAME_RELATIONS . ".groupId";
+        }
+
+        $sql = "SELECT " . Object\Classificationstore\KeyGroupRelation\Dao::TABLE_NAME_RELATIONS . ".*,"
+            . Object\Classificationstore\KeyConfig\Dao::TABLE_NAME_KEYS . ".*";
+
+
+        if ($resourceGroupName) {
+            $sql .= ", " . Object\Classificationstore\GroupConfig\Dao::TABLE_NAME_GROUPS . ".name as groupName";
+        }
+
+
+        $sql .=  " FROM " . Object\Classificationstore\KeyGroupRelation\Dao::TABLE_NAME_RELATIONS
+            . "," . Object\Classificationstore\KeyConfig\Dao::TABLE_NAME_KEYS;
+
+        if ($resourceGroupName) {
+            $sql .= ", " . Object\Classificationstore\GroupConfig\Dao::TABLE_NAME_GROUPS;
+        }
+
+
+
+        $sql .= $condition;
+        $sql .= $this->getOrder() . $this->getOffsetLimit();
         $data = $this->db->fetchAll($sql, $this->model->getConditionVariables());
 
-        $configData = array();
+        $configData = [];
         foreach ($data as $dataItem) {
             $entry = new Object\Classificationstore\KeyGroupRelation();
             $resource = $entry->getDao();
@@ -51,6 +77,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
         }
 
         $this->model->setList($configData);
+
         return $configData;
     }
 
@@ -60,6 +87,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
     public function getDataArray()
     {
         $configsData = $this->db->fetchAll("SELECT * FROM " . Object\Classificationstore\KeyGroupRelation\Dao::TABLE_NAME_RELATIONS . $this->getCondition() . $this->getOrder() . $this->getOffsetLimit(), $this->model->getConditionVariables());
+
         return $configsData;
     }
 

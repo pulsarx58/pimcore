@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.document.properties");
@@ -197,7 +199,7 @@ pimcore.document.properties = Class.create(pimcore.element.properties,{
     getValues : function ($super) {
 
         var values = $super();
-
+        var record;
 
         var languageValues = this.languagesPanel.getForm().getFieldValues();
         var navigationValues = this.navigationPanel.getForm().getFieldValues();
@@ -208,42 +210,28 @@ pimcore.document.properties = Class.create(pimcore.element.properties,{
 
             var name = this.disallowedKeys[i];
 
-            var addProperty = false;
-            var unchanged = false;
+            var addProperty = true;
             if(typeof systemValues[name] != "undefined") {
 
-                var record;
-                var recordIndex = this.propertyGrid.getStore().findBy(function (name,rec, id) {
-                    if(rec.get("name") == name) {
-                        return true;
-                    }
-                }.bind(this,name));
-
-                if(recordIndex >= 0) {
-                    record = this.propertyGrid.getStore().getAt(recordIndex);
-                    if(record.get("data")) {
-                        if(record.get("data") != systemValues[name]) {
-                            addProperty = true;
-                        } else if(record.get("data") == systemValues[name]) {
-                            unchanged=true;
+                if(in_array(name,this.inheritableKeys)) {
+                    if(this.element.data.properties[name]) {
+                        record = this.element.data.properties[name];
+                        if(record["inherited"] && record["data"] == systemValues[name]) {
+                            addProperty = false;
                         }
-                    } else if (systemValues[name]) {
-                        addProperty = true;
                     }
-                } else {
-                    addProperty = true;
                 }
 
                 if(addProperty) {
                     values[name] = {
                         data: systemValues[name],
-                        type: "text",
+                        type: (typeof systemValues[name] === "boolean") ? "bool" : "text",
                         inheritable: in_array(name,this.inheritableKeys)
                     };
                 }
             }
 
-            if(!addProperty && !unchanged) {
+            if(!addProperty) {
                 if(values[name]) {
                     delete values[name];
                 }

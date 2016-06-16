@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.element.notes");
@@ -44,7 +46,7 @@ pimcore.element.notes = Class.create({
 
         if (this.layout == null) {
 
-            var itemsPerPage = 20;
+            var itemsPerPage = pimcore.helpers.grid.getDefaultPageSize();
             this.store = pimcore.helpers.grid.buildDefaultStore(
                 '/admin/element/note-list?',
                 ['id', 'type', 'title', 'description',"user","date","data","cpath","cid","ctype"],
@@ -78,7 +80,7 @@ pimcore.element.notes = Class.create({
                 }
             });
 
-            this.pagingtoolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.store, itemsPerPage);
+            this.pagingtoolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.store);
 
 
             var tbarItems = [
@@ -232,13 +234,13 @@ pimcore.element.notes = Class.create({
             store: keyValueStore,
             title: t("details_for_selected_event") + " (" + rec.get("id") + ")",
             columns: [
-                {header: t("name"), sortable: true, dataIndex: 'name', width: 60},
-                {header: t("type"), sortable: true, dataIndex: 'type',
+                {header: t("name"), sortable: true, dataIndex: 'name', flex: 60},
+                {header: t("type"), sortable: true, dataIndex: 'type', flex: 30,
                     renderer: function(value, metaData, record, rowIndex, colIndex, store) {
                         return t(value);
                     }
                 },
-                {header: t("value"), sortable: true, dataIndex: 'data',
+                {header: t("value"), sortable: true, dataIndex: 'data', flex: 60,
                     renderer: function(value, metaData, record, rowIndex, colIndex, store) {
                         if(record.get("type") == "document" || record.get("type") == "asset"
                             || record.get("type") == "object") {

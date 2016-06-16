@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Image;
@@ -33,7 +35,7 @@ abstract class Adapter
     /**
      * @var array
      */
-    protected $tmpFiles = array();
+    protected $tmpFiles = [];
 
     /**
      * @var bool
@@ -57,6 +59,7 @@ abstract class Adapter
     public function setHeight($height)
     {
         $this->height = $height;
+
         return $this;
     }
 
@@ -75,6 +78,7 @@ abstract class Adapter
     public function setWidth($width)
     {
         $this->width = $width;
+
         return $this;
     }
 
@@ -112,7 +116,8 @@ abstract class Adapter
         $r = hexdec(substr($colorhex, 1, 2));
         $g = hexdec(substr($colorhex, 3, 2));
         $b = hexdec(substr($colorhex, 5, 2));
-        return array($r, $g, $b, 'type' => 'RGB');
+
+        return [$r, $g, $b, 'type' => 'RGB'];
     }
 
 
@@ -473,7 +478,7 @@ abstract class Adapter
     }
 
     /**
-     * 
+     *
      */
     public function __destruct()
     {

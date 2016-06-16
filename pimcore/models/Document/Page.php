@@ -1,15 +1,17 @@
-<?php 
+<?php
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document;
@@ -36,16 +38,9 @@ class Page extends Model\Document\PageSnippet
     public $description = "";
 
     /**
-     * Contains the keywords of the page (meta-keywords)
-     *
-     * @var string
-     */
-    public $keywords = "";
-
-    /**
      * @var array
      */
-    public $metaData = array();
+    public $metaData = [];
 
     /**
      * Static type of the document
@@ -101,7 +96,7 @@ class Page extends Model\Document\PageSnippet
         parent::update();
 
         $config = \Pimcore\Config::getSystemConfig();
-        if ($oldPath && $config->documents->createredirectwhenmoved && $oldPath != $this->getFullPath()) {
+        if ($oldPath && $config->documents->createredirectwhenmoved && $oldPath != $this->getRealFullPath()) {
             // create redirect for old path
             $redirect = new Redirect();
             $redirect->setTarget($this->getId());
@@ -133,6 +128,7 @@ class Page extends Model\Document\PageSnippet
     public function setName($name)
     {
         $this->setProperty("navigation_name", "text", $name, false);
+
         return $this;
     }
 
@@ -145,11 +141,15 @@ class Page extends Model\Document\PageSnippet
     }
 
     /**
+     * @deprecated
      * @return string
      */
     public function getKeywords()
     {
-        return $this->keywords;
+        // keywords are not supported anymore
+        \Logger::info("getKeywords() is deprecated and will be removed in the future!");
+
+        return "";
     }
 
     /**
@@ -167,16 +167,20 @@ class Page extends Model\Document\PageSnippet
     public function setDescription($description)
     {
         $this->description = str_replace("\n", " ", $description);
+
         return $this;
     }
 
     /**
+     * @deprecated
      * @param string $keywords
      * @return void
      */
     public function setKeywords($keywords)
     {
-        $this->keywords = str_replace("\n", " ", $keywords);
+        // keywords are not supported anymore
+        \Logger::info("setKeywords() is deprecated and will be removed in the future!");
+
         return $this;
     }
 
@@ -187,6 +191,7 @@ class Page extends Model\Document\PageSnippet
     public function setTitle($title)
     {
         $this->title = $title;
+
         return $this;
     }
 
@@ -197,6 +202,7 @@ class Page extends Model\Document\PageSnippet
     public function setMetaData($metaData)
     {
         $this->metaData = $metaData;
+
         return $this;
     }
 
@@ -237,6 +243,7 @@ class Page extends Model\Document\PageSnippet
         if (strlen($this->prettyUrl) < 2) {
             $this->prettyUrl = null;
         }
+
         return $this;
     }
 
@@ -299,6 +306,7 @@ class Page extends Model\Document\PageSnippet
         if ($this->getUsePersona() && !preg_match("/^" . preg_quote($this->getPersonaElementPrefix(), "/") . "/", $name)) {
             $name = $this->getPersonaElementPrefix() . $name;
         }
+
         return $name;
     }
 
@@ -341,6 +349,7 @@ class Page extends Model\Document\PageSnippet
                     $inheritedElement->setName($personaName);
                     $inheritedElement->setInherited(true);
                     $this->setElement($personaName, $inheritedElement);
+
                     return $inheritedElement;
                 }
             }
@@ -371,10 +380,10 @@ class Page extends Model\Document\PageSnippet
      */
     public function __sleep()
     {
-        $finalVars = array();
+        $finalVars = [];
         $parentVars = parent::__sleep();
 
-        $blockedVars = array("usePersona");
+        $blockedVars = ["usePersona"];
 
         foreach ($parentVars as $key) {
             if (!in_array($key, $blockedVars)) {

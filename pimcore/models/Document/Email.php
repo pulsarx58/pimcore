@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document;
@@ -76,6 +78,7 @@ class Email extends Model\Document\PageSnippet
     public function setSubject($subject)
     {
         $this->subject = $subject;
+
         return $this;
     }
 
@@ -98,6 +101,7 @@ class Email extends Model\Document\PageSnippet
     public function setTo($to)
     {
         $this->to = $to;
+
         return $this;
     }
 
@@ -170,6 +174,7 @@ class Email extends Model\Document\PageSnippet
     public function setFrom($from)
     {
         $this->from = $from;
+
         return $this;
     }
 
@@ -191,6 +196,7 @@ class Email extends Model\Document\PageSnippet
     public function getFromAsArray()
     {
         $emailAddresses = preg_split('/,|;/', $this->getFrom());
+
         return $emailAddresses;
     }
 
@@ -203,6 +209,7 @@ class Email extends Model\Document\PageSnippet
     public function setCc($cc)
     {
         $this->cc = $cc;
+
         return $this;
     }
 
@@ -235,6 +242,7 @@ class Email extends Model\Document\PageSnippet
     public function setBcc($bcc)
     {
         $this->bcc = $bcc;
+
         return $this;
     }
 

@@ -2,17 +2,21 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Tool;
 
 use Pimcore\Config;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
 
 class Console
 {
@@ -20,6 +24,16 @@ class Console
      * @var string system environment
      */
     private static $systemEnvironment;
+
+    /**
+     * @var null|bool
+     */
+    protected static $timeoutKillAfterSupport = null;
+
+    /**
+     * @var array
+     */
+    protected static $executableCache = [];
 
     /**
      * @static
@@ -34,7 +48,94 @@ class Console
                 self::$systemEnvironment = 'unix';
             }
         }
+
         return self::$systemEnvironment;
+    }
+
+    /**
+     * @param $name
+     * @param bool $throwException
+     * @return bool|mixed|string
+     * @throws \Exception
+     */
+    public static function getExecutable($name, $throwException = false)
+    {
+        if (isset(self::$executableCache[$name])) {
+            return self::$executableCache[$name];
+        }
+
+        $pathVariable = Config::getSystemConfig()->general->path_variable;
+
+        $paths = [];
+        if ($pathVariable) {
+            $paths = explode(":", $pathVariable);
+        }
+
+        array_unshift($paths, "");
+
+        // allow custom setup routines for certain programs
+        $customSetupMethod = "setup" . ucfirst($name);
+        if (method_exists(__CLASS__, $customSetupMethod)) {
+            self::$customSetupMethod();
+        }
+
+        foreach ($paths as $path) {
+            foreach (["--help", "-h", "-help"] as $option) {
+                try {
+                    $path = rtrim($path, "/\\ ");
+                    if ($path) {
+                        $executablePath = $path . DIRECTORY_SEPARATOR . $name;
+                    } else {
+                        $executablePath = $name;
+                    }
+
+                    $process = new Process($executablePath . " " . $option);
+                    $process->mustRun();
+
+                    if ($process->isSuccessful()) {
+                        if (empty($path) && self::getSystemEnvironment() == "unix") {
+                            // get the full qualified path, seems to solve a lot of problems :)
+                            // if not using the full path, timeout, nohup and nice will fail
+                            $fullQualifiedPath = shell_exec("which " . $executablePath);
+                            $fullQualifiedPath = trim($fullQualifiedPath);
+                            if ($fullQualifiedPath) {
+                                $executablePath = $fullQualifiedPath;
+                            }
+                        }
+
+                        self::$executableCache[$name] = $executablePath;
+
+                        return $executablePath;
+                    }
+                } catch (\Exception $e) {
+                }
+            }
+        }
+
+        self::$executableCache[$name] = false;
+
+        if ($throwException) {
+            throw new \Exception("No '$name' executable found, please install the application or add it to the PATH (in system settings or to your PATH environment variable");
+        }
+
+        return false;
+    }
+
+    /**
+     *
+     */
+    protected static function setupComposer()
+    {
+        // composer needs either COMPOSER_HOME or HOME to be set
+        if (!getenv("COMPOSER_HOME") && !getenv("HOME")) {
+            $composerHome = PIMCORE_WEBSITE_VAR . "/composer";
+            if (!is_dir($composerHome)) {
+                mkdir($composerHome, 0777, true);
+            }
+            putenv("COMPOSER_HOME=" . $composerHome);
+        }
+
+        putenv("COMPOSER_DISABLE_XDEBUG_WARN=true");
     }
 
     /**
@@ -43,42 +144,66 @@ class Console
      */
     public static function getPhpCli()
     {
-        if (Config::getSystemConfig()->general->php_cli) {
-            if (@is_executable(Config::getSystemConfig()->general->php_cli)) {
-                return (string) Config::getSystemConfig()->general->php_cli;
-            } else {
-                \Logger::critical("PHP-CLI binary: " . Config::getSystemConfig()->general->php_cli . " is not executable");
-            }
-        }
-
-        $paths = array(
-            "/usr/bin/php",
-            "/usr/local/bin/php",
-            "/usr/local/zend/bin/php",
-            "/bin/php",
-            realpath(PIMCORE_DOCUMENT_ROOT . "/../php/php.exe") // for windows sample package (XAMPP)
-        );
-
-        foreach ($paths as $path) {
-            if (@is_executable($path)) {
-                return $path;
-            }
-        }
-
-        throw new \Exception("No php executable found, please configure the correct path in the system settings");
+        return self::getExecutable("php", true);
     }
 
+    /**
+     * @return bool|string
+     */
     public static function getTimeoutBinary()
     {
-        $paths = array("/usr/bin/timeout","/usr/local/bin/timeout","/bin/timeout");
+        return self::getExecutable("timeout");
+    }
 
-        foreach ($paths as $path) {
-            if (@is_executable($path)) {
-                return $path;
-            }
+    /**
+     * @param $script
+     * @param $arguments
+     * @return string
+     */
+    protected static function buildPhpScriptCmd($script, $arguments)
+    {
+        $phpCli = Console::getPhpCli();
+
+        $cmd = $phpCli . " " . $script;
+
+        if (Config::getEnvironment()) {
+            $cmd .= " --environment=" . Config::getEnvironment();
         }
 
-        return false;
+        if (!empty($arguments)) {
+            $cmd .= " " . $arguments;
+        }
+
+        return $cmd;
+    }
+
+    /**
+     * @param $script
+     * @param $arguments
+     * @param $outputFile
+     * @param $timeout
+     * @return string
+     */
+    public static function runPhpScript($script, $arguments = "", $outputFile = null, $timeout = null)
+    {
+        $cmd = self::buildPhpScriptCmd($script, $arguments);
+        $return = Console::exec($cmd, $outputFile, $timeout);
+
+        return $return;
+    }
+
+    /**
+     * @param $script
+     * @param $arguments
+     * @param $outputFile
+     * @return string
+     */
+    public static function runPhpScriptInBackground($script, $arguments = "", $outputFile = null)
+    {
+        $cmd = self::buildPhpScriptCmd($script, $arguments);
+        $return = Console::execInBackground($cmd, $outputFile);
+
+        return $return;
     }
 
     /**
@@ -92,13 +217,21 @@ class Console
         if ($timeout && self::getTimeoutBinary()) {
 
             // check if --kill-after flag is supported in timeout
-            $killafter = "";
-            $out = self::exec(self::getTimeoutBinary() . " --help");
-            if (strpos($out, "--kill-after")) {
-                $killafter = " -k 1m";
+            if (self::$timeoutKillAfterSupport === null) {
+                $out = self::exec(self::getTimeoutBinary() . " --help");
+                if (strpos($out, "--kill-after")) {
+                    self::$timeoutKillAfterSupport = true;
+                } else {
+                    self::$timeoutKillAfterSupport = false;
+                }
             }
 
-            $cmd = self::getTimeoutBinary() . $killafter . " " . $timeout . "s " . $cmd;
+            $killAfter = "";
+            if (self::$timeoutKillAfterSupport) {
+                $killAfter = " -k 1m";
+            }
+
+            $cmd = self::getTimeoutBinary() . $killAfter . " " . $timeout . "s " . $cmd;
         } elseif ($timeout) {
             \Logger::warn("timeout binary not found, executing command without timeout");
         }
@@ -147,12 +280,17 @@ class Console
             $outputFile = "/dev/null";
         }
 
-        $nice = "";
-        if (@is_executable("/usr/bin/nice")) {
-            $nice = "/usr/bin/nice -n 19 ";
+        $nice = (string) self::getExecutable("nice");
+        if ($nice) {
+            $nice .= " -n 19 ";
         }
 
-        $commandWrapped = "/usr/bin/nohup " . $nice . $cmd . " > ". $outputFile ." 2>&1 & echo $!";
+        $nohup = (string) self::getExecutable("nohup");
+        if ($nohup) {
+            $nohup .= " ";
+        }
+
+        $commandWrapped = $nohup . $nice . $cmd . " > ". $outputFile ." 2>&1 & echo $!";
         \Logger::debug("Executing command `" . $commandWrapped . "´ on the current shell in background");
         $pid = shell_exec($commandWrapped);
 
@@ -191,7 +329,7 @@ class Console
     public static function getOptions($onlyFullNotationArgs = false)
     {
         global $argv;
-        $options = array();
+        $options = [];
         $tmpOptions = $argv;
         array_shift($tmpOptions);
 
@@ -234,7 +372,7 @@ class Console
      * @param array $allowedUsers
      * @throws \Exception
      */
-    public static function checkExecutingUser($allowedUsers = array())
+    public static function checkExecutingUser($allowedUsers = [])
     {
         $configFile = \Pimcore\Config::locateConfigFile("system.php");
         $owner = fileowner($configFile);

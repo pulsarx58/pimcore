@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore;
@@ -38,7 +40,7 @@ class Cache
      * Contains the items which should be written to the cache on shutdown. They are ordered respecting the priority
      * @var array
      */
-    public static $saveStack = array();
+    public static $saveStack = [];
 
     /**
      * Contains the Logger, this is necessary because otherwise logging doesn't work in shutdown (missing reference)
@@ -50,13 +52,13 @@ class Cache
      * Contains the tags which were already cleared
      * @var array
      */
-    public static $clearedTagsStack = array();
+    public static $clearedTagsStack = [];
 
     /**
      * Items having tags which are in this array are cleared on shutdown \Pimcore::shutdown(); This is especially for the output-cache
      * @var array
      */
-    protected static $_clearTagsOnShutdown = array();
+    protected static $_clearTagsOnShutdown = [];
 
     /**
      * How many items should stored to the cache within one process
@@ -74,7 +76,7 @@ class Cache
      * items having one of the tags in this store are not cleared when calling self::clearTags() or self::clearTag()
      * @var array
      */
-    public static $ignoredTagsOnClear = array();
+    public static $ignoredTagsOnClear = [];
 
     /**
      * if set to truq items are directly written into the cache, and do not get into the queue
@@ -208,6 +210,7 @@ class Cache
     public static function initializeCache($config)
     {
         $cache = \Zend_Cache::factory($config["frontendType"], $config["backendType"], $config["frontendConfig"], $config["backendConfig"], $config["customFrontendNaming"], $config["customBackendNaming"], true);
+
         return $cache;
     }
 
@@ -217,18 +220,18 @@ class Cache
      */
     public static function getDefaultConfig($adapter = null)
     {
-        $config =  array(
+        $config =  [
             "frontendType" => "Core",
-            "frontendConfig" => array(
+            "frontendConfig" => [
                 "lifetime" => self::$defaultLifetime,
                 "automatic_serialization" => true,
                 "automatic_cleaning_factor" => 0
-            ),
+            ],
             "customFrontendNaming" => true,
             "backendType" => "\\Pimcore\\Cache\\Backend\\MysqlTable",
-            "backendConfig" => array(),
+            "backendConfig" => [],
             "customBackendNaming" => true
-        );
+        ];
 
         if ($adapter) {
             $config["backendType"] = $adapter;
@@ -263,6 +266,7 @@ class Cache
             $config["backendType"] = "\\Zend_Cache_Backend_BlackHole";
             self::$blackHoleCache = self::initializeCache($config);
         }
+
         return self::$blackHoleCache;
     }
     
@@ -275,6 +279,7 @@ class Cache
     {
         if (!self::$enabled) {
             \Logger::debug("Key " . $key . " doesn't exist in cache (deactivated)");
+
             return;
         }
 
@@ -294,6 +299,7 @@ class Cache
     
             return $data;
         }
+
         return false;
     }
 
@@ -307,6 +313,7 @@ class Cache
     {
         if (!self::$enabled) {
             \Logger::debug("Key " . $key . " doesn't exist in cache (deactivated)");
+
             return;
         }
 
@@ -332,7 +339,7 @@ class Cache
      * @param string $key
      * @return void
      */
-    public static function save($data, $key, $tags = array(), $lifetime = null, $priority = 0, $force = false)
+    public static function save($data, $key, $tags = [], $lifetime = null, $priority = 0, $force = false)
     {
         if (self::getForceImmediateWrite() || $force) {
             if (self::hasWriteLock()) {
@@ -341,7 +348,7 @@ class Cache
 
             return self::storeToCache($data, $key, $tags, $lifetime, $priority, $force);
         } else {
-            self::addToSaveStack(array($data, $key, $tags, $lifetime, $priority, $force));
+            self::addToSaveStack([$data, $key, $tags, $lifetime, $priority, $force]);
         }
     }
 
@@ -355,7 +362,7 @@ class Cache
      * @param bool $force
      * @return bool|void
      */
-    public static function storeToCache($data, $key, $tags = array(), $lifetime = null, $priority = null, $force = false)
+    public static function storeToCache($data, $key, $tags = [], $lifetime = null, $priority = null, $force = false)
     {
         if (!self::$enabled) {
             return;
@@ -403,11 +410,12 @@ class Cache
                 foreach ($tags as $t) {
                     if (in_array($t, self::$clearedTagsStack)) {
                         \Logger::debug("Aborted caching for key: " . $key . " because it is in the clear stack");
+
                         return;
                     }
                 }
             } else {
-                $tags = array();
+                $tags = [];
             }
 
             // always add the key as tag
@@ -459,7 +467,7 @@ class Cache
             }
         }
         //add new item at the correct position
-        array_splice(self::$saveStack, $i, 0, array($config));
+        array_splice(self::$saveStack, $i, 0, [$config]);
 
         // remove items which are too much, and cannot be added to the cache anymore
         array_splice(self::$saveStack, self::$maxWriteToCacheItems);
@@ -470,7 +478,7 @@ class Cache
      */
     public function clearSaveStack()
     {
-        self::$saveStack = array();
+        self::$saveStack = [];
     }
     
     /**
@@ -484,7 +492,7 @@ class Cache
             return;
         }
 
-        $processedKeys = array();
+        $processedKeys = [];
         $count = 0;
         foreach (self::$saveStack as $conf) {
             if (in_array($conf[1], $processedKeys)) {
@@ -492,7 +500,7 @@ class Cache
             }
 
             try {
-                forward_static_call_array(array(__CLASS__, "storeToCache"), $conf);
+                forward_static_call_array([__CLASS__, "storeToCache"], $conf);
             } catch (\Exception $e) {
                 \Logger::error("Unable to put element " . $conf[1] . " to cache because of the following reason: ");
                 \Logger::error($e);
@@ -508,7 +516,7 @@ class Cache
         }
 
         // reset
-        self::$saveStack = array();
+        self::$saveStack = [];
     }
 
 
@@ -520,7 +528,7 @@ class Cache
         if (!self::$writeLockTimestamp || $force) {
             self::$writeLockTimestamp = time();
             if ($cache = self::getInstance()) {
-                $cache->save(self::$writeLockTimestamp, "system_cache_write_lock", array(), 30);
+                $cache->save(self::$writeLockTimestamp, "system_cache_write_lock", [], 30);
             }
         }
     }
@@ -558,6 +566,7 @@ class Cache
             // lock is valid for 30 secs
             if ($lock && $lock > (time()-30)) {
                 self::$writeLockTimestamp = $lock;
+
                 return true;
             } else {
                 self::$writeLockTimestamp = 0;
@@ -622,7 +631,7 @@ class Cache
      */
     public static function clearTag($tag)
     {
-        self::clearTags(array($tag));
+        self::clearTags([$tag]);
     }
     
     /**
@@ -631,7 +640,7 @@ class Cache
      * @param array $tags
      * @return void
      */
-    public static function clearTags($tags = array())
+    public static function clearTags($tags = [])
     {
 
         // do not disable clearing, it's better purging items here than having inconsistent data because of wrong usage
@@ -657,7 +666,7 @@ class Cache
 
         // check for the tag output, because items with this tags are only cleared after the process is finished
         // the reason is that eg. long running importers will clean the output-cache on every save/update, that's not necessary,
-        // only cleaning the output-cache on shutdown should be enough 
+        // only cleaning the output-cache on shutdown should be enough
         $outputTagPosition = array_search("output", $tags);
         if ($outputTagPosition !== false) {
             array_splice($tags, $outputTagPosition, 1);

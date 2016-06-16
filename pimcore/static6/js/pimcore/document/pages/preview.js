@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.document.pages.preview");
@@ -15,6 +17,8 @@ pimcore.document.pages.preview = Class.create({
     initialize: function(page) {
         this.page = page;
         this.mode = "full";
+
+        this.availableHeight = null;
     },
 
 
@@ -28,65 +32,22 @@ pimcore.document.pages.preview = Class.create({
             var tbar = [];
             if(this.page.getType() == "page") {
 
-                var previewModes = [
-                    {type: "desktop", name: '10" Netbook', width: 1024, height: 600, icon: ""},
-                    {type: "desktop", name: '12" Netbook', width: 1024, height: 768, icon: ""},
-                    {type: "desktop", name: '13" Netbook', width: 1280, height: 800, icon: ""},
-                    {type: "desktop", name: '15" Netbook', width: 1366, height: 768, icon: ""},
-                    {type: "desktop", name: '19" Desktop', width: 1440, height: 900, icon: ""},
-                    {type: "desktop", name: '20" Desktop', width: 1600, height: 900, icon: ""},
-                    {type: "desktop", name: '22" Desktop', width: 1680, height: 1050, icon: ""},
-                    {type: "desktop", name: '23" Desktop', width: 1920, height: 1080, icon: ""},
-                    {type: "desktop", name: '24" Desktop', width: 1920, height: 1200, icon: ""},
-                    {type: "tablet", name: 'Velocity Cruz', width: 800, height: 600, icon: ""},
-                    {type: "tablet", name: 'Samsung Galaxy', width: 1024, height: 600, icon: ""},
-                    {type: "tablet", name: 'Apple iPad (mini)', width: 1024, height: 768, icon: ""},
-                    {type: "tablet", name: 'Google Nexus 10', width: 1280, height: 800, icon: ""},
-                    {type: "tablet", name: 'Google Nexus 7', width: 960, height: 600, icon: ""},
-                    {type: "mobile", name: 'Apple iPhone 3/4', width: 320, height: 480, icon: ""},
-                    {type: "mobile", name: 'Apple iPhone 5 (c/s)', width: 320, height: 568, icon: ""},
-                    {type: "mobile", name: 'Apple iPhone 6', width: 375, height: 667, icon: ""},
-                    {type: "mobile", name: 'Apple iPhone 6 Plus', width: 414, height: 736, icon: ""},
-                    {type: "mobile", name: 'LG Optimus S', width: 320, height: 480, icon: ""},
-                    {type: "mobile", name: 'Google Nexus S', width: 480, height: 800, icon: ""},
-                    {type: "mobile", name: 'Google Nexus 5 (five)', width: 360, height: 598, icon: ""},
-                    {type: "tv", name: '480p TV', width: 640, height: 480, icon: ""},
-                    {type: "tv", name: '720p TV', width: 1280, height: 720, icon: ""},
-                    {type: "tv", name: '1080p TV', width: 1920, height: 1080, icon: ""}
-                ];
-
-                var menues = {
-                    desktop: [],
-                    tablet: [],
-                    mobile: [],
-                    tv: []
-                };
-
-
-                for(var i=0; i<previewModes.length; i++) {
-                    menues[previewModes[i]["type"]].push({
-                        text: previewModes[i]["name"] + " (" + previewModes[i]["width"] + "x"
-                                                                            + previewModes[i]["height"] + ")",
-                        handler: this.setMode.bind(this, previewModes[i])
-                    });
-                }
-
                 tbar = [{
-                    text: "Desktop",
+                    text: t("desktop"),
                     iconCls: "pimcore_icon_desktop",
-                    menu: menues["desktop"]
+                    handler: this.setFullMode.bind(this)
                 }, {
-                    text: "Tablet",
+                    text: t("tablet"),
                     iconCls: "pimcore_icon_tablet",
-                    menu: menues["tablet"]
+                    handler: this.setMode.bind(this, {device: "tablet", width: 1024, height: 768})
                 }, {
-                    text: "Mobile",
+                    text: t("phone"),
                     iconCls: "pimcore_icon_mobile",
-                    menu: menues["mobile"]
-                }, {
-                    text: "Smart TV",
+                    handler: this.setMode.bind(this, {device: "phone", width: 375, height: 667})
+                },{
+                    text: t("phone"),
                     iconCls: "pimcore_icon_tv",
-                    menu: menues["tv"]
+                    handler: this.setMode.bind(this, {device: "phone", width: 667, height: 375})
                 }, "-", {
                     text: t("qr_codes"),
                     iconCls: "pimcore_icon_qrcode",
@@ -133,7 +94,7 @@ pimcore.document.pages.preview = Class.create({
                 scrollable: false,
                 bodyStyle: "background:#323232;",
                 bodyCls: "pimcore_overflow_scrolling",
-                html: '<iframe src="about:blank" width="100%" onload="' + iframeOnLoad + '" frameborder="0" id="'
+                html: '<iframe src="about:blank" onload="' + iframeOnLoad + '" frameborder="0" style="width: 100%;" id="'
                     + this.iframeName + '" name="' + this.iframeName + '"' +
                     'style="background: #fff;"></iframe>'
             });
@@ -144,6 +105,7 @@ pimcore.document.pages.preview = Class.create({
                 layout: "border",
                 tbar: tbar,
                 iconCls: "pimcore_icon_preview",
+                bodyCls: "pimcore_preview_body",
                 items: [this.framePanel]
             });
 
@@ -166,14 +128,31 @@ pimcore.document.pages.preview = Class.create({
         return this.layout;
     },
 
+    setFullMode: function () {
+        this.getIframe().applyStyles({
+            position: "relative",
+            border: "0",
+            width: "100%",
+            height: (this.availableHeight-7) + "px",
+            top: "initial",
+            left: "initial"
+        });
+
+        this.loadCurrentPreview("desktop");
+    },
+
     setMode: function (mode) {
         var iframe = this.getIframe();
-        var availableWidth = this.framePanel.getWidth()-50;
-        var availableHeight = this.framePanel.getHeight()-50;
+        var availableWidth = this.framePanel.getWidth()-10;
+        var availableHeight = this.framePanel.getHeight()-10;
 
-        if(availableWidth < mode["width"] || availableHeight < mode["height"]) {
+        if(availableWidth < mode["width"]) {
             Ext.MessageBox.alert(t("error"), t("screen_size_to_small"));
             return;
+        }
+
+        if(availableHeight < mode["height"]) {
+            mode["height"] = availableHeight;
         }
 
         var top = Math.floor((availableHeight - mode["height"])/2);
@@ -187,17 +166,21 @@ pimcore.document.pages.preview = Class.create({
             top: top + "px",
             left: left + "px"
         });
+
+        this.loadCurrentPreview(mode["device"]);
     },
 
     onLayoutResize: function (el, width, height, rWidth, rHeight) {
         if(this.mode == "full") {
             this.setLayoutFrameDimensions(width, height);
         }
+
+        this.availableHeight = height;
     },
 
     setLayoutFrameDimensions: function (width, height) {
         this.getIframe().setStyle({
-            height: (height) + "px"
+            height: (height-7) + "px"
         });
     },
 
@@ -225,11 +208,11 @@ pimcore.document.pages.preview = Class.create({
     },
 
 
-    loadCurrentPreview: function () {
+    loadCurrentPreview: function (device) {
         var date = new Date();
         var path;
 
-        path = this.page.data.path + this.page.data.key + "?pimcore_preview=true&time=" + date.getTime();
+        path = this.page.data.path + this.page.data.key + "?pimcore_preview=true&time=" + date.getTime() + "&forceDeviceType=" + device;
 
         // add persona parameter if available
         if(this.page["edit"] && this.page.edit["persona"]) {

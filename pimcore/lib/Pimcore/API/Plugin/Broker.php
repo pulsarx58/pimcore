@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\API\Plugin;
@@ -22,14 +24,14 @@ class Broker
      *
      * @var array
      */
-    protected $_plugins = array();
+    protected $_plugins = [];
 
     /**
      * Array of system compontents which need to be notified of hooks
      *
      * @var array
      */
-    protected $_systemModules = array();
+    protected $_systemModules = [];
 
     /**
      * @return mixed|Broker
@@ -46,6 +48,7 @@ class Broker
 
         $broker = new Broker();
         \Zend_Registry::set("Pimcore_API_Plugin_Broker", $broker);
+
         return $broker;
     }
 
@@ -69,12 +72,12 @@ class Broker
      * @param AbstractPlugin $plugin
      * @param null $stackIndex
      * @return $this
-     * @throws Exception
+     * @throws \Exception
      */
     public function registerPlugin(AbstractPlugin $plugin, $stackIndex = null)
     {
         if (false !== array_search($plugin, $this->_plugins, true)) {
-            throw new Exception('Plugin already registered');
+            throw new \Exception('Plugin already registered');
         }
 
         //installed?
@@ -85,6 +88,7 @@ class Broker
             } else {
                 \Logger::debug("Not registering plugin, it is not an object");
             }
+
             return $this;
         }
 
@@ -93,7 +97,7 @@ class Broker
 
         if ($stackIndex) {
             if (isset($this->_plugins[$stackIndex])) {
-                throw new Exception('Plugin with stackIndex "' . $stackIndex . '" already registered');
+                throw new \Exception('Plugin with stackIndex "' . $stackIndex . '" already registered');
             }
             $this->_plugins[$stackIndex] = $plugin;
         } else {
@@ -114,7 +118,7 @@ class Broker
     /**
      * @param $plugin
      * @return $this
-     * @throws Exception
+     * @throws \Exception
      */
     public function unregisterPlugin($plugin)
     {
@@ -122,7 +126,7 @@ class Broker
             // Given a plugin object, find it in the array
             $key = array_search($plugin, $this->_plugins, true);
             if (false === $key) {
-                throw new Exception('Plugin never registered.');
+                throw new \Exception('Plugin never registered.');
             }
             unset($this->_plugins[$key]);
         } elseif (is_string($plugin)) {
@@ -134,6 +138,7 @@ class Broker
                 }
             }
         }
+
         return $this;
     }
 
@@ -169,6 +174,7 @@ class Broker
                 return true;
             }
         }
+
         return false;
     }
 
@@ -178,7 +184,7 @@ class Broker
      */
     public function getPlugin($class)
     {
-        $found = array();
+        $found = [];
         foreach ($this->_plugins as $plugin) {
             $type = get_class($plugin);
             if ($class == $type) {
@@ -224,6 +230,7 @@ class Broker
     {
         $modules = (array)$this->getModules();
         $plugins = (array)$this->getPlugins();
+
         return array_merge($modules, $plugins);
     }
 
@@ -235,7 +242,7 @@ class Broker
      */
     public function getTranslations($language)
     {
-        $translations = array();
+        $translations = [];
         foreach ($this->_plugins as $plugin) {
             try {
                 $pluginLanguageFile = $plugin->getTranslationFile($language);
@@ -245,6 +252,9 @@ class Broker
                     if (is_file($languageFile) and strtolower(substr($languageFile, -4, 4)) == ".csv") {
                         $handle = fopen($languageFile, "r");
                         while (($data = fgetcsv($handle, 0, ",")) !== false) {
+                            if (!isset($data[1])) {
+                                continue;
+                            }
                             $pluginTranslations[$data[0]] = $data[1];
                         }
                         fclose($handle);
@@ -258,6 +268,7 @@ class Broker
                 \Logger::error("Plugin " . get_class($plugin) . " threw Exception when trying to get translations");
             }
         }
+
         return $translations;
     }
 }

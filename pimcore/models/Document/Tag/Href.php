@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document\Tag;
@@ -68,11 +70,11 @@ class Href extends Model\Document\Tag
      */
     public function getData()
     {
-        return array(
+        return [
             "id" => $this->id,
             "type" => $this->type,
             "subtype" => $this->subtype
-        );
+        ];
     }
 
     /**
@@ -85,12 +87,12 @@ class Href extends Model\Document\Tag
         $this->setElement();
     
         if ($this->element instanceof Element\ElementInterface) {
-            return array(
+            return [
                 "id" => $this->id,
-                "path" => $this->element->getFullPath(),
+                "path" => $this->element->getRealFullPath(),
                 "elementType" => $this->type,
                 "subtype" => $this->subtype
-            );
+            ];
         }
 
         return null;
@@ -132,6 +134,7 @@ class Href extends Model\Document\Tag
         $this->subtype = $data["subtype"];
 
         $this->setElement();
+
         return $this;
     }
 
@@ -147,6 +150,7 @@ class Href extends Model\Document\Tag
         $this->subtype = $data["subtype"];
 
         $this->setElement();
+
         return $this;
     }
 
@@ -160,6 +164,7 @@ class Href extends Model\Document\Tag
         if (!$this->element) {
             $this->element = Element\Service::getElementById($this->type, $this->id);
         }
+
         return $this;
     }
 
@@ -196,6 +201,7 @@ class Href extends Model\Document\Tag
         if ($this->element instanceof Element\ElementInterface) {
             return $this->element->getFullPath();
         }
+
         return;
     }
 
@@ -209,6 +215,7 @@ class Href extends Model\Document\Tag
         if ($this->getElement() instanceof Element\ElementInterface) {
             return false;
         }
+
         return true;
     }
 
@@ -217,16 +224,16 @@ class Href extends Model\Document\Tag
      */
     public function resolveDependencies()
     {
-        $dependencies = array();
+        $dependencies = [];
         $this->setElement();
 
         if ($this->element instanceof Element\ElementInterface) {
             $elementType = Element\Service::getElementType($this->element);
             $key = $elementType . "_" . $this->element->getId();
-            $dependencies[$key] = array(
+            $dependencies[$key] = [
                 "id" => $this->element->getId(),
                 "type" => $elementType
-            );
+            ];
         }
 
         return $dependencies;
@@ -238,7 +245,7 @@ class Href extends Model\Document\Tag
      * @param null $idMapper
      * @throws \Exception
      */
-    public function getFromWebserviceImport($wsElement, $document = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($wsElement, $document = null, $params = [], $idMapper = null)
     {
         $data = $wsElement->value;
         if ($data->id !==null) {
@@ -310,6 +317,7 @@ class Href extends Model\Document\Tag
                 $this->element=null;
             }
         }
+
         return $sane;
     }
 
@@ -318,9 +326,9 @@ class Href extends Model\Document\Tag
      */
     public function __sleep()
     {
-        $finalVars = array();
+        $finalVars = [];
         $parentVars = parent::__sleep();
-        $blockedVars = array("element");
+        $blockedVars = ["element"];
         foreach ($parentVars as $key) {
             if (!in_array($key, $blockedVars)) {
                 $finalVars[] = $key;
@@ -348,6 +356,7 @@ class Href extends Model\Document\Tag
     public function setId($id)
     {
         $this->id = $id;
+
         return $this;
     }
 
@@ -366,6 +375,7 @@ class Href extends Model\Document\Tag
     public function setSubtype($subtype)
     {
         $this->subtype = $subtype;
+
         return $this;
     }
 

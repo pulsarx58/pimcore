@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object|Class
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\ClassDefinition\Data;
@@ -122,11 +124,12 @@ class ExternalImage extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataForResource($data, $object = null, $params = array())
+    public function getDataForResource($data, $object = null, $params = [])
     {
         if ($data instanceof Model\Object\Data\ExternalImage) {
             return $data->getUrl();
         }
+
         return null;
     }
 
@@ -137,7 +140,7 @@ class ExternalImage extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataFromResource($data, $object = null, $params = array())
+    public function getDataFromResource($data, $object = null, $params = [])
     {
         return new Model\Object\Data\ExternalImage($data);
     }
@@ -149,7 +152,7 @@ class ExternalImage extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataForQueryResource($data, $object = null, $params = array())
+    public function getDataForQueryResource($data, $object = null, $params = [])
     {
         return $this->getDataForResource($data, $object, $params);
     }
@@ -161,11 +164,12 @@ class ExternalImage extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataForEditmode($data, $object = null, $params = array())
+    public function getDataForEditmode($data, $object = null, $params = [])
     {
         if ($data instanceof Model\Object\Data\ExternalImage) {
             return $data->getUrl();
         }
+
         return null;
     }
 
@@ -176,7 +180,7 @@ class ExternalImage extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getDataFromEditmode($data, $object = null, $params = array())
+    public function getDataFromEditmode($data, $object = null, $params = [])
     {
         return new Model\Object\Data\ExternalImage($data);
     }
@@ -188,7 +192,7 @@ class ExternalImage extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getVersionPreview($data, $object = null, $params = array())
+    public function getVersionPreview($data, $object = null, $params = [])
     {
         if ($data instanceof Model\Object\Data\ExternalImage && $data->getUrl()) {
             return '<img style="max-width:200px;max-height:200px" src="' . $data->getUrl()  . '" /><br><a href="' . $data->getUrl() . '">' . $data->getUrl() . '</>';
@@ -205,12 +209,13 @@ class ExternalImage extends Model\Object\ClassDefinition\Data
      * @param array $params
      * @return string
      */
-    public function getForCsvExport($object, $params = array())
+    public function getForCsvExport($object, $params = [])
     {
-        $data = $this->getDataFromObjectParam($object);
+        $data = $this->getDataFromObjectParam($object, $params);
         if ($data instanceof Model\Object\Data\ExternalImage) {
             return $data->getUrl();
         }
+
         return null;
     }
 
@@ -220,7 +225,7 @@ class ExternalImage extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return string
      */
-    public function getFromCsvImport($importValue, $object = null, $params = array())
+    public function getFromCsvImport($importValue, $object = null, $params = [])
     {
         return new Model\Object\Data\ExternalImage($importValue);
     }
@@ -232,7 +237,7 @@ class ExternalImage extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return mixed
      */
-    public function getForWebserviceExport($object, $params = array())
+    public function getForWebserviceExport($object, $params = [])
     {
         return $this->getForCsvExport($object, $params);
     }
@@ -246,7 +251,7 @@ class ExternalImage extends Model\Object\ClassDefinition\Data
      * @return mixed|void
      * @throws \Exception
      */
-    public function getFromWebserviceImport($value, $relatedObject = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($value, $relatedObject = null, $params = [], $idMapper = null)
     {
         return $this->getFromCsvImport($value, $relatedObject, $params);
     }
@@ -258,7 +263,7 @@ class ExternalImage extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return bool
      */
-    public function isDiffChangeAllowed($object, $params = array())
+    public function isDiffChangeAllowed($object, $params = [])
     {
         return true;
     }
@@ -270,11 +275,12 @@ class ExternalImage extends Model\Object\ClassDefinition\Data
      * @param mixed $params
      * @return array|string
      */
-    public function getDiffVersionPreview($data, $object = null, $params = array())
+    public function getDiffVersionPreview($data, $object = null, $params = [])
     {
         if ($data) {
             return '<img style="max-width:200px;max-height:200px" src="' . $data  . '" />';
         }
+
         return $data;
     }
 
@@ -287,5 +293,18 @@ class ExternalImage extends Model\Object\ClassDefinition\Data
         $this->previewHeight = $masterDefinition->previewHeight;
         $this->previewWidth = $masterDefinition->previewWidth;
         $this->inputWidth = $masterDefinition->inputWidth;
+    }
+
+    /**
+     * @param Object\Data\ExternalImage $data
+     * @return bool
+     */
+    public function isEmpty($data)
+    {
+        if ($data instanceof Object\Data\ExternalImage and $data->getUrl()) {
+            return false;
+        }
+
+        return true;
     }
 }

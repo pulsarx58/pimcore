@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document\Tag;
@@ -27,7 +29,7 @@ class Areablock extends Model\Document\Tag
      *
      * @var array
      */
-    public $indices = array();
+    public $indices = [];
 
     /**
      * Current step of the block while iteration
@@ -74,10 +76,9 @@ class Areablock extends Model\Document\Tag
     public function frontend()
     {
         if (!is_array($this->indices)) {
-            $this->indices = array();
+            $this->indices = [];
         }
-        reset($this->indices);
-        while ($this->loop());
+        reset($this->indices); while ($this->loop());
     }
 
     /**
@@ -149,11 +150,13 @@ class Areablock extends Model\Document\Tag
             } elseif (!$manual) {
                 $this->current++;
             }
+
             return true;
         } else {
             if (!$manual) {
                 $this->end();
             }
+
             return false;
         }
     }
@@ -185,8 +188,8 @@ class Areablock extends Model\Document\Tag
             $action = $areas[$this->currentIndex["type"]] . "/action.php";
             $edit = $areas[$this->currentIndex["type"]] . "/edit.php";
             $options = $this->getOptions();
-            $params = array();
-            if (is_array($options["params"]) && array_key_exists($this->currentIndex["type"], $options["params"])) {
+            $params = [];
+            if (isset($options["params"]) && is_array($options["params"]) && array_key_exists($this->currentIndex["type"], $options["params"])) {
                 if (is_array($options["params"][$this->currentIndex["type"]])) {
                     $params = $options["params"][$this->currentIndex["type"]];
                 }
@@ -198,12 +201,20 @@ class Areablock extends Model\Document\Tag
             }
 
             // check for action file
+            $actionObject = null;
             if (is_file($action)) {
                 include_once($action);
 
                 $actionClassFound = true;
 
-                $actionClassname = "\\Pimcore\\Model\\Document\\Tag\\Area\\" . ucfirst($this->currentIndex["type"]);
+                $actionClass = preg_replace_callback("/[\-_][a-z]/", function ($matches) {
+                    $replacement = str_replace(["-", "_"], "", $matches[0]);
+
+                    return strtoupper($replacement);
+                }, ucfirst($this->currentIndex["type"]));
+
+                $actionClassname = "\\Pimcore\\Model\\Document\\Tag\\Area\\" . $actionClass;
+
                 if (!class_exists($actionClassname, false)) {
                     // also check the legacy prefixed class name, as this is used by some plugins
                     $actionClassname = "\\Document_Tag_Area_" . ucfirst($this->currentIndex["type"]);
@@ -243,7 +254,7 @@ class Areablock extends Model\Document\Tag
             if (is_file($view)) {
                 $editmode = $this->getView()->editmode;
 
-                if (method_exists($actionObject, "getBrickHtmlTagOpen")) {
+                if ($actionObject && method_exists($actionObject, "getBrickHtmlTagOpen")) {
                     echo $actionObject->getBrickHtmlTagOpen($this);
                 } else {
                     echo '<div class="pimcore_area_' . $this->currentIndex["type"] . ' pimcore_area_content">';
@@ -268,13 +279,13 @@ class Areablock extends Model\Document\Tag
                     echo '</div>';
                 }
 
-                if (method_exists($actionObject, "getBrickHtmlTagClose")) {
+                if ($actionObject && method_exists($actionObject, "getBrickHtmlTagClose")) {
                     echo $actionObject->getBrickHtmlTagClose($this);
                 } else {
                     echo '</div>';
                 }
 
-                if (is_object($actionObject) && method_exists($actionObject, "postRenderAction")) {
+                if ($actionObject && method_exists($actionObject, "postRenderAction")) {
                     $actionObject->postRenderAction();
                 }
             }
@@ -292,8 +303,9 @@ class Areablock extends Model\Document\Tag
     {
         $this->indices = Tool\Serialize::unserialize($data);
         if (!is_array($this->indices)) {
-            $this->indices = array();
+            $this->indices = [];
         }
+
         return $this;
     }
 
@@ -305,6 +317,7 @@ class Areablock extends Model\Document\Tag
     public function setDataFromEditmode($data)
     {
         $this->indices = $data;
+
         return $this;
     }
 
@@ -338,8 +351,8 @@ class Areablock extends Model\Document\Tag
             $buttonWidth = 154;
         }
 
-        return array(
-            "areablock_toolbar" => array(
+        return [
+            "areablock_toolbar" => [
                 "title" => "",
                 "width" => 172,
                 "x" => 20,
@@ -347,8 +360,8 @@ class Areablock extends Model\Document\Tag
                 "xAlign" => "left",
                 "buttonWidth" => $buttonWidth,
                 "buttonMaxCharacters" => 20
-            )
-        );
+            ]
+        ];
     }
 
     /**
@@ -370,14 +383,14 @@ class Areablock extends Model\Document\Tag
 
         $configOptions = array_merge($this->getToolBarDefaultConfig(), $this->getOptions());
 
-        $options = array(
+        $options = [
             "options" => $configOptions,
             "data" => $data,
             "name" => $this->getName(),
             "id" => "pimcore_editable_" . $this->getName(),
             "type" => $this->getType(),
             "inherited" => $this->getInherited()
-        );
+        ];
         $options = @\Zend_Json::encode($options);
         //$options = base64_encode($options);
 
@@ -468,19 +481,19 @@ class Areablock extends Model\Document\Tag
         if (\Zend_Registry::isRegistered("pimcore_tag_block_current")) {
             $current = \Zend_Registry::get("pimcore_tag_block_current");
             if (!is_array($current)) {
-                $current = array();
+                $current = [];
             }
         } else {
-            $current = array();
+            $current = [];
         }
 
         if (\Zend_Registry::isRegistered("pimcore_tag_block_numeration")) {
             $numeration = \Zend_Registry::get("pimcore_tag_block_numeration");
             if (!is_array($numeration)) {
-                $numeration = array();
+                $numeration = [];
             }
         } else {
-            $numeration = array();
+            $numeration = [];
         }
 
         \Zend_Registry::set("pimcore_tag_block_numeration", $numeration);
@@ -500,16 +513,25 @@ class Areablock extends Model\Document\Tag
         // read available types
         $areaConfigs = $this->getBrickConfigs();
         $availableAreas = ["name" => [], "index" => []];
-        $availableAreasSort = is_array($options["sorting"]) && count($options["sorting"]) ? $options["sorting"] : (is_array($options["allowed"]) && count($options["allowed"]) ? $options["allowed"] : false);
+
+        if (isset($options["sorting"]) && is_array($options["sorting"]) && count($options["sorting"])) {
+            $availableAreasSort = $options["sorting"];
+        } else {
+            if (isset($options["allowed"]) && is_array($options["allowed"]) && count($options["allowed"])) {
+                $availableAreasSort = $options["allowed"];
+            } else {
+                $availableAreasSort = false;
+            }
+        }
 
         if (!isset($options["allowed"]) || !is_array($options["allowed"])) {
-            $options["allowed"] = array();
+            $options["allowed"] = [];
         }
 
         foreach ($areaConfigs as $areaName => $areaConfig) {
 
             // don't show disabled bricks
-            if (!$options['dontCheckEnabled']) {
+            if (!isset($options['dontCheckEnabled']) || !$options['dontCheckEnabled']) {
                 if (!$this->isBrickEnabled($areaName)) {
                     continue;
                 }
@@ -543,13 +565,13 @@ class Areablock extends Model\Document\Tag
                     $sortKey   = $sortIndex === false ? $sortKey : "index";
                 }
 
-                $availableAreas[$sortKey][] = array(
+                $availableAreas[$sortKey][] = [
                     "name" => $n,
                     "description" => $d,
                     "type" => $areaName,
                     "icon" => $icon,
                     "sortIndex" => $sortIndex
-                );
+                ];
             }
         }
 
@@ -575,12 +597,12 @@ class Areablock extends Model\Document\Tag
         $options["types"] = $availableAreas;
 
         if (isset($options["group"]) && is_array($options["group"])) {
-            $groupingareas = array();
+            $groupingareas = [];
             foreach ($availableAreas as $area) {
                 $groupingareas[$area["type"]] = $area["type"];
             }
 
-            $groups = array();
+            $groups = [];
             foreach ($options["group"] as $name => $areas) {
                 $n = $name;
                 if ($this->view && $this->editmode) {
@@ -594,7 +616,7 @@ class Areablock extends Model\Document\Tag
             }
 
             if (count($groupingareas) > 0) {
-                $uncatAreas = array();
+                $uncatAreas = [];
                 foreach ($groupingareas as $area) {
                     $uncatAreas[] = $area;
                 }
@@ -614,6 +636,7 @@ class Areablock extends Model\Document\Tag
 
 
         $this->options = $options;
+
         return $this;
     }
 
@@ -673,7 +696,7 @@ class Areablock extends Model\Document\Tag
      * @param null $idMapper
      * @throws \Exception
      */
-    public function getFromWebserviceImport($wsElement, $document = null, $params = array(), $idMapper = null)
+    public function getFromWebserviceImport($wsElement, $document = null, $params = [], $idMapper = null)
     {
         $data = $wsElement->value;
         if (($data->indices === null or is_array($data->indices)) and ($data->current==null or is_numeric($data->current))
@@ -697,6 +720,7 @@ class Areablock extends Model\Document\Tag
     public function isCustomAreaPath()
     {
         $options = $this->getOptions();
+
         return array_key_exists("areaDir", $options);
     }
 
@@ -719,6 +743,7 @@ class Areablock extends Model\Document\Tag
     public function getAreaDirectory()
     {
         $options = $this->getOptions();
+
         return PIMCORE_DOCUMENT_ROOT . "/" . trim($options["areaDir"], "/");
     }
 
@@ -743,6 +768,7 @@ class Areablock extends Model\Document\Tag
     {
         if ($this->isCustomAreaPath()) {
             $path = $this->getAreaDirectory();
+
             return ExtensionManager::getBrickConfig($name, $path);
         }
 
@@ -783,7 +809,7 @@ class Areablock extends Model\Document\Tag
         // init
         $doc = Model\Document\Page::getById($this->getDocumentId());
 
-        $list = array();
+        $list = [];
         foreach ($this->getData() as $index => $item) {
             if ($item['type'] == $name) {
                 $list[ $index ] = new Areablock\Item($doc, $this->getName(), $item['key']);

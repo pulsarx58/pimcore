@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Object\Objectbrick
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Object\Objectbrick\Definition;
@@ -56,7 +58,7 @@ class Dao extends Model\Object\Fieldcollection\Definition\Dao
 
         $this->db->query("CREATE TABLE IF NOT EXISTS `" . $tableStore . "` (
 		  `o_id` int(11) NOT NULL default '0',
-          `fieldname` varchar(255) default NULL,
+          `fieldname` varchar(255) default '',
           PRIMARY KEY (`o_id`,`fieldname`),
           INDEX `o_id` (`o_id`),
           INDEX `fieldname` (`fieldname`)
@@ -64,7 +66,7 @@ class Dao extends Model\Object\Fieldcollection\Definition\Dao
 
         $this->db->query("CREATE TABLE IF NOT EXISTS `" . $tableQuery . "` (
 		  `o_id` int(11) NOT NULL default '0',
-          `fieldname` varchar(255) default NULL,
+          `fieldname` varchar(255) default '',
           PRIMARY KEY (`o_id`,`fieldname`),
           INDEX `o_id` (`o_id`),
           INDEX `fieldname` (`fieldname`)
@@ -75,10 +77,10 @@ class Dao extends Model\Object\Fieldcollection\Definition\Dao
         $existingColumnsQuery = $this->getValidTableColumns($tableQuery, false); // no caching of table definition
         $columnsToRemoveQuery = $existingColumnsQuery;
 
-        $protectedColumnsStore = array("o_id", "fieldname");
-        $protectedColumnsQuery = array("o_id", "fieldname");
+        $protectedColumnsStore = ["o_id", "fieldname"];
+        $protectedColumnsQuery = ["o_id", "fieldname"];
 
-        Object\ClassDefinition\Service::updateTableDefinitions($this->tableDefinitions, (array($tableStore, $tableQuery)));
+        Object\ClassDefinition\Service::updateTableDefinitions($this->tableDefinitions, ([$tableStore, $tableQuery]));
 
         foreach ($this->model->getFieldDefinitions() as $value) {
             $key = $value->getName();

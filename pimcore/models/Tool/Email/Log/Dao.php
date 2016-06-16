@@ -2,14 +2,16 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @category   Pimcore
  * @package    Document
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Tool\Email\Log;
@@ -48,7 +50,7 @@ class Dao extends Model\Dao\AbstractDao
      */
     public function save()
     {
-        $data = array();
+        $data = [];
 
         $emailLog = get_object_vars($this->model);
 
@@ -77,7 +79,7 @@ class Dao extends Model\Dao\AbstractDao
         }
 
         try {
-            $this->db->update(self::$dbTable, $data,  $this->db->quoteInto("id = ?", $this->model->getId()));
+            $this->db->update(self::$dbTable, $data, $this->db->quoteInto("id = ?", $this->model->getId()));
         } catch (\Exception $e) {
             \Logger::emerg('Could not Save emailLog with the id "'.$this->model->getId().'" ');
         }
@@ -108,7 +110,7 @@ class Dao extends Model\Dao\AbstractDao
     public function create()
     {
         try {
-            $this->db->insert(self::$dbTable, array());
+            $this->db->insert(self::$dbTable, []);
 
             $date = time();
             $this->model->setId($this->db->lastInsertId());
@@ -128,10 +130,11 @@ class Dao extends Model\Dao\AbstractDao
         if (!is_array($data)) {
             return \Zend_Json::encode(new \stdClass());
         } else {
-            $loggingData = array();
+            $loggingData = [];
             foreach ($data as $key => $value) {
                 $loggingData[] = self::prepareLoggingData($key, $value);
             }
+
             return $loggingData;
         }
     }
@@ -150,20 +153,21 @@ class Dao extends Model\Dao\AbstractDao
         $class->key = $key.' '; //dirty hack - key has to be a string otherwise the treeGrid won't work
 
         if (is_string($value) || is_int($value) || is_null($value)) {
-            $class->data = array('type' => 'simple',
-                'value' => $value);
+            $class->data = ['type' => 'simple',
+                'value' => $value];
         } elseif ($value instanceof \DateTime) {
-            $class->data = array('type' => 'simple',
-                'value' => $value->format("Y-m-d H:i"));
+            $class->data = ['type' => 'simple',
+                'value' => $value->format("Y-m-d H:i")];
         } elseif (is_object($value) && method_exists($value, 'getId')) {
-            $class->data = array('type' => 'object',
+            $class->data = ['type' => 'object',
                 'objectId' => $value->getId(),
-                'objectClass' => get_class($value));
+                'objectClass' => get_class($value)];
         } elseif (is_array($value)) {
             foreach ($value as $entryKey => $entryValue) {
                 $class->children[] = self::prepareLoggingData($entryKey, $entryValue);
             }
         }
+
         return $class;
     }
 }

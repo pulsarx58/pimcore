@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore;
@@ -35,9 +37,10 @@ class ExtensionManager
                     throw new \Exception($file . " doesn't exist");
                 }
             } catch (\Exception $e) {
-                self::$config = new \Zend_Config(array(), true);
+                self::$config = new \Zend_Config([], true);
             }
         }
+
         return self::$config;
     }
 
@@ -91,7 +94,7 @@ class ExtensionManager
     {
         $config = self::getConfig();
         if (!isset($config->$type)) {
-            $config->$type = new \Zend_Config(array(), true);
+            $config->$type = new \Zend_Config([], true);
         }
         $config->$type->$id = true;
         self::setConfig($config);
@@ -114,7 +117,7 @@ class ExtensionManager
     {
         $config = self::getConfig();
         if (!isset($config->$type)) {
-            $config->$type = new \Zend_Config(array(), true);
+            $config->$type = new \Zend_Config([], true);
         }
         $config->$type->$id = false;
         self::setConfig($config);
@@ -133,7 +136,7 @@ class ExtensionManager
      */
     public static function getPluginConfigs()
     {
-        $pluginConfigs = array();
+        $pluginConfigs = [];
 
         if (is_dir(PIMCORE_PLUGINS_PATH) && is_readable(PIMCORE_PLUGINS_PATH)) {
             $pluginDirs = scandir(PIMCORE_PLUGINS_PATH);
@@ -155,6 +158,7 @@ class ExtensionManager
                 }
             }
         }
+
         return $pluginConfigs;
     }
 
@@ -186,17 +190,17 @@ class ExtensionManager
             $cacheKey .= "_" . crc32($customPath);
         }
 
-        $areas = array();
+        $areas = [];
         try {
             $areas = \Zend_Registry::get($cacheKey);
         } catch (\Exception $e) {
             if ($customPath) {
-                $areaRepositories = array($customPath);
+                $areaRepositories = [$customPath];
             } else {
-                $areaRepositories = array(
+                $areaRepositories = [
                     PIMCORE_WEBSITE_PATH . "/views/areas",
                     PIMCORE_WEBSITE_VAR . "/areas"
-                );
+                ];
             }
 
             // include area repositories from active plugins
@@ -248,7 +252,7 @@ class ExtensionManager
         try {
             $configs = \Zend_Registry::get($cacheKey);
         } catch (\Exception $e) {
-            $configs = array();
+            $configs = [];
 
             foreach (self::getBrickDirectories($customPath) as $areaName => $path) {
                 try {

@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.settings.update");
@@ -62,7 +64,7 @@ pimcore.settings.update = Class.create({
             success: function (response) {
                 var res = Ext.decode(response.responseText);
                 if(res && res.success) {
-                    this.checkForAvailableUpdates();
+                    this.checkComposer();
                 } else {
                     this.window.removeAll();
                     this.window.add(new Ext.Panel({
@@ -76,7 +78,36 @@ pimcore.settings.update = Class.create({
             }.bind(this)
         });
     },
-    
+
+    checkComposer: function () {
+        this.window.removeAll();
+        this.window.add(new Ext.Panel({
+            title: "Liveupdate",
+            bodyStyle: "padding: 20px;",
+            html: "<b>Checking composer</b><br /><br />"
+        }));
+        this.window.doLayout();
+
+        Ext.Ajax.request({
+            url: "/admin/update/index/check-composer-installed",
+            success: function (response) {
+                var res = Ext.decode(response.responseText);
+                if(res && res.success) {
+                    this.checkForAvailableUpdates();
+                } else {
+                    this.window.removeAll();
+                    this.window.add(new Ext.Panel({
+                        title: 'ERROR',
+                        bodyStyle: "padding: 20px;",
+                        html: '<div class="pimcore_error"><b>Composer is not installed properly!</b> <br />'
+                        + 'Please ensure that composer is in your PATH variable.</div>'
+                    }));
+                    this.window.doLayout();
+                }
+            }.bind(this)
+        });
+    },
+
     checkForAvailableUpdates: function () {
         this.window.removeAll();
         this.window.add(new Ext.Panel({

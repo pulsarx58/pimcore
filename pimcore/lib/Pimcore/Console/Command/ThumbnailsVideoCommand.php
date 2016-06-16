@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Console\Command;
@@ -57,19 +59,19 @@ class ThumbnailsVideoCommand extends AbstractCommand
             $thumbnails[] = $item->getName();
         }
 
-        $allowedThumbs = array();
+        $allowedThumbs = [];
         if ($input->getOption("thumbnails")) {
             $allowedThumbs = explode(",", $input->getOption("thumbnails"));
         }
 
 
         // get only images
-        $conditions = array("type = 'video'");
+        $conditions = ["type = 'video'"];
 
         if ($input->getOption("parent")) {
             $parent = Asset::getById($input->getOption("parent"));
             if ($parent instanceof Asset\Folder) {
-                $conditions[] = "path LIKE '" . $parent->getFullPath() . "/%'";
+                $conditions[] = "path LIKE '" . $parent->getRealFullPath() . "/%'";
             } else {
                 $this->writeError($input->getOption("parent") . " is not a valid asset folder ID!");
                 exit;
@@ -89,14 +91,14 @@ class ThumbnailsVideoCommand extends AbstractCommand
             foreach ($videos as $video) {
                 foreach ($thumbnails as $thumbnail) {
                     if ((empty($allowedThumbs) && !$input->getOption("system")) || in_array($thumbnail, $allowedThumbs)) {
-                        $this->output->writeln("generating thumbnail for video: " . $video->getFullpath() . " | " . $video->getId() . " | Thumbnail: " . $thumbnail . " : " . formatBytes(memory_get_usage()));
+                        $this->output->writeln("generating thumbnail for video: " . $video->getRealFullPath() . " | " . $video->getId() . " | Thumbnail: " . $thumbnail . " : " . formatBytes(memory_get_usage()));
                         $video->getThumbnail($thumbnail);
                         $this->waitTillFinished($video->getId(), $thumbnail);
                     }
                 }
 
                 if ($input->getOption("system")) {
-                    $this->output->writeln("generating thumbnail for video: " . $video->getFullpath() . " | " . $video->getId() . " | Thumbnail: System Preview : " . formatBytes(memory_get_usage()));
+                    $this->output->writeln("generating thumbnail for video: " . $video->getRealFullPath() . " | " . $video->getId() . " | Thumbnail: System Preview : " . formatBytes(memory_get_usage()));
                     $thumbnail = Asset\Video\Thumbnail\Config::getPreviewConfig();
                     $video->getThumbnail($thumbnail);
                     $this->waitTillFinished($video->getId(), $thumbnail);

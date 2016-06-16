@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.element.selector.abstract");
@@ -127,44 +129,7 @@ pimcore.element.selector.abstract = Class.create({
     },
 
     getPagingToolbar: function(label) {
-        var pagingToolbar = new Ext.PagingToolbar({
-            pageSize: 50,
-            store: this.store,
-            displayInfo: true,
-            displayMsg: '{0} - {1} / {2}',
-            emptyMsg: label
-        });
-
-        // add per-page selection
-        pagingToolbar.add("-");
-
-        pagingToolbar.add(new Ext.Toolbar.TextItem({
-            text: t("items_per_page")
-        }));
-
-        pagingToolbar.add(new Ext.form.ComboBox({
-            store: [
-                [50, "50"],
-                [100, "100"],
-                [200, "200"],
-                [999999, t("all")]
-            ],
-            mode: "local",
-            width: 80,
-            value: 50,
-            triggerAction: "all",
-            editable: false,
-            listeners: {
-                select: function (box, rec, index) {
-                    var store = this.pagingtoolbar.getStore();
-                    store.setPageSize(intval(rec.data.field1));
-                    this.store.getProxy().extraParams.limit = intval(rec.data.field1);
-                    this.pagingtoolbar.pageSize = intval(rec.data.field1);
-                    this.pagingtoolbar.moveFirst();
-                }.bind(this)
-            }
-        }));
-
+        var pagingToolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.store);
         return pagingToolbar;
     },
 

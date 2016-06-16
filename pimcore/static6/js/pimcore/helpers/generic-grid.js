@@ -1,21 +1,28 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.helpers.grid = {};
 
 pimcore.helpers.grid.buildDefaultStore = function(url, fields, itemsPerPage, customConfig) {
 
+    if(url.indexOf('?') === -1) {
+        url = url + "?";
+    } else {
+        url = url + "&";
+    }
+
     var proxy = new Ext.data.proxy.Ajax({
         type: 'ajax',
-
         reader: {
             type: 'json',
             rootProperty: 'data'
@@ -37,24 +44,18 @@ pimcore.helpers.grid.buildDefaultStore = function(url, fields, itemsPerPage, cus
             read   : 'POST',
             update : 'POST',
             destroy: 'POST'
-        }
+        }/*,
+        listeners: {
+            exception: function(proxy, response, operation){
+                Ext.MessageBox.show({
+                    title: 'REMOTE EXCEPTION',
+                    msg: operation.getError(),
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.Msg.OK
+                });
+            }
+        }*/
     });
-    //
-    //Ext.override(proxy, {
-    //
-    //    encodeFilters: function(filters) {
-    //        console.log("gaga");
-    //        var out = [],
-    //            length = filters.length,
-    //            i, op;
-    //        for (i = 0; i < length; i++) {
-    //            out[i] = filters[i].serialize();
-    //        }
-    //        return this.applyEncoding(out);
-    //    }.bind(proxy)
-    //});
-    //
-
 
     var config =  {
         proxy: proxy,
@@ -76,43 +77,59 @@ pimcore.helpers.grid.buildDefaultStore = function(url, fields, itemsPerPage, cus
 };
 
 
-pimcore.helpers.grid.buildDefaultPagingToolbar = function(store, itemsPerPage) {
-    var pagingtoolbar = Ext.create('Ext.PagingToolbar', {
-        pageSize: itemsPerPage,
+pimcore.helpers.grid.getDefaultPageSize = function(scale) {
+    if (scale < 0) {
+        return 25;
+    }
+    return 50;
+};
+
+pimcore.helpers.grid.buildDefaultPagingToolbar = function(store, options) {
+    var config = {
+        pageSize: pimcore.helpers.grid.getDefaultPageSize(),
         store: store,
         displayInfo: true,
         displayMsg: '{0} - {1} / {2}',
-        emptyMsg: t("no_objects_found")
-    });
+        emptyMsg: t("no_items_found")
+    };
+    if (typeof options !== "undefined") {
+        config = Ext.applyIf(options, config);
+    }
+    var pagingtoolbar = Ext.create('Ext.PagingToolbar', config);
 
-    // add per-page selection
-    pagingtoolbar.add("-");
+    if (!config.hideSelection) {
+        // add per-page selection
+        pagingtoolbar.add("-");
 
-    pagingtoolbar.add(Ext.create('Ext.Toolbar.TextItem', {
-        text: t("items_per_page")
-    }));
-    pagingtoolbar.add(Ext.create('Ext.form.ComboBox', {
-        store: [
-            [10, "10"],
-            [20, "20"],
-            [40, "40"],
-            [60, "60"],
-            [80, "80"],
-            [100, "100"]
-        ],
-        mode: "local",
-        width: 80,
-        value: itemsPerPage,
-        triggerAction: "all",
-        editable: false,
-        listeners: {
-            select: function (box, rec) {
-                var store = this.getStore();
-                store.setPageSize(intval(rec.data.field1));
-                this.moveFirst();
-            }.bind(pagingtoolbar)
-        }
-    }));
+        pagingtoolbar.add(Ext.create('Ext.Toolbar.TextItem', {
+            text: t("items_per_page")
+        }));
+        pagingtoolbar.add(Ext.create('Ext.form.ComboBox', {
+            store: [
+                [25, "25"],
+                [50, "50"],
+                [100, "100"],
+                [200, "200"],
+                [999999, t("all")]
+            ],
+            mode: "local",
+            width: 80,
+            value: config.pageSize,
+            triggerAction: "all",
+            editable: true,
+            listeners: {
+                change: function (box, newValue, oldValue) {
+                    var store = this.getStore();
+                    newValue = intval(newValue);
+                    if (!newValue) {
+                        newValue = options.pageSize;
+                    }
+                    store.setPageSize(newValue);
+                    this.moveFirst();
+                }.bind(pagingtoolbar)
+            }
+        }));
+    }
 
     return pagingtoolbar;
 };

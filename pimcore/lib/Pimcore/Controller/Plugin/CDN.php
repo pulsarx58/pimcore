@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Controller\Plugin;
@@ -46,12 +48,12 @@ class CDN extends \Zend_Controller_Plugin_Abstract
     /**
      * @var array
      */
-    protected $cdnhostnames = array();
+    protected $cdnhostnames = [];
 
     /**
      * @var array
      */
-    protected $cdnpatterns = array();
+    protected $cdnpatterns = [];
 
     /**
      *
@@ -80,12 +82,13 @@ class CDN extends \Zend_Controller_Plugin_Abstract
     protected function getHostnames()
     {
         if ($this->hostnames === null) {
-            $this->hostnames = array();
+            $this->hostnames = [];
             $hosts = $this->getCdnhostnames();
             if (is_array($hosts) && count($hosts) > 0) {
                 $this->hostnames = $hosts;
             }
         }
+
         return $this->hostnames;
     }
 
@@ -95,12 +98,13 @@ class CDN extends \Zend_Controller_Plugin_Abstract
     protected function getPatterns()
     {
         if ($this->patterns === null) {
-            $this->patterns = array();
+            $this->patterns = [];
             $patterns = $this->getCdnpatterns();
             if (is_array($patterns) && count($patterns) > 0) {
                 $this->patterns = $patterns;
             }
         }
+
         return $this->patterns;
     }
 
@@ -115,9 +119,11 @@ class CDN extends \Zend_Controller_Plugin_Abstract
                 if (strpos($path, "/") === 0) {
                     return true;
                 }
+
                 return true;
             }
         }
+
         return false;
     }
 
@@ -127,11 +133,12 @@ class CDN extends \Zend_Controller_Plugin_Abstract
     protected function getStorage()
     {
         if ($this->cachedItems === null) {
-            $this->cachedItems = array();
+            $this->cachedItems = [];
             if ($items = CacheManager::load(self::cacheKey)) {
                 $this->cachedItems = $items;
             }
         }
+
         return $this->cachedItems;
     }
 
@@ -197,7 +204,7 @@ class CDN extends \Zend_Controller_Plugin_Abstract
                 $this->getResponse()->setBody($body);
 
                 // save storage
-                CacheManager::save($this->cachedItems, self::cacheKey, array(), 3600);
+                CacheManager::save($this->cachedItems, self::cacheKey, [], 3600);
             }
         }
     }
@@ -209,6 +216,7 @@ class CDN extends \Zend_Controller_Plugin_Abstract
     public function setCdnhostnames($cdnhostnames)
     {
         $this->cdnhostnames = $cdnhostnames;
+
         return $this;
     }
 
@@ -227,6 +235,7 @@ class CDN extends \Zend_Controller_Plugin_Abstract
     public function setCdnpatterns($cdnpatterns)
     {
         $this->cdnpatterns = $cdnpatterns;
+
         return $this;
     }
 

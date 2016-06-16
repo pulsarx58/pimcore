@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.document.pages.settings");
@@ -161,7 +163,7 @@ pimcore.document.pages.settings = Class.create({
                         style: "float:left;margin-right:5px;"
                     },{
                         xtype: "combo",
-                        store: ["","og:title","og:type","og:url","og:image","og:description","og:locale",
+                        store: ["","robots","og:title","og:type","og:url","og:image","og:description","og:locale",
                                                                 "twitter:card","twitter:site","twitter:creator"],
                         value: idValue,
                         editable: true,
@@ -284,20 +286,6 @@ pimcore.document.pages.settings = Class.create({
                                 listeners: {
                                     "keyup": function (el) {
                                         el.label.update(t("description") + " (" + el.getValue().length + "):");
-                                    }
-                                }
-                            },
-                            {
-                                fieldLabel: t('keywords')  + " (" + this.page.data.keywords.length + ")",
-                                name: 'keywords',
-                                maxLength: 255,
-                                height: 51,
-                                width: 500,
-                                value: this.page.data.keywords,
-                                enableKeyEvents: true,
-                                listeners: {
-                                    "keyup": function (el) {
-                                        el.label.update(t("keywords") + " (" + el.getValue().length + "):");
                                     }
                                 }
                             },

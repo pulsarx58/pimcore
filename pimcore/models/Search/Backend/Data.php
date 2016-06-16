@@ -2,12 +2,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Search\Backend;
@@ -112,6 +114,7 @@ class Data extends \Pimcore\Model\AbstractModel
         if (!$this->dao) {
             $this->initDao("\\Pimcore\\Model\\Search\\Backend\\Data");
         }
+
         return $this->dao;
     }
 
@@ -131,6 +134,7 @@ class Data extends \Pimcore\Model\AbstractModel
     public function setId($id)
     {
         $this->id = $id;
+
         return $this;
     }
 
@@ -149,6 +153,7 @@ class Data extends \Pimcore\Model\AbstractModel
     public function setFullPath($fullpath)
     {
         $this->fullPath = $fullpath;
+
         return $this;
     }
 
@@ -167,6 +172,7 @@ class Data extends \Pimcore\Model\AbstractModel
     public function setType($type)
     {
         $this->type = $type;
+
         return $this;
     }
 
@@ -186,6 +192,7 @@ class Data extends \Pimcore\Model\AbstractModel
     public function setSubtype($subtype)
     {
         $this->subtype = $subtype;
+
         return $this;
     }
 
@@ -204,6 +211,7 @@ class Data extends \Pimcore\Model\AbstractModel
     public function setCreationDate($creationDate)
     {
         $this->creationDate = $creationDate;
+
         return $this;
     }
 
@@ -222,6 +230,7 @@ class Data extends \Pimcore\Model\AbstractModel
     public function setModificationDate($modificationDate)
     {
         $this->modificationDate = $modificationDate;
+
         return $this;
     }
 
@@ -240,6 +249,7 @@ class Data extends \Pimcore\Model\AbstractModel
     public function setUserModification($userModification)
     {
         $this->userModification = $userModification;
+
         return $this;
     }
 
@@ -258,6 +268,7 @@ class Data extends \Pimcore\Model\AbstractModel
     public function setUserOwner($userOwner)
     {
         $this->userOwner = $userOwner;
+
         return $this;
     }
 
@@ -284,6 +295,7 @@ class Data extends \Pimcore\Model\AbstractModel
     public function setPublished($published)
     {
         $this->published = (bool) $published;
+
         return $this;
     }
 
@@ -302,6 +314,7 @@ class Data extends \Pimcore\Model\AbstractModel
     public function setData($data)
     {
         $this->data = $data;
+
         return $this;
     }
 
@@ -320,6 +333,7 @@ class Data extends \Pimcore\Model\AbstractModel
     public function setProperties($properties)
     {
         $this->properties = $properties;
+
         return $this;
     }
 
@@ -332,7 +346,7 @@ class Data extends \Pimcore\Model\AbstractModel
         $this->data = null;
 
         $this->id = new Data\Id($element);
-        $this->fullPath = $element->getFullPath();
+        $this->fullPath = $element->getRealFullPath();
         $this->creationDate=$element->getCreationDate();
         $this->modificationDate=$element->getModificationDate();
         $this->userModification = $element->getUserModification();
@@ -380,7 +394,7 @@ class Data extends \Pimcore\Model\AbstractModel
                 }
                 if ($element instanceof Document\Page) {
                     $this->published = $element->isPublished();
-                    $this->data .= " ".$element->getTitle()." ".$element->getDescription()." ".$element->getKeywords() . " " . $element->getPrettyUrl();
+                    $this->data .= " ".$element->getTitle()." ".$element->getDescription()." " . $element->getPrettyUrl();
                 }
             }
         } elseif ($element instanceof Asset) {
@@ -397,10 +411,14 @@ class Data extends \Pimcore\Model\AbstractModel
 
             if ($element instanceof Asset\Document && \Pimcore\Document::isAvailable()) {
                 if (\Pimcore\Document::isFileTypeSupported($element->getFilename())) {
-                    $contentText = $element->getText();
-                    $contentText = str_replace(["\r\n", "\r", "\n", "\t", "\f"], " ", $contentText);
-                    $contentText = preg_replace("/[ ]+/", " ", $contentText);
-                    $this->data .= " " . $contentText;
+                    try {
+                        $contentText = $element->getText();
+                        $contentText = str_replace(["\r\n", "\r", "\n", "\t", "\f"], " ", $contentText);
+                        $contentText = preg_replace("/[ ]+/", " ", $contentText);
+                        $this->data .= " " . $contentText;
+                    } catch (\Exception $e) {
+                        \Logger::error($e);
+                    }
                 }
             }
 
@@ -455,6 +473,7 @@ class Data extends \Pimcore\Model\AbstractModel
     {
         $data = new self();
         $data->getDao()->getForElement($element);
+
         return $data;
     }
 

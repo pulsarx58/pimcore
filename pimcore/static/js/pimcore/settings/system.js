@@ -1,12 +1,14 @@
 /**
  * Pimcore
  *
- * This source file is subject to the GNU General Public License version 3 (GPLv3)
- * For the full copyright and license information, please view the LICENSE.md and gpl-3.0.txt
- * files that are distributed with this source code.
+ * This source file is available under two different licenses:
+ * - GNU General Public License version 3 (GPLv3)
+ * - Pimcore Enterprise License (PEL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
  *
  * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
- * @license    http://www.pimcore.org/license     GNU General Public License version 3 (GPLv3)
+ * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 pimcore.registerNS("pimcore.settings.system");
@@ -187,10 +189,10 @@ pimcore.settings.system = Class.create({
                                 mode: "local",
                                 triggerAction: "all"
                             },{
-                                fieldLabel: t("absolute_path_to_php_cli_binary"),
+                                fieldLabel: t("additional_path_variable_colon_separated") + " (/x/y:/foo/bar)",
                                 xtype: "textfield",
-                                name: "general.php_cli",
-                                value: this.getValue("general.php_cli"),
+                                name: "general.path_variable",
+                                value: this.getValue("general.path_variable"),
                                 width: 300
                             },
                             {
@@ -1008,41 +1010,6 @@ pimcore.settings.system = Class.create({
                                 }
                             },
                             {
-                                fieldLabel: t('absolute_path_to_ffmpeg_binary'),
-                                name: 'assets.ffmpeg',
-                                value: this.getValue("assets.ffmpeg"),
-                                width: 300
-                            },{
-                                fieldLabel: t('absolute_path_to_ghostscript'),
-                                name: 'assets.ghostscript',
-                                value: this.getValue("assets.ghostscript"),
-                                width: 300
-                            },{
-                                fieldLabel: t('absolute_path_to_libreoffice'),
-                                name: 'assets.libreoffice',
-                                value: this.getValue("assets.libreoffice"),
-                                width: 300
-                            },{
-                                fieldLabel: t('absolute_path_to_pngcrush'),
-                                name: 'assets.pngcrush',
-                                value: this.getValue("assets.pngcrush"),
-                                width: 300
-                            },{
-                                fieldLabel: t('absolute_path_to_imgmin'),
-                                name: 'assets.imgmin',
-                                value: this.getValue("assets.imgmin"),
-                                width: 300
-                            },{
-                                fieldLabel: t('absolute_path_to_jpegoptim'),
-                                name: 'assets.jpegoptim',
-                                value: this.getValue("assets.jpegoptim"),
-                                width: 300
-                            },{
-                                fieldLabel: t('absolute_path_to_pdftotext'),
-                                name: 'assets.pdftotext',
-                                value: this.getValue("assets.pdftotext"),
-                                width: 300
-                            },{
                                 fieldLabel: t('absolute_path_to_icc_rgb_profile') + " (imagick)",
                                 name: 'assets.icc_rgb_profile',
                                 value: this.getValue("assets.icc_rgb_profile"),
